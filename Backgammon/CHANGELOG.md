@@ -5,7 +5,7 @@
 ## [0.0.2] 24/08/2025
 ### ADDED
 - Se agrega la estructura final del juego:
-- arpeta Test (con archivo de test para cada clase e interfaces)
+- Carpeta Test (con archivo de test para cada clase e interfaces)
 - Carpeta Interfaces (con CLI y PygameUI correspondientes a la intefaz de texto y grafica) (interfaces vacias)
 - Archivos .md: prompts y changelog
 - Creamos tambien una milestone correspondiente a las interfaces, una milestone para los tests y una milestone para los avances en archivos .md y sus correspondientes issues. 
