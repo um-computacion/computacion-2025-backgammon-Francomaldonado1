@@ -1,5 +1,5 @@
 ## [0.0.1] 23/08/2025
-### ADED
+### ADDED
 -Estructura inicial del juego, Carpeta principal Backgammon con carpeta Core donde se encuentran las clases basicas del juego (vacias)
 
 ## [0.0.2] 24/08/2025
