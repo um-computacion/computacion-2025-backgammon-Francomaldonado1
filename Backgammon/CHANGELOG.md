@@ -12,10 +12,10 @@
 
 ### CHANGED
 - Se cambia el nombre de la carpeta principal a Backgammon
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 - Se volvió a pushear la estructura de las clases debido a este cambio
-=======
-- Se volvió a pushear la estructura de las clases debido a este cambio
+
 
 ## [0.0.3] 25/08/2025
 ### ADDED
@@ -26,4 +26,3 @@
 - Se agrego archivo .gitignore con archivo __pycache__.
 
 
->>>>>>> Stashed changes
