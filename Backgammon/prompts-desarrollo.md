@@ -715,3 +715,345 @@ def mover_ficha(self, origen: int, destino: int, color: str) -> None:
 
 (funciona, pasan tests de board)
 
+### Utilizando claude.ai 
+
+
+YO:
+
+podrias ayudarme ahora a empezar con la clase Dice, la cual va a tener la logica de los dados y sus tiradas, teniendo en cuenta todo lo hablado anteriormente, fundamentalmente lo de definir atributos con doble guion bajo antes y despues, y los doscstrings por lo menos de los Args y Returns de los metodos de la clase, gracias.
+
+BOT: 
+
+Funcionalidades típicas de dados en Backgammon:
+
+Tirar 2 dados
+Detectar dobles (cuando ambos dados son iguales)
+Manejar los movimientos disponibles (en dobles se pueden hacer 4 movimientos)
+Llevar registro de qué movimientos ya se usaron
+
+Preguntas para diseñar la clase correctamente:
+
+¿Qué comportamiento específico necesitas?
+
+¿Solo tirar dados o también manejar los movimientos disponibles?
+¿Necesitas que registre qué movimientos ya se usaron en un turno?
+
+
+¿Qué métodos principales visualizas?
+
+tirar_dados() - para hacer una tirada
+obtener_movimientos_disponibles() - para saber qué se puede mover
+usar_movimiento() - para marcar un movimiento como usado
+hay_movimientos_disponibles() - para saber si quedan movimientos
+
+
+¿Hay alguna lógica especial?
+
+En Backgammon, con dobles puedes mover 4 veces el mismo número
+¿Necesitas validar si los movimientos son válidos?
+
+YO:
+
+Bien, a continuación te dejo estas indicaciones sobre sus funcionalidades típicas: El tablero debe contener 24 triángulos (llamados puntos), divididos en cuatro cuadrantes. Cada jugador comienza con 15 fichas en posiciones estándar. Se utilizarán dos dados de seis caras para determinar los movimientos. Las tiradas dobles permiten repetir los valores. Los jugadores deben mover sus fichas siguiendo las reglas tradicionales del juego, incluyendo movimientos válidos, capturas y reingresos desde la barra. Se debe implementar la condición de victoria. Sobre la pregunta de los metodos, siento que solamente deberia tener la logica de tirar dado y guardar el valor, ya que el tablero debería implementar la logica de validar el movimiento o ver si hay movimientos disponibles, eso o una clase del juego con la logica del juego, por ejemplo en la clase Checker, solamente guardamos la definición de la ficha con color y posición unicamente, dejando asi que el tablero se encargue de la logica de su interacción.
+
+BOT: 
+
+import random
+
+
+class Dice:
+    """
+    Dados de Backgammon para generar tiradas de dos dados de seis caras.
+    """
+
+    def __init__(self):
+        """
+        Inicializa los dados sin valores.
+
+        Returns:
+            None
+        """
+        self.__dado1__ = None
+        self.__dado2__ = None
+
+    def tirar(self) -> None:
+        """
+        Tira ambos dados y guarda los valores obtenidos.
+
+        Returns:
+            None
+        """
+        self.__dado1__ = random.randint(1, 6)
+        self.__dado2__ = random.randint(1, 6)
+
+    def obtener_valores(self) -> tuple[int, int]:
+        """
+        Devuelve los valores actuales de ambos dados.
+
+        Returns:
+            tuple[int, int]: Valores del dado1 y dado2, o (None, None) si no se han tirado.
+        """
+        return (self.__dado1__, self.__dado2__)
+
+    def obtener_dado1(self) -> int | None:
+        """
+        Devuelve el valor del primer dado.
+
+        Returns:
+            int | None: Valor del primer dado o None si no se ha tirado.
+        """
+        return self.__dado1__
+
+    def obtener_dado2(self) -> int | None:
+        """
+        Devuelve el valor del segundo dado.
+
+        Returns:
+            int | None: Valor del segundo dado o None si no se ha tirado.
+        """
+        return self.__dado2__
+
+    def es_doble(self) -> bool:
+        """
+        Indica si la tirada actual es un doble.
+
+        Returns:
+            bool: True si ambos dados tienen el mismo valor, False en caso contrario.
+            
+        Raises:
+            ValueError: Si no se han tirado los dados todavía.
+        """
+        if self.__dado1__ is None or self.__dado2__ is None:
+            raise ValueError("No se han tirado los dados todavía.")
+        
+        return self.__dado1__ == self.__dado2__
+
+    def han_sido_tirados(self) -> bool:
+        """
+        Indica si los dados ya han sido tirados en esta instancia.
+
+        Returns:
+            bool: True si los dados tienen valores, False si están sin tirar.
+        """
+        return self.__dado1__ is not None and self.__dado2__ is not None
+
+    def reiniciar(self) -> None:
+        """
+        Reinicia los dados para una nueva tirada.
+
+        Returns:
+            None
+        """
+        self.__dado1__ = None
+        self.__dado2__ = None
+
+    def __str__(self) -> str:
+        """
+        Devuelve una representación legible de la tirada actual.
+
+        Returns:
+            str: Descripción de los valores de los dados.
+        """
+        if not self.han_sido_tirados():
+            return "Dados sin tirar"
+        
+        resultado = f"Dados: {self.__dado1__}, {self.__dado2__}"
+        if self.es_doble():
+            resultado += " (¡Doble!)"
+        
+        return resultado
+
+
+YO:
+
+Bien gracias, los tests funcionan correctamente, debería agregarle ahora la lógica de mover posiciones en el tablero según los valores de los dados en la clase de Board, no? O primero nos conviene hacer la clase de Player?
+
+BOT: 
+
+Recomienda avanzar con la clase Player (se me acabo el plan gratuito, procedo a usar GPT-5)
+
+### Utilizando GPT-5
+
+YO: 
+
+Recuerdas lo que hemos hecho hasta ahora? Ya hice la clase Dice ahora, y me gustaría finalizar con la clase Player, siguiendo el mismo diseño utilizado para la clase Checker, osea que solo tenga la logica basica dejando que el tablero se encargue de todo movimiento y demas, por ejemplo la clase Dice, tiene solamente el registro de los dados con una tirada random y la logica del movimiento va luego en la clase Player, (el jugador decide adonde mover) deberia ser asi no?
+
+BOT: 
+
+from Backgammon.Core.Checker import Checker
+from Backgammon.Core.Dice import Dice
+
+class Player:
+    """
+    Representa a un jugador de Backgammon.
+    """
+
+    def __init__(self, nombre: str, color: str):
+        """
+        Crea un jugador.
+
+        Args:
+            nombre (str): Nombre del jugador.
+            color (str): Color de sus fichas ('blanco' o 'negro').
+        """
+        self.__nombre = nombre
+        self.__color = color
+        self.__fichas = [Checker(color) for _ in range(15)]  # cada jugador tiene 15 fichas
+        self.__dados = None  # se guarda la última tirada de Dice
+
+    def obtener_nombre(self) -> str:
+        return self.__nombre
+
+    def obtener_color(self) -> str:
+        return self.__color
+
+    def obtener_fichas(self) -> list[Checker]:
+        return self.__fichas
+
+    def tirar_dados(self) -> list[int]:
+        """
+        Lanza los dados y guarda la tirada.
+        """
+        self.__dados = Dice()
+        return self.__dados.obtener_valores()
+
+    def obtener_dados(self) -> list[int] | None:
+        """
+        Devuelve los valores de la última tirada, si existen.
+        """
+        return None if self.__dados is None else self.__dados.obtener_valores()
+
+    def __str__(self) -> str:
+        return f"Jugador(nombre={self.__nombre}, color={self.__color})"
+
+
+YO:
+
+Bien, podrias hacerlo nuevamente poniendo docstrings de Args y Returns para cada metodo, y tambien defini los atributos con doble guion bajo antes y despues del atributo, para acceder unicamente con self (lo hablamos antes), el resto esta bien.
+
+BOT:
+
+from Backgammon.Core.Checker import Checker
+from Backgammon.Core.Dice import Dice
+
+class Player:
+    """
+    Representa a un jugador de Backgammon.
+    """
+
+    def __init__(self, nombre: str, color: str):
+        """
+        Inicializa un jugador con su nombre, color y 15 fichas.
+
+        Args:
+            nombre (str): Nombre del jugador.
+            color (str): Color de sus fichas ('blanco' o 'negro').
+        """
+        self.__nombre__ = nombre
+        self.__color__ = color
+        self.__fichas__ = [Checker(color) for _ in range(15)]
+        self.__dados__ = None  # Guarda la última tirada (objeto Dice)
+
+    def obtener_nombre(self) -> str:
+        """
+        Devuelve el nombre del jugador.
+
+        Returns:
+            str: Nombre del jugador.
+        """
+        return self.__nombre__
+
+    def obtener_color(self) -> str:
+        """
+        Devuelve el color asignado al jugador.
+
+        Returns:
+            str: Color del jugador ('blanco' o 'negro').
+        """
+        return self.__color__
+
+    def obtener_fichas(self) -> list[Checker]:
+        """
+        Devuelve la lista de fichas del jugador.
+
+        Returns:
+            list[Checker]: Lista con las 15 fichas del jugador.
+        """
+        return self.__fichas__
+
+    def tirar_dados(self) -> list[int]:
+        """
+        Lanza los dados y guarda la tirada.
+
+        Returns:
+            list[int]: Valores obtenidos en los dados.
+        """
+        self.__dados__ = Dice()
+        return self.__dados__.obtener_valores()
+
+    def obtener_dados(self) -> list[int] | None:
+        """
+        Devuelve los valores de la última tirada, si existen.
+
+        Returns:
+            list[int] | None: Lista con los valores de los dados o None si no se han tirado.
+        """
+        return None if self.__dados__ is None else self.__dados__.obtener_valores()
+
+    def __str__(self) -> str:
+        """
+        Representación en texto del jugador.
+
+        Returns:
+            str: Cadena descriptiva del jugador.
+        """
+        return f"Jugador(nombre={self.__nombre__}, color={self.__color__})"
+
+
+YO:
+
+yo en la clase Dice implemente los metodos de tirar dados y obtener los valores (guardar esos valores), entonces en player deberiamos importar esos metodos no? osea no hace falta que el player tenga metodo tirar_dado y obtener_dado ya que eso esta en otra clase y luego el tablero se encarga de obtener estos valores para cambiar la posicion de las fichas de cada jugador respectivamente, estoy en lo correcto o esta mal esta implementacion?
+
+BOT:
+
+from Backgammon.Core.Checker import Checker
+from Backgammon.Core.Dice import Dice
+
+class Player:
+    """
+    Representa a un jugador de Backgammon.
+    """
+
+    def __init__(self, nombre: str, color: str):
+        """
+        Inicializa un jugador con su nombre, color y 15 fichas.
+
+        Args:
+            nombre (str): Nombre del jugador.
+            color (str): Color de sus fichas ('blanco' o 'negro').
+        """
+        self.__nombre__ = nombre
+        self.__color__ = color
+        self.__fichas__ = [Checker(color) for _ in range(15)]
+        self.__dados__ = Dice()  # Cada jugador tiene sus dados propios
+
+    def obtener_nombre(self) -> str:
+        """Devuelve el nombre del jugador."""
+        return self.__nombre__
+
+    def obtener_color(self) -> str:
+        """Devuelve el color del jugador ('blanco' o 'negro')."""
+        return self.__color__
+
+    def obtener_fichas(self) -> list[Checker]:
+        """Devuelve la lista de fichas del jugador."""
+        return self.__fichas__
+
+    def obtener_dados(self) -> Dice:
+        """Devuelve el objeto dados del jugador."""
+        return self.__dados__
+
+    def __str__(self) -> str:
+        return f"Jugador(nombre={self.__nombre__}, color={self.__color__})"
+
+
