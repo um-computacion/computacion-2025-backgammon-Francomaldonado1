@@ -19,7 +19,7 @@
 ### ADDED
 - Se agrega la clase Board.py inicial, con algunos metodos, cada metodo tiene su documentación haciendo enfoque en lo que recibe, hace y devuelve (Args y Returns)
 - Se agregan Tests para la clase Board en Tests/Test_board.py.
-- Se agrega en prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la clase Board.
+- Se actualiza prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la clase Board.
 - Se agrego archivos __init__.py en Core, Interfaces y Tests para que los tests puedan importar correctamente.
 - Se agrego archivo .gitignore con archivo __pycache__.
 
@@ -28,6 +28,15 @@
 ### ADDED
 - Se agrega la clase Checker.py inicial, con algunos metodos, cada metodo tiene su documentación haciendo enfoque en lo que recibe, hace y devuelve (Args y Returns)
 - Se agregan Tests para la clase Checker en Tests/Test_Checker.py.
-- Se agrega en prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la clase Checker.
+- Se actualiza prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la clase Checker.
 - Actualizamos clase Board.py con algunos metodos que surgieron al hacer la clase Checker, y agregamos tests para ellos para asegurar una cobertura de código alta.
 - Se agrega el archivo JUSTIFICACIÓN.md con la justificación de la implementación de Checker.
+
+
+## [0.0.5] 27/08/2025
+### ADDED
+- Se agrega la clase Dice.py inicial, con algunos metodos, cada metodo tiene su documentación haciendo enfoque en lo que recibe, hace y devuelve (Args y Returns)
+- Se agrega la clase Player.py inicial, con algunos metodos, cada metodo tiene su documentación haciendo enfoque en lo que recibe, hace y devuelve (Args y Returns)
+- Se agregan Tests para la clase Dice y Player en Tests/Test_Dice.py y Tests/Test_Player.py respectivamente.
+- Se actualiza prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la clase Dice y Player.
+
