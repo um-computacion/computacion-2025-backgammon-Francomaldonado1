@@ -655,3 +655,29 @@ YO: No entiendo porque importas las clases Dice y Checker si luego no utilizas n
 
 BOT: No los estoy usando para llamar sus métodos directamente, sino para asegurar que Player crea realmente objetos de esas clases.
 
+YO: 
+
+Acabo de implementar lo que hicimos para la clase Dice y Player en Board, varios metodos relacionados a los dados y las posiciones de las fichas iniciales y los movimientos posibles a realizar por los jugadores, te mando la clase Board actualizada y necesito que me hagas tests para estos metodos nuevos, teniendo en cuenta lo de la cobertura que hemos hecho en todos los archivos de tests, osea testeando la mayoria de escenarios posibles. 
+(Mando codigo de clase Board y Test_board.py)
+
+BOT: 
+
+(Manda codigo de test_board actualizado)
+(Falla el codigo, me recomienda cambiar algunos metodos de la clase Board)
+
+YO:
+
+podrias entonces actualizar el codigo de Board? y agregar los correspondientes ValueError con su mensaje de error.
+
+BOT: 
+
+(Me pasa codigo actualizado)
+
+YO: (Reconozco que hay errores de AtributeError, al utilizar los atributos de las clases los tests no usaban doble guion bajo antes y despues para llamarlos por lo que no corrian los tests)  
+
+YO: 
+
+podrias actualizar todos los tests solamente agregando a los atributos estos dos guiones bajos antes y despues de ellos? te dejo el codigo de test_board para que lo hagas (Le mando codigo de test_board.py)
+
+BOT: (Me pasa el codigo actualizado)
+
