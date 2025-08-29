@@ -40,3 +40,9 @@
 - Se agregan Tests para la clase Dice y Player en Tests/Test_Dice.py y Tests/Test_Player.py respectivamente.
 - Se actualiza prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la clase Dice y Player.
 
+## [0.0.6] 28/08/2025
+### CHANGED
+- Se actualiza la clase Board con nuevos metodos correspondientes a los movimientos posibles a partir de las posiciones del tablero y los valores obtenidos de la clase Dice (dados), Cada metodo tiene su documentación haciendo enfoque en lo que recibe, hace y devuelve (Args y Returns)
+- Se agregan nuevos tests para los nuevos metodos de la clase Board. (No funcionales actualmente) 
+- Se actualiza prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar los nuevos metodos de la clase Board.
+

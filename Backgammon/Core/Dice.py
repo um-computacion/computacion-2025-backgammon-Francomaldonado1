@@ -1,6 +1,4 @@
 import random
-
-
 class Dice:
     """
     Dados de Backgammon para generar tiradas de dos dados de seis caras.

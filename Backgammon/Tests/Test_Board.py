@@ -1,6 +1,7 @@
 import unittest
 from Backgammon.Core.Board import Board
-
+from Backgammon.Core.Dice import Dice
+from Backgammon.Core.Player import Player
 
 class TestTablero(unittest.TestCase):
     def setUp(self):
@@ -168,6 +169,114 @@ class TestTablero(unittest.TestCase):
         self.assertEqual(self.tablero.obtener_estado_punto(1), ["blanco", 1])
         self.assertEqual(self.tablero.obtener_estado_punto(7), ["blanco", 1])
         self.assertEqual(self.tablero.get_barra(), {"negro": 1})
+
+
+    def test_inicializar_posiciones_estandar(self):
+        """La configuración inicial estándar debe tener las fichas en posiciones correctas."""
+        self.tablero.inicializar_posiciones_estandar()
+        self.assertEqual(self.tablero.obtener_estado_punto(1), ["negro", 2])
+        self.assertEqual(self.tablero.obtener_estado_punto(12), ["negro", 5])
+        self.assertEqual(self.tablero.obtener_estado_punto(17), ["negro", 3])
+        self.assertEqual(self.tablero.obtener_estado_punto(19), ["negro", 5])
+        self.assertEqual(self.tablero.obtener_estado_punto(24), ["blanco", 2])
+        self.assertEqual(self.tablero.obtener_estado_punto(13), ["blanco", 5])
+        self.assertEqual(self.tablero.obtener_estado_punto(8), ["blanco", 3])
+        self.assertEqual(self.tablero.obtener_estado_punto(6), ["blanco", 5])
+
+    def test_calcular_destino_negro_y_blanco(self):
+        """El cálculo de destino debe respetar dirección según color."""
+        self.assertEqual(self.tablero.calcular_destino(5, 3, "negro"), 8)
+        self.assertEqual(self.tablero.calcular_destino(22, 6, "negro"), 25)  # sale
+        self.assertEqual(self.tablero.calcular_destino(20, 3, "blanco"), 17)
+        self.assertEqual(self.tablero.calcular_destino(3, 4, "blanco"), 0)   # sale
+
+    def test_es_movimiento_valido_a_punto(self):
+        """Debe validar correctamente puntos vacíos, propios y contrarios."""
+        self.assertTrue(self.tablero.es_movimiento_valido_a_punto(5, "rojo"))  # vacío
+        self.tablero.colocar_ficha(10, "rojo", 2)
+        self.assertTrue(self.tablero.es_movimiento_valido_a_punto(10, "rojo"))  # mismo color
+        self.tablero.colocar_ficha(15, "azul", 1)
+        self.assertTrue(self.tablero.es_movimiento_valido_a_punto(15, "rojo"))  # puede comer
+        self.tablero.colocar_ficha(18, "azul", 2)
+        self.assertFalse(self.tablero.es_movimiento_valido_a_punto(18, "rojo"))  # bloqueado
+
+    def test_puede_sacar_fichas(self):
+        """Debe permitir sacar fichas solo si todas están en el cuarto final y no hay en barra."""
+        self.tablero.colocar_ficha(19, "negro", 15)
+        self.assertTrue(self.tablero.puede_sacar_fichas("negro"))
+        self.tablero.colocar_ficha(10, "negro", 1)
+        self.assertFalse(self.tablero.puede_sacar_fichas("negro"))
+        self.tablero = Board()
+        self.tablero.colocar_ficha(1, "blanco", 15)
+        self.assertTrue(self.tablero.puede_sacar_fichas("blanco"))
+        self.tablero.colocar_ficha(12, "blanco", 1)
+        self.assertFalse(self.tablero.puede_sacar_fichas("blanco"))
+
+    def test_mover_desde_barra_exitoso_y_bloqueado(self):
+        """Mover desde barra debe funcionar si el punto es válido, o fallar si está bloqueado."""
+        self.tablero.enviar_a_barra("negro")
+        self.assertTrue(self.tablero.mover_desde_barra("negro", 3))
+        self.assertEqual(self.tablero.obtener_estado_punto(3), ["negro", 1])
+        self.assertFalse(self.tablero.tiene_fichas_en_barra("negro"))
+
+        self.tablero.enviar_a_barra("blanco")
+        self.tablero.colocar_ficha(22, "negro", 2)  # bloqueado
+        self.assertFalse(self.tablero.mover_desde_barra("blanco", 3))
+        self.assertTrue(self.tablero.tiene_fichas_en_barra("blanco"))
+
+    def test_realizar_movimiento_completo_normal_y_salida(self):
+       """Debe mover con dados correctamente, incluyendo salida del tablero."""
+       dados = Dice()
+       dados.__dado1__ = 3
+       dados.__dado2__ = 5
+       dados.__tirados__ = True
+
+       self.tablero.colocar_ficha(5, "negro", 1)
+       self.assertTrue(self.tablero.realizar_movimiento_completo("negro", dados, 5, usar_dado1=True))
+       self.assertEqual(self.tablero.obtener_estado_punto(8), ["negro", 1])
+
+       self.tablero.colocar_ficha(23, "negro", 1)
+       self.tablero.colocar_ficha(24, "negro", 14)  # todas en zona final
+       self.assertTrue(self.tablero.realizar_movimiento_completo("negro", dados, 23, usar_dado2=True))
+       self.assertEqual(self.tablero.get_casa().get("negro", 0), 1)
+
+    def test_realizar_movimiento_completo_desde_barra(self):
+       """Debe poder mover desde la barra usando un dado válido."""
+       dados = Dice()
+       dados.__dado1__ = 4
+       dados.__dado2__ = 2
+       dados.__tirados__ = True
+ 
+       self.tablero.enviar_a_barra("blanco")
+       self.assertTrue(self.tablero.realizar_movimiento_completo("blanco", dados, 0, usar_dado2=True))
+       self.assertEqual(self.tablero.obtener_estado_punto(23), ["blanco", 1])
+
+    def test_obtener_movimientos_posibles_sin_y_con_barra(self):
+       """Debe devolver lista de puntos posibles para mover con dados."""
+       dados = Dice()
+       dados.__dado1__ = 2
+       dados.__dado2__ = 3
+       dados.__tirados__ = True
+
+       self.tablero.colocar_ficha(5, "negro", 1)
+       movimientos = self.tablero.obtener_movimientos_posibles("negro", dados)
+       self.assertIn(5, movimientos)
+
+       self.tablero.enviar_a_barra("negro")
+       movimientos = self.tablero.obtener_movimientos_posibles("negro", dados)
+       self.assertEqual(movimientos, [0])
+
+
+    def test_tiene_fichas_en_barra_y_ha_ganado(self):
+        """Debe detectar correctamente fichas en barra y condición de victoria."""
+        self.assertFalse(self.tablero.tiene_fichas_en_barra("rojo"))
+        self.tablero.enviar_a_barra("rojo")
+        self.assertTrue(self.tablero.tiene_fichas_en_barra("rojo"))
+
+        self.assertFalse(self.tablero.ha_ganado("rojo"))
+        for _ in range(15):
+            self.tablero.sacar_ficha("rojo")
+        self.assertTrue(self.tablero.ha_ganado("rojo"))
 
 
 if __name__ == "__main__":
