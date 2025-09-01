@@ -1121,5 +1121,19 @@ BOT: (Me manda codigo de metodo faltante (realizar_movimiento_doble))
 
 (Se me acabo el plan gratuito, procedo a usar GPT-5)
 
-### Utilizando GPT-5
+YO:
+
+podrias ayudarme a solucionar estos errores en el codigo de board y sus tests?: (le mando error completo)
+
+BOT:
+
+(Me actualiza el codigo)
+
+YO:
+
+gracias, ahora solo fallan dos tests: (le mando error completo)
+
+
+
+
 

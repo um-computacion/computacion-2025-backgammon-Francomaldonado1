@@ -675,9 +675,63 @@ BOT:
 
 YO: (Reconozco que hay errores de AtributeError, al utilizar los atributos de las clases los tests no usaban doble guion bajo antes y despues para llamarlos por lo que no corrian los tests)  
 
+### Utilizando claudeai
+
 YO: 
 
 podrias actualizar todos los tests solamente agregando a los atributos estos dos guiones bajos antes y despues de ellos? te dejo el codigo de test_board para que lo hagas (Le mando codigo de test_board.py)
 
 BOT: (Me pasa el codigo actualizado)
 
+YO (Actualizando la clase board para que pasen los tests)
+
+BOT:¿Puedes mostrarme el código del test que está fallando? Necesito ver:
+
+Cómo se configura el tablero antes del test
+Qué dados se simulan en el test
+Qué fichas se colocan en el punto 23
+
+YO: Le mando el codigo del tests que falla que es test_realizar_movimiento_completo_normal_y_salida
+
+BOT
+
+Encontré el problema. El test está accediendo directamente a los atributos privados de Dice usando __dado1__ y __dado2__, pero también está estableciendo __tirados__ que no existe en la clase Dice.
+Los problemas son:
+
+El test usa dados.__tirados__ = True pero en la clase Dice no existe ese atributo
+El método han_sido_tirados() verifica si __dado1__ y __dado2__ no son None, pero como el test los asigna directamente, esto debería funcionar
+
+Necesito actualizar el test para usar la API correcta de la clase Dice:
+
+YO: Si por favor actualiza el codigo de test_board.py para que pase el test que falla, te mando codigo completo de test_board.py: (le mando el codigo de test_board.py)
+
+BOT: (Me actualiza el codigo) 
+
+YO: Fallan 3 de los tests, (le mando codigo de error)
+
+BOT (se me acabo el plan procedo a usar GPT-5)
+
+### Utilizando GPT-5
+
+YO: 
+
+Te mando el codigo de los test_board para que los actualices a partir de los siguientes errores: (mando codigo de test_board y error)
+
+BOT:
+
+Agrega metodo en Dice unicamente para los tests, y me recomienda actualizar el codigo de test_board utilizando este metodo.
+
+YO: 
+
+Dale actualiza los tests para que usen el nuevo metodo, gracias
+
+BOT: Me pasa el codigo actualizado
+
+Funcionan correctamente los tests de board:
+
+franco@franco-IdeaPad-Slim-5-16IRL8:~/computacion-2025-backgammon-Francomaldonado1$ python3 -m unittest Backgammon/Tests/Test_Board.py
+................................
+----------------------------------------------------------------------
+Ran 32 tests in 0.002s
+
+OK

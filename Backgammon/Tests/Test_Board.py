@@ -225,47 +225,43 @@ class TestTablero(unittest.TestCase):
         self.assertTrue(self.tablero.tiene_fichas_en_barra("blanco"))
 
     def test_realizar_movimiento_completo_normal_y_salida(self):
-       """Debe mover con dados correctamente, incluyendo salida del tablero."""
-       dados = Dice()
-       dados.__dado1__ = 3
-       dados.__dado2__ = 5
-       dados.__tirados__ = True
-
-       self.tablero.colocar_ficha(5, "negro", 1)
-       self.assertTrue(self.tablero.realizar_movimiento_completo("negro", dados, 5, usar_dado1=True))
-       self.assertEqual(self.tablero.obtener_estado_punto(8), ["negro", 1])
-
-       self.tablero.colocar_ficha(23, "negro", 1)
-       self.tablero.colocar_ficha(24, "negro", 14)  # todas en zona final
-       self.assertTrue(self.tablero.realizar_movimiento_completo("negro", dados, 23, usar_dado2=True))
-       self.assertEqual(self.tablero.get_casa().get("negro", 0), 1)
+        """Debe mover con dados correctamente, incluyendo salida del tablero."""
+        dados = Dice()
+        dados.set_dados_para_test(3, 5)
+        
+        # Primera parte: movimiento normal
+        self.tablero.colocar_ficha(5, "negro", 1)
+        self.assertTrue(self.tablero.realizar_movimiento_completo("negro", dados, 5, usar_dado1=True))
+        self.assertEqual(self.tablero.obtener_estado_punto(8), ["negro", 1])
+        
+        # Segunda parte: sacar ficha
+        # Reset del tablero y colocar solo en zona final
+        self.tablero = Board()
+        self.tablero.colocar_ficha(23, "negro", 1)
+        self.assertTrue(self.tablero.realizar_movimiento_completo("negro", dados, 23, usar_dado2=True))
+        self.assertEqual(self.tablero.get_casa().get("negro", 0), 1)
 
     def test_realizar_movimiento_completo_desde_barra(self):
-       """Debe poder mover desde la barra usando un dado válido."""
-       dados = Dice()
-       dados.__dado1__ = 4
-       dados.__dado2__ = 2
-       dados.__tirados__ = True
- 
-       self.tablero.enviar_a_barra("blanco")
-       self.assertTrue(self.tablero.realizar_movimiento_completo("blanco", dados, 0, usar_dado2=True))
-       self.assertEqual(self.tablero.obtener_estado_punto(23), ["blanco", 1])
+        """Debe poder mover desde la barra usando un dado válido."""
+        dados = Dice()
+        dados.set_dados_para_test(4, 2)
+        
+        self.tablero.enviar_a_barra("blanco")
+        self.assertTrue(self.tablero.realizar_movimiento_completo("blanco", dados, 0, usar_dado2=True))
+        self.assertEqual(self.tablero.obtener_estado_punto(23), ["blanco", 1])
 
     def test_obtener_movimientos_posibles_sin_y_con_barra(self):
-       """Debe devolver lista de puntos posibles para mover con dados."""
-       dados = Dice()
-       dados.__dado1__ = 2
-       dados.__dado2__ = 3
-       dados.__tirados__ = True
-
-       self.tablero.colocar_ficha(5, "negro", 1)
-       movimientos = self.tablero.obtener_movimientos_posibles("negro", dados)
-       self.assertIn(5, movimientos)
-
-       self.tablero.enviar_a_barra("negro")
-       movimientos = self.tablero.obtener_movimientos_posibles("negro", dados)
-       self.assertEqual(movimientos, [0])
-
+        """Debe devolver lista de puntos posibles para mover con dados."""
+        dados = Dice()
+        dados.set_dados_para_test(2, 3)
+        
+        self.tablero.colocar_ficha(5, "negro", 1)
+        movimientos = self.tablero.obtener_movimientos_posibles("negro", dados)
+        self.assertIn(5, movimientos)
+        
+        self.tablero.enviar_a_barra("negro")
+        movimientos = self.tablero.obtener_movimientos_posibles("negro", dados)
+        self.assertEqual(movimientos, [0])
 
     def test_tiene_fichas_en_barra_y_ha_ganado(self):
         """Debe detectar correctamente fichas en barra y condición de victoria."""

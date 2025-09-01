@@ -46,3 +46,11 @@
 - Se agregan nuevos tests para los nuevos metodos de la clase Board. (No funcionales actualmente) 
 - Se actualiza prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar los nuevos metodos de la clase Board.
 
+## [0.0.7] 31/08/2025
+### ADDED
+- Se agrega el metodo set_dados_para_test a la clase Dice, para que los tests puedan configurar los dados manualmente.
+- Se actualiza prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar los nuevos metodos de clase Board (funcionan todos)
+
+### CHANGED
+- Se actualiza el codigo de Board, y de test_board para que funcionen correctamente los tests de los nuevos metodos agregados en la ultima versión.
+
