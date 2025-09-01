@@ -100,3 +100,9 @@ class Dice:
             resultado += " (¡Doble!)"
         
         return resultado
+    
+    def set_dados_para_test(self, dado1, dado2):
+        """Setea valores de dados manualmente y marca como tirados (para tests)."""
+        self.__dado1__ = dado1
+        self.__dado2__ = dado2
+        self.__tirados__ = True
