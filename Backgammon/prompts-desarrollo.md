@@ -1133,7 +1133,52 @@ YO:
 
 gracias, ahora solo fallan dos tests: (le mando error completo)
 
+(El error estaba en los tests, pongo la solución en archivo prompts-testing)
+
+YO: 
+
+necesito que me ayude a hacer ahora la interfaz de texto llamada CLI, si necesitas te mando el codigo de alguna de las clases o el codigo final de board, que ayer lo termine de hacer dejando funcionales todos los tests, y agregamos tambien ayer un nuevo metodo para la clase Dice para que pasen bien los tests, decime que necesitas recordar para poder arrancar con la interfaz inicial.
+
+BOT:
+
+Para poder ayudarte con la interfaz CLI de manera efectiva, me gustaría revisar algunos elementos clave:
+
+La clase Board final - especialmente los métodos públicos disponibles para interactuar con el juego
+La clase Dice actualizada - para ver el nuevo método que agregamos
+La estructura general del juego - si hay alguna clase Game o similar que coordine el flujo
+
+También sería útil saber:
+
+¿Qué funcionalidades específicas querés que tenga la CLI? (mostrar el tablero, permitir movimientos, mostrar el estado del juego, etc.)
+
+YO: 
+
+Si la interfaz debería pedir un input con los nombres de los dos jugadores, guardando el primero como el negro y el segundo como el blanco, luego mostrar el tablero vacio y empezar a pedir movimientos al jugador uno, verificando si son posibles estos movimientos y almacenando la nueva posición de las fichas, tambien debería preguntar si quiere usar los dos dados para mover una ficha o dos, (metodo de clase Board), te dejo a continuacion la clase board (le mando codigo de clase board.py y Dice.py).
 
 
+BOT: (Me manda codigo de CLI.py)
 
+YO: (Corro la interfaz en terminal y funciona bien, pero le pido las siguientes modificaciones)
+
+Funciona bastante bien, me gustaria hacerle las siguientes modificaciones, cuando arranca a jugar el jugador uno se muestra el tablero al revez (primero de posicion 12 a 24, y luego de 1 a 12) me gustaria que se muestre al revez el tablero, otra cosa es que te muestra las posiciones disponible (donde tenes fichas) unicamente antes de empezar a mover, y si el jugador elige mover dos fichas, cuando va a mover la segunda no le aparecen las posiciones disponibles, osea que siempre que se vaya a realizar un movimiento deberia mostrarse las posiciones disponibles (para una mayor comodidad). Lo mismo cuando hace un movimiento invalido, deberia volver a mostrar las posiciones para que el jugador pueda volver a analizar el proximo movimiento. Cambiando eso creo que el resto funciona bastante bien, gracias.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Esta funcionando mal, solamente te deja tirar los dados y cambia de turnos, osea que no te deja elegir posiciones ni la elección de movimiento, por favor corregui esto, antes esto funcionaba bien
+
+ (Se acabo el plan procedo a usar GPT-5) 
+
+ ### Utilizando GPT-5
+
+ YO:
+
+ mira estuve trabajando en la interfaz de texto CLI, pero cuando la corro en la terminal, me pregunta los nombres, tiro los dados y luego cambia de turno, tira los dados el jugador 2 y vuelve a pedirme tirar los dados del jugador 1,  (no funciona la parte en la que pide al jugador realizar un movimiento simple o doble, desde que posicion quiere mover la/s ficha/s) este es el codigo actual de CLI.py, podrias actualizarlo para que funcione bien? (le mando codigo de CLI)
+
+ BOT: (Me pasa el codigo actualizado)
+
+ Sigue sin funcionar, procedo a dejarlo asi por este commit, luego lo hago funcional.
+ 
+ 
 
