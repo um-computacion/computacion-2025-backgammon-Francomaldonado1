@@ -54,3 +54,7 @@
 ### CHANGED
 - Se actualiza el codigo de Board, y de test_board para que funcionen correctamente los tests de los nuevos metodos agregados en la ultima versión.
 
+## [0.0.8] 01/09/2025
+### ADDED
+- Se agrega la interfaz de línea de comandos (CLI) (Con algunos errores a actualizar mas tarde)
+- Se actualiza prompts-desarrollo.md con las indicaciones que se utilizaron para desarrollar la interfaz de línea de comandos (CLI).
