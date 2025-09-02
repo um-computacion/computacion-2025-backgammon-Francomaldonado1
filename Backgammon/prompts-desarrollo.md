@@ -1180,5 +1180,13 @@ Esta funcionando mal, solamente te deja tirar los dados y cambia de turnos, osea
 
  Sigue sin funcionar, procedo a dejarlo asi por este commit, luego lo hago funcional.
  
- 
+ ### Utilizando claude.ai
 
+ YO:
+
+
+podrias ayudarme a arreglar la interfaz CLI, sigue sin funcionar, pide los nombres luego tira los dados y cambia de turno, y los dos jugadores tiran los dados infinitamente sin poder elegir el movimiento que quieren realizar y la posicion desde donde quieren realizarlo. A continuacion, te dejo el codigo actualizado: (le dejo el codigo de CLI)
+
+BOT:
+
+Me pasa el codigo actualizado, jugue 5 minutos y esta bastante mas funcional que antes, por lo que considero un buen avance en el codigo, agrego algunos tests y hago commit.

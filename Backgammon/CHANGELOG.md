@@ -58,3 +58,8 @@
 ### ADDED
 - Se agrega la interfaz de línea de comandos (CLI) (Con algunos errores a actualizar mas tarde)
 - Se actualiza prompts-desarrollo.md con las indicaciones que se utilizaron para desarrollar la interfaz de línea de comandos (CLI).
+
+### CHANGED 01/09/2025 (22:00 hs)
+- Se actualiza el codigo de CLI para que funcione correctamente. (funciona mejor, todavia no del todo bien)
+- Se agregan tests para CLI.py iniciales.
+- Se actualiza prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la interfaz de línea de comandos (CLI).
