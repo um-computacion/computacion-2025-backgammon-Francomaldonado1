@@ -735,3 +735,19 @@ franco@franco-IdeaPad-Slim-5-16IRL8:~/computacion-2025-backgammon-Francomaldonad
 Ran 32 tests in 0.002s
 
 OK
+
+### Utilizando claude.ai
+
+YO:
+
+ahora podrias ayudarme a hacer algunos tests para la interfaz CLI? Teniendo en cuenta lo que hemos hecho en todos los archivos de tests de tratar de cubrir la mayoria de casos asegurando una cobertura alta porfavor.
+
+BOT:
+
+Me pasa codigo de test_CLI.py 
+
+(esta raro usa algunas librerias que no conozco, ademas fallan 2 tests de 40 que son pero lo dejo por que me parece un buen avance en el codigo, mañana lo reviso y le arreglo los errores)
+
+Ran 40 tests in 0.045s
+
+FAILED (failures=2, errors=1)

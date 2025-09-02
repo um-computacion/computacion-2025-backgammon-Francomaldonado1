@@ -70,8 +70,9 @@ class BackgammonCLI:
         if barra:
             print("BARRA:")
             for color, cantidad in barra.items():
-                simbolo = "●" if color == "negro" else "○"
-                print(f"  {simbolo} x{cantidad} ({color})")
+                if cantidad > 0:
+                    simbolo = "●" if color == "negro" else "○"
+                    print(f"  {simbolo} x{cantidad} ({color})")
         else:
             print("BARRA: vacía")
             
@@ -93,8 +94,9 @@ class BackgammonCLI:
         if casa:
             print("\nCASA:")
             for color, cantidad in casa.items():
-                simbolo = "●" if color == "negro" else "○"
-                print(f"  {simbolo} x{cantidad} ({color})")
+                if cantidad > 0:
+                    simbolo = "●" if color == "negro" else "○"
+                    print(f"  {simbolo} x{cantidad} ({color})")
         else:
             print("\nCASA: vacía")
             
@@ -128,7 +130,7 @@ class BackgammonCLI:
     
         print(f"\n{'='*20} TURNO DE {nombre_jugador.upper()} {simbolo} {'='*20}")
     
-       # Tirar dados
+        # Tirar dados
         input(f"{nombre_jugador}, presiona ENTER para tirar los dados...")
         self.dados.tirar()
     
@@ -138,20 +140,19 @@ class BackgammonCLI:
         movimientos_posibles = self.board.obtener_movimientos_posibles(self.turno_actual, self.dados)
     
         if not movimientos_posibles:
-         print(f"❌ No hay movimientos posibles para {nombre_jugador}. Se pierde el turno.")
-        self.dados.reiniciar()
-        return
+            print(f"❌ No hay movimientos posibles para {nombre_jugador}. Se pierde el turno.")
+            self.dados.reiniciar()
+            return
     
-        # Si hay dobles
+        # Manejar movimientos según si hay dobles o no
         if self.dados.es_doble():
-         self.manejar_dobles()
+            self.manejar_dobles()
         else:
-         self.manejar_movimientos_normales()
+            self.manejar_movimientos_normales()
     
         # Reiniciar los dados después del turno
         self.dados.reiniciar()
-
-            
+    
     def mostrar_movimientos_disponibles(self):
         """
         Muestra los movimientos posibles para el jugador actual.
@@ -166,14 +167,6 @@ class BackgammonCLI:
         if 0 in movimientos_posibles:
             print("  (0 = barra)")
         return True
-            
-        # Manejar movimientos
-        if self.dados.es_doble():
-            self.manejar_dobles()
-        else:
-            self.manejar_movimientos_normales()
-            
-        self.dados.reiniciar()
     
     def manejar_movimientos_normales(self):
         """
@@ -200,9 +193,10 @@ class BackgammonCLI:
             print("\nOpciones:")
             print("1. Mover una ficha con un solo dado")
             print("2. Mover una ficha con ambos dados (movimiento doble)")
+            print("3. Pasar turno (si no hay movimientos válidos)")
             
             try:
-                opcion = input("Seleccione una opción (1 o 2): ").strip()
+                opcion = input("Seleccione una opción (1, 2 o 3): ").strip()
                 
                 if opcion == "1":
                     if self.realizar_movimiento_simple():
@@ -211,8 +205,11 @@ class BackgammonCLI:
                     if self.realizar_movimiento_doble():
                         movimientos_realizados = 2  # Movimiento doble cuenta como ambos dados
                         break
+                elif opcion == "3":
+                    print("Pasando turno...")
+                    break
                 else:
-                    print("❌ Opción inválida. Seleccione 1 o 2.")
+                    print("❌ Opción inválida. Seleccione 1, 2 o 3.")
                     
             except KeyboardInterrupt:
                 print("\n\nJuego interrumpido.")
@@ -237,9 +234,25 @@ class BackgammonCLI:
                 print("  (0 = barra)")
                 
             print(f"\nMovimiento {movimientos_realizados + 1} de 4")
+            print("Opciones:")
+            print("1. Realizar movimiento")
+            print("2. Pasar turno")
             
-            if self.realizar_movimiento_simple():
-                movimientos_realizados += 1
+            try:
+                opcion = input("Seleccione una opción (1 o 2): ").strip()
+                
+                if opcion == "1":
+                    if self.realizar_movimiento_simple():
+                        movimientos_realizados += 1
+                elif opcion == "2":
+                    print("Pasando turno...")
+                    break
+                else:
+                    print("❌ Opción inválida. Seleccione 1 o 2.")
+                    
+            except KeyboardInterrupt:
+                print("\n\nJuego interrumpido.")
+                exit()
     
     def realizar_movimiento_simple(self) -> bool:
         """
@@ -253,19 +266,24 @@ class BackgammonCLI:
             origen_str = input("Desde qué punto quiere mover (0 para barra): ").strip()
             origen = int(origen_str)
             
-            # Pedir qué dado usar
-            print(f"Dados disponibles: {self.dados.obtener_dado1()}, {self.dados.obtener_dado2()}")
-            dado_str = input("¿Qué dado quiere usar? (1 o 2): ").strip()
-            
-            if dado_str == "1":
+            # Pedir qué dado usar (solo si no son dobles)
+            if not self.dados.es_doble():
+                print(f"Dados disponibles: {self.dados.obtener_dado1()}, {self.dados.obtener_dado2()}")
+                dado_str = input("¿Qué dado quiere usar? (1 o 2): ").strip()
+                
+                if dado_str == "1":
+                    usar_dado1 = True
+                    usar_dado2 = False
+                elif dado_str == "2":
+                    usar_dado1 = False
+                    usar_dado2 = True
+                else:
+                    print("❌ Debe seleccionar 1 o 2.")
+                    return False
+            else:
+                # En dobles, ambos dados tienen el mismo valor
                 usar_dado1 = True
                 usar_dado2 = False
-            elif dado_str == "2":
-                usar_dado1 = False
-                usar_dado2 = True
-            else:
-                print("❌ Debe seleccionar 1 o 2.")
-                return False
             
             # Realizar el movimiento
             exito = self.board.realizar_movimiento_completo(
@@ -278,28 +296,13 @@ class BackgammonCLI:
                 return True
             else:
                 print("❌ Movimiento inválido. Intente de nuevo.")
-                # Mostrar movimientos disponibles después de un error
-                movimientos_posibles = self.board.obtener_movimientos_posibles(self.turno_actual, self.dados)
-                print(f"\n📍 Movimientos posibles desde los puntos: {movimientos_posibles}")
-                if 0 in movimientos_posibles:
-                    print("  (0 = barra)")
                 return False
                 
         except ValueError:
             print("❌ Por favor ingrese números válidos.")
-            # Mostrar movimientos disponibles después de un error
-            movimientos_posibles = self.board.obtener_movimientos_posibles(self.turno_actual, self.dados)
-            print(f"\n📍 Movimientos posibles desde los puntos: {movimientos_posibles}")
-            if 0 in movimientos_posibles:
-                print("  (0 = barra)")
             return False
         except Exception as e:
             print(f"❌ Error: {e}")
-            # Mostrar movimientos disponibles después de un error
-            movimientos_posibles = self.board.obtener_movimientos_posibles(self.turno_actual, self.dados)
-            print(f"\n📍 Movimientos posibles desde los puntos: {movimientos_posibles}")
-            if 0 in movimientos_posibles:
-                print("  (0 = barra)")
             return False
     
     def realizar_movimiento_doble(self) -> bool:
@@ -333,28 +336,13 @@ class BackgammonCLI:
                 return True
             else:
                 print("❌ Movimiento doble inválido. Intente de nuevo.")
-                # Mostrar movimientos disponibles después de un error
-                movimientos_posibles = self.board.obtener_movimientos_posibles(self.turno_actual, self.dados)
-                print(f"\n📍 Movimientos posibles desde los puntos: {movimientos_posibles}")
-                if 0 in movimientos_posibles:
-                    print("  (0 = barra)")
                 return False
                 
         except ValueError:
             print("❌ Por favor ingrese un número válido.")
-            # Mostrar movimientos disponibles después de un error
-            movimientos_posibles = self.board.obtener_movimientos_posibles(self.turno_actual, self.dados)
-            print(f"\n📍 Movimientos posibles desde los puntos: {movimientos_posibles}")
-            if 0 in movimientos_posibles:
-                print("  (0 = barra)")
             return False
         except Exception as e:
             print(f"❌ Error: {e}")
-            # Mostrar movimientos disponibles después de un error
-            movimientos_posibles = self.board.obtener_movimientos_posibles(self.turno_actual, self.dados)
-            print(f"\n📍 Movimientos posibles desde los puntos: {movimientos_posibles}")
-            if 0 in movimientos_posibles:
-                print("  (0 = barra)")
             return False
 
 
