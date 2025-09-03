@@ -63,3 +63,13 @@
 - Se actualiza el codigo de CLI para que funcione correctamente. (funciona mejor, todavia no del todo bien)
 - Se agregan tests para CLI.py iniciales.
 - Se actualiza prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la interfaz de línea de comandos (CLI).
+
+## [0.0.9] 03/09/2025
+### ADDED  
+- Se agregan nuevos metodos a la clase Board para el bearing off (salida de fichas a casa) por que era una de las cosas que estaba fallando en el CLI.
+
+### CHANGED 
+- Se actualiza el codigo de CLI siguiendo lo pedido en los prompts, (cambio de tablero, cambio de fichas, nuevas validaciones)
+- Se actualiza prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la interfaz de línea de comandos (CLI).
+
+ 
