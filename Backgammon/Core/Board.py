@@ -260,6 +260,7 @@ class Board:
     def realizar_movimiento_completo(self, color: str, dados: Dice, origen: int, usar_dado1: bool = True, usar_dado2: bool = False) -> bool:
         """
         Realiza un movimiento completo usando uno de los dados disponibles.
+        Implementa las reglas correctas de bearing off.
         
         Args:
             color (str): Color del jugador.
@@ -291,10 +292,17 @@ class Board:
             
         destino = self.calcular_destino(origen, movimiento, color)
         
-        # Sacar fichas (destino fuera del tablero)
+        # BEARING OFF - Sacar fichas (destino fuera del tablero)
         if (destino <= 0 and color == "blanco") or (destino >= 25 and color == "negro"):
+            # Verificar si puede sacar fichas
             if not self.puede_sacar_fichas(color):
                 return False
+            
+            # NUEVA LÓGICA: Verificar reglas exactas de bearing off
+            if not self._es_bearing_off_valido(color, origen, movimiento):
+                return False
+                
+            # Realizar el bearing off
             self.remover_ficha(origen, 1)
             self.sacar_ficha(color)
             return True
@@ -305,62 +313,167 @@ class Board:
             
         return self._mover_ficha_bool(origen, destino, color)
 
+
+    def _es_bearing_off_valido(self, color: str, origen: int, movimiento: int) -> bool:
+        """
+        Verifica si un bearing off (sacar ficha) es válido según las reglas del backgammon.
+
+        Reglas:
+        1) Se puede sacar con el valor exacto del dado.
+        2) EXCEPCIÓN: Si el dado es mayor, solo es válido si NO hay fichas en posiciones más lejanas al borne
+        (es decir, más atrás dentro del cuadrante casa).
+        
+        Convenciones del tablero usadas aquí (consistentes con el resto del código):
+        - NEGRO avanza hacia 25 y su casa es 19..24 (sale en 25)
+        - BLANCO avanza hacia 0 y su casa es 1..6   (sale en 0)
+        """
+        if color == "negro":
+            # Debe estar en casa 19..24
+            if origen < 19 or origen > 24:
+                return False
+
+            # Distancia exacta hasta salir
+            posicion_relativa = 25 - origen  # 24->1, 23->2, ..., 19->6
+
+            # Regla 1: dado exacto
+            if movimiento == posicion_relativa:
+                return True
+
+            # Regla 2: dado mayor solo si no hay fichas "más atrás" (19..origen-1)
+            if movimiento > posicion_relativa:
+                return not self._hay_fichas_en_posiciones_mas_altas(color, origen)
+
+            # Dado menor nunca saca
+            return False
+
+        else:  # color == "blanco"
+            # Debe estar en casa 1..6
+            if origen < 1 or origen > 6:
+                return False
+
+            # Distancia exacta hasta salir
+            posicion_relativa = origen  # 1->1, 2->2, ..., 6->6
+
+            # Regla 1: dado exacto
+            if movimiento == posicion_relativa:
+                return True
+
+            # Regla 2: dado mayor solo si no hay fichas "más atrás" (origen+1..6)
+            if movimiento > posicion_relativa:
+                return not self._hay_fichas_en_posiciones_mas_altas(color, origen)
+
+            # Dado menor nunca saca
+            return False
+
+
+    def _hay_fichas_en_posiciones_mas_altas(self, color: str, origen: int) -> bool:
+        """
+        Indica si hay fichas del color en posiciones MÁS LEJANAS AL BORNE dentro del cuadrante casa.
+        Para NEGRO (casa 19..24, sale en 25): "más atrás" son puntos con índice MENOR (19..origen-1).
+        Para BLANCO (casa 1..6, sale en 0)   : "más atrás" son puntos con índice MAYOR (origen+1..6).
+        """
+        if color == "negro":
+            puntos_a_revisar = range(19, origen)  # 19..origen-1
+        else:  # blanco
+            puntos_a_revisar = range(origen + 1, 7)  # origen+1..6
+
+        for punto in puntos_a_revisar:
+            estado = self.obtener_estado_punto(punto)
+            if estado is not None and estado[0] == color and estado[1] > 0:
+                return True
+        return False
+
+
+
+    # MÉTODO AUXILIAR ADICIONAL para facilitar debugging y testing
+    def _debug_bearing_off(self, color: str, origen: int, movimiento: int) -> str:
+        """
+        Devuelve una descripción legible del chequeo de bearing off para debugging.
+        """
+        if color == "negro":
+            cuadrante_casa = list(range(19, 25))
+            posicion_relativa = 25 - origen
+            fuera_de_casa = origen not in range(19, 25)
+            hay_atras = self._hay_fichas_en_posiciones_mas_altas(color, origen)
+        else:
+            cuadrante_casa = list(range(1, 7))
+            posicion_relativa = origen
+            fuera_de_casa = origen not in range(1, 7)
+            hay_atras = self._hay_fichas_en_posiciones_mas_altas(color, origen)
+
+        if fuera_de_casa:
+            return f"❌ Ficha no está en cuadrante casa. Origen: {origen}, Casa: {cuadrante_casa}"
+
+        if movimiento == posicion_relativa:
+            return f"✅ Valor exacto. Dado: {movimiento}, Distancia: {posicion_relativa}"
+
+        if movimiento > posicion_relativa:
+            if hay_atras:
+                return (f"❌ Dado mayor ({movimiento}) pero HAY fichas más atrás en la casa. "
+                        f"Distancia desde {origen}: {posicion_relativa}")
+            else:
+                return (f"✅ Dado mayor ({movimiento}) y NO hay fichas más atrás. "
+                        f"Distancia desde {origen}: {posicion_relativa}")
+
+        return f"❌ Dado menor ({movimiento}) que la distancia {posicion_relativa} desde {origen}"
+
+
     def realizar_movimiento_doble(self, color: str, dados: Dice, origen: int) -> bool:
-        """
-        Mueve una sola ficha usando ambos dados consecutivamente.
-        
-        Realiza dos movimientos seguidos con la misma ficha:
-        - Primer movimiento: origen → intermedio (usando dado1)
-        - Segundo movimiento: intermedio → destino (usando dado2)
-        
-        Args:
-            color (str): Color del jugador.
-            dados (Dice): Objeto dados con la tirada actual.
-            origen (int): Punto de origen (0 para barra, 1-24 para puntos del tablero).
+            """
+            Mueve una sola ficha usando ambos dados consecutivamente.
             
-        Returns:
-            bool: True si ambos movimientos fueron exitosos, False en caso contrario.
-        """
-        if not dados.han_sido_tirados():
-            return False
+            Realiza dos movimientos seguidos con la misma ficha:
+            - Primer movimiento: origen → intermedio (usando dado1)
+            - Segundo movimiento: intermedio → destino (usando dado2)
             
-        dado1, dado2 = dados.obtener_valores()
-        
-        # Movimiento desde la barra no se puede hacer doble
-        if origen == 0:
-            return False
-            
-        # Verificar que hay ficha del color correcto en origen
-        estado_origen = self.obtener_estado_punto(origen)
-        if estado_origen is None or estado_origen[0] != color:
-            return False
-        
-        # Calcular posiciones intermedias y final
-        intermedio = self.calcular_destino(origen, dado1, color)
-        destino_final = self.calcular_destino(intermedio, dado2, color)
-        
-        # Crear snapshot del estado actual para poder deshacer
-        snapshot = self._crear_snapshot_tablero()
-        
-        try:
-            # PRIMER MOVIMIENTO: origen → intermedio
-            exito_primero = self._realizar_movimiento_simple(origen, intermedio, color)
-            if not exito_primero:
+            Args:
+                color (str): Color del jugador.
+                dados (Dice): Objeto dados con la tirada actual.
+                origen (int): Punto de origen (0 para barra, 1-24 para puntos del tablero).
+                
+            Returns:
+                bool: True si ambos movimientos fueron exitosos, False en caso contrario.
+            """
+            if not dados.han_sido_tirados():
                 return False
                 
-            # SEGUNDO MOVIMIENTO: intermedio → destino_final  
-            exito_segundo = self._realizar_movimiento_simple(intermedio, destino_final, color)
-            if not exito_segundo:
-                # Deshacer el primer movimiento
+            dado1, dado2 = dados.obtener_valores()
+            
+            # Movimiento desde la barra no se puede hacer doble
+            if origen == 0:
+                return False
+                
+            # Verificar que hay ficha del color correcto en origen
+            estado_origen = self.obtener_estado_punto(origen)
+            if estado_origen is None or estado_origen[0] != color:
+                return False
+            
+            # Calcular posiciones intermedias y final
+            intermedio = self.calcular_destino(origen, dado1, color)
+            destino_final = self.calcular_destino(intermedio, dado2, color)
+            
+            # Crear snapshot del estado actual para poder deshacer
+            snapshot = self._crear_snapshot_tablero()
+            
+            try:
+                # PRIMER MOVIMIENTO: origen → intermedio
+                exito_primero = self._realizar_movimiento_simple(origen, intermedio, color)
+                if not exito_primero:
+                    return False
+                    
+                # SEGUNDO MOVIMIENTO: intermedio → destino_final  
+                exito_segundo = self._realizar_movimiento_simple(intermedio, destino_final, color)
+                if not exito_segundo:
+                    # Deshacer el primer movimiento
+                    self._restaurar_snapshot_tablero(snapshot)
+                    return False
+                    
+                return True
+                
+            except Exception:
+                # En caso de cualquier error, restaurar estado
                 self._restaurar_snapshot_tablero(snapshot)
                 return False
-                
-            return True
-            
-        except Exception:
-            # En caso de cualquier error, restaurar estado
-            self._restaurar_snapshot_tablero(snapshot)
-            return False
 
     def _realizar_movimiento_simple(self, origen: int, destino: int, color: str) -> bool:
         """
