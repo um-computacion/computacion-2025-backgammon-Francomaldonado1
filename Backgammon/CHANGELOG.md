@@ -72,4 +72,15 @@
 - Se actualiza el codigo de CLI siguiendo lo pedido en los prompts, (cambio de tablero, cambio de fichas, nuevas validaciones)
 - Se actualiza prompts-desarrollo.md y prompts-testing.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la interfaz de línea de comandos (CLI).
 
- 
+ ## [0.0.10] 04/09/2025
+
+### ADDED
+- Se agrega archivo requirements.txt con Coverage para probar el porcentaje de cobertura de código.
+- Se crea entorno virtual (venv).
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los tests de la interfaz de línea de comandos (CLI).
+- Se prueba por primera vez la cobertura de codigo con Coverage (actualmente 90%).
+
+### CHANGED
+- Se actualiza el codigo de CLI para pasar los tests y asegurar una cobertura de código alta.
+- Se actualiza el codigo de test_CLI.py para que funcionen todos los tests.
+

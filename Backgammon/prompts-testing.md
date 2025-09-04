@@ -751,3 +751,47 @@ Me pasa codigo de test_CLI.py
 Ran 40 tests in 0.045s
 
 FAILED (failures=2, errors=1)
+
+YO:
+
+Ya funciona correctamente la CLI, pero ahora fallan los tests, ademas de que necesito que me cambies algunas cosas, en el archivo de tests importas algunas librerias como sys y io y MagicMock que no se para que se usan, entiendo que patch y mock son para "simular" por asi decirlo algunas situaciones al correr la interfaz, pero las otras tres librerias que te nombre no se para que son, asi que si pudieses sacarlas buenisimo para entender todo lo que usamos en los tests, siempre asegurandote de que siga habiendo una cobertura alta (mayor al 90%), te dejo codigo de error para que veas que es lo que falla actualmente en los tests y modifiques el archivo test_cli teniendo en cuenta estos ultimos errores y lo que te pedi de no importar librerias raras a menos que sean muy necesarias para mantener una cobertura alta, codigo de error:  (Le mando el error)
+
+BOT:
+
+(Me manda codigo)
+
+YO: 
+
+Me fallan unicamente 4 tests, podrias corregirlos? (le mando codigo de error)
+(Se me acaba el plan, procedo a abrir otra cuenta en claude, le comento un poco de que va el trabajo y mando codigo de test_cli y error)
+
+BOT:
+
+(Me actualiza el codigo de test_cli) fallan unicamente 3
+(Se me acaba el plan)
+
+### Utilizando claude.ai 3.7 
+
+YO: Estoy trabajando en un trabajo de programacion en python, un backgammon orientado a objetos que cumple con los principios SOLID, lo ultimo que hice fue una interfaz de texto CLI para poder jugar al backgammon en la terminal y al hacer su archivo de tests me fallan los siguientes tests: (mando codigo de los metodos que fallan unicamente y sus respectivos errores) 
+
+BOT: Me soluciona dos  pero uno sigue fallando
+
+### Utilizando GPT-5
+
+YO: 
+
+me esta fallando un unico tests en el archivo test_CLI.py, a continuacion te dejo el codigo del test y el codigo del error para que lo soluciones (le mando codigo del tests que falla y el error)
+
+BOT:
+
+(Me arregla error en CLI) 
+
+YO: lo arreglo, pruebo que la CLI funcione como antes (juego hasta que un jugador tenga posibilidad de sacar fichas del tablero para verificar bering off, compruebo que funciona como antes, corro tests y funcionan) 
+
+......................................................
+----------------------------------------------------------------------
+Ran 54 tests in 0.063s
+
+OK
+
+(Hago commit)

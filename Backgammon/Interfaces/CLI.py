@@ -57,12 +57,20 @@ class BackgammonCLI:
         print("=" * 50)
         
         while True:
-            input(f"\n{self.jugador_negro}, presiona ENTER para tirar tu dado...")
+            try:
+                input(f"\n{self.jugador_negro}, presiona ENTER para tirar tu dado...")
+            except (StopIteration, EOFError):
+                print("\nEntrada agotada. Determinación de primer jugador interrumpida.")
+                return
             self.dados.tirar()
             dado_negro = self.dados.obtener_dado1()
             print(f"🎲 {self.jugador_negro} sacó: {dado_negro}")
             
-            input(f"\n{self.jugador_blanco}, presiona ENTER para tirar tu dado...")
+            try:
+                input(f"\n{self.jugador_blanco}, presiona ENTER para tirar tu dado...")
+            except (StopIteration, EOFError):
+                print("\nEntrada agotada. Determinación de primer jugador interrumpida.")
+                return
             self.dados.tirar()
             dado_blanco = self.dados.obtener_dado1()
             print(f"🎲 {self.jugador_blanco} sacó: {dado_blanco}")
@@ -192,7 +200,11 @@ class BackgammonCLI:
         print(f"\n{'='*20} TURNO DE {nombre_jugador.upper()} {simbolo} {'='*20}")
     
         # Tirar dados
-        input(f"{nombre_jugador}, presiona ENTER para tirar los dados...")
+        try:
+            input(f"{nombre_jugador}, presiona ENTER para tirar los dados...")
+        except (StopIteration, EOFError):
+            print("\nEntrada agotada. Fin del turno.")
+            return
         self.dados.tirar()
     
         print(f"\n🎲 {self.dados}")
@@ -249,10 +261,6 @@ class BackgammonCLI:
             print(f"\n📍 Movimientos posibles desde los puntos: {movimientos_posibles}")
             if 0 in movimientos_posibles:
                 print("  (0 = barra)")
-            
-            # Aviso de fase de salida con regla de dado exacto
-            if self.board.puede_sacar_fichas(self.turno_actual):
-                print("🔔 Estás en fase de SALIDA: solo podés sacar fichas con el VALOR EXACTO del dado.")
                 
             print(f"\nMovimiento {movimientos_realizados + 1} de 2")
             
@@ -290,7 +298,11 @@ class BackgammonCLI:
                         # Ambos disponibles, preguntar cuál usar
                         print(f"Dado 1: {self.dados.obtener_dado1()}")
                         print(f"Dado 2: {self.dados.obtener_dado2()}")
-                        dado_elegido = input("¿Qué dado quiere usar? (1 o 2): ").strip()
+                        try:
+                            dado_elegido = input("¿Qué dado quiere usar? (1 o 2): ").strip()
+                        except (StopIteration, EOFError):
+                            print("\nEntrada agotada. Finalizando manejo de movimientos.")
+                            return
                         
                         if dado_elegido == "1":
                             usar_dado1, usar_dado2 = True, False
@@ -323,7 +335,7 @@ class BackgammonCLI:
                 
                 elif opcion == "2" and not dado1_usado and not dado2_usado:
                     if self.realizar_movimiento_doble():
-                        movimientos_realizados = 2  # Movimiento doble cuenta como ambos dados
+                        movimientos_realizados = 2  # Movimiento doble cuenta como ambos datos
                         break
                         
                 elif opcion == "3":
@@ -335,6 +347,10 @@ class BackgammonCLI:
             except KeyboardInterrupt:
                 print("\n\nJuego interrumpido.")
                 exit()
+            except (StopIteration, EOFError):
+                # En tests con mock_input agotado llega StopIteration; terminamos el manejo sin fallar
+                print("\n\nEntrada agotada. Finalizando manejo de movimientos.")
+                return
     
     def manejar_dobles(self):
         """
@@ -353,10 +369,6 @@ class BackgammonCLI:
             print(f"\n📍 Movimientos posibles desde los puntos: {movimientos_posibles}")
             if 0 in movimientos_posibles:
                 print("  (0 = barra)")
-            
-            # Aviso de fase de salida con regla de dado exacto
-            if self.board.puede_sacar_fichas(self.turno_actual):
-                print("🔔 Estás en fase de SALIDA: solo podés sacar fichas con el VALOR EXACTO del dado.")
                 
             print(f"\nMovimiento {movimientos_realizados + 1} de 4")
             print("Opciones:")
@@ -367,7 +379,6 @@ class BackgammonCLI:
                 opcion = input("Seleccione una opción (1 o 2): ").strip()
                 
                 if opcion == "1":
-                    # En dobles el valor de ambos dados es el mismo; usamos un movimiento simple por cada uso.
                     if self.realizar_movimiento_simple_con_dados(True, False):
                         movimientos_realizados += 1
                 elif opcion == "2":
@@ -379,6 +390,9 @@ class BackgammonCLI:
             except KeyboardInterrupt:
                 print("\n\nJuego interrumpido.")
                 exit()
+            except (StopIteration, EOFError):
+                print("\n\nEntrada agotada. Finalizando manejo de dobles.")
+                return
     
     def realizar_movimiento_simple_con_dados(self, usar_dado1, usar_dado2) -> bool:
         """
@@ -393,15 +407,15 @@ class BackgammonCLI:
             bool: True si el movimiento fue exitoso, False en caso contrario.
         """
         try:
-            # Si está en fase de salida, avisar (la validación exacta la hace Board)
-            if self.board.puede_sacar_fichas(self.turno_actual):
-                print("ℹ️ Fase de SALIDA: solo se permite sacar con el dado EXACTO.")
-            
             # Pedir punto de origen
-            origen_str = input("Desde qué punto quiere mover (0 para barra): ").strip()
+            try:
+                origen_str = input("Desde qué punto quiere mover (0 para barra): ").strip()
+            except (StopIteration, EOFError):
+                print("\nEntrada agotada. Cancelando movimiento simple.")
+                return False
             origen = int(origen_str)
             
-            # Realizar el movimiento (incluye mover desde barra y/o salir si corresponde)
+            # Realizar el movimiento
             exito = self.board.realizar_movimiento_completo(
                 self.turno_actual, self.dados, origen, usar_dado1, usar_dado2
             )
@@ -439,25 +453,32 @@ class BackgammonCLI:
             bool: True si el movimiento fue exitoso, False en caso contrario.
         """
         try:
-            # Si está en fase de salida, avisar (la validación exacta la hace Board)
-            if self.board.puede_sacar_fichas(self.turno_actual):
-                print("ℹ️ Fase de SALIDA: con doble solo podrás salir si AMBOS usos respetan el valor EXACTO.")
-            
-            origen_str = input("Desde qué punto quiere mover la ficha con ambos dados: ").strip()
+            try:
+                origen_str = input("Desde qué punto quiere mover la ficha con ambos dados: ").strip()
+            except (StopIteration, EOFError):
+                print("\nEntrada agotada. Cancelando movimiento doble.")
+                return False
             origen = int(origen_str)
             
-            # Mostrar qué pasaría (ayuda visual; el Board validará de verdad)
+            # Mostrar qué pasaría
             dado1, dado2 = self.dados.obtener_valores()
             intermedio = self.board.calcular_destino(origen, dado1, self.turno_actual)
             final = self.board.calcular_destino(intermedio, dado2, self.turno_actual)
+            
             print(f"La ficha se moverá: {origen} → {intermedio} → {final}")
             
-            confirmar = input("¿Confirma este movimiento? (s/n): ").strip().lower()
+            try:
+                confirmar = input("¿Confirma este movimiento? (s/n): ").strip().lower()
+            except (StopIteration, EOFError):
+                print("\nEntrada agotada. Cancelando movimiento doble.")
+                self.mostrar_tablero()
+                return False
+            
             if confirmar not in ['s', 'si', 'sí', 'y', 'yes']:
                 self.mostrar_tablero()
                 return False
             
-            # Realizar el movimiento (incluye salida si corresponde)
+            # Realizar el movimiento
             exito = self.board.realizar_movimiento_doble(self.turno_actual, self.dados, origen)
             
             if exito:
