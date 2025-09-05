@@ -1238,3 +1238,74 @@ El problema está en la lógica de bearing off en tu Board: no está aceptando e
 YO: (Lo pruebo y funciona bien)
 
 (Hago commit)
+
+### Utilizando claude.ai
+
+YO:
+
+Hola, ya tengo el proyecto casi terminado, ya termine con la CLI y sus tests funcionan correctamente, lo ultimo que hicimos fue terminar los tests y agregarle metodos a la clase board del bearing off para la logica de salida del tablero de las fichas, recuerdas? ahora necesitaria empezar a hacer una interfaz grafica con pygame, no tengo nada de esto, no entiendo tampoco como funciona ni que librerias deberia instalar, tampoco se si el archivo de PygameUI debe llevar .py al final para trabajarlo como otro de los archivos que ya tenemos, por favor podrias empezar a orientarme respecto a esta interfaz, teniendo en cuenta todo lo que el proyecto solicita de nombrar todos los atributos con doble guion bajo antes y despues del atributo, seguir con los principios SOLID, y hacer docstrings de la mayoria de cosas importantes del codigo, tambien tene en cuenta que estamos haciendo entregas en sprints de 14 dias, mi idea es terminar el proyecto en los proximos 10 dias asi que tampoco deberiamos avanzar mucho hoy en el codigo, yo creo que entendiendo un poco la logica de esta interfaz grafica y subiendo el esqueleto de ella por asi decirlo e instalando las librerias que vayamos a usar estaria bastante bien para ser el primer dia trabajando en ella. 
+
+BOT:
+
+Me dice que instale pygame con pip install y me da dos esqueletos basicos de pygameui.py
+
+YO:
+
+cual es la diferencia entre el primer esqueleto y el segundo?, y otra cosa, para que sirve typing sys (importados en el segundo esqueleto)?
+(Agrego pygame a archivo requirements.txt y lo instalo con pip install)
+
+
+BOT:
+
+Primer esqueleto:
+
+Es una implementación concreta y monolítica
+Una sola clase PygameUI que hace todo
+Más simple para empezar, pero viola el principio de Single Responsibility
+Todo el código está en una clase
+
+Segundo esqueleto:
+
+Usa abstracciones y protocolos
+Separa responsabilidades (renderizado, eventos, etc.)
+Sigue mejor los principios SOLID
+Más flexible pero más complejo
+
+El segundo es más "profesional" pero para empezar, el primero es más fácil de entender.
+
+YO:
+
+(Uso el primer esqueleto) 
+hice el pip install dentro del entorno virtual venv, esta bien esto? y lo hice agregando pygame a archivo requirements.txt y luego corri pip install -r requirements.txt y me aparecio que se instalo  correctamente, pero cuando pegue el codigo del esqueleto me dice que fallo la importación, por que puede ser?
+
+BOT:
+
+Me pide codigo de error, le mando captura de que se instalo pygame correctamente.
+
+YO: 
+
+Ahi se ve correctamente que dice que fallo la importacion, y abajo te muestro que esta el entorno activado, y que corri con el ultimo comando para instalarlo y se instalo correctamente. Que puede fallar?
+
+BOT:
+
+Solución: Configurar el intérprete en VS Code
+Paso 1: Presiona Ctrl + Shift + P (o Cmd + Shift + P en Mac)
+Paso 2: Escribe "Python: Select Interpreter"
+Paso 3: Selecciona el que esté en tu carpeta venv.
+
+(No funciona, no me deja ver el interprete)
+
+BOT: 
+
+Podrias hacer python PygameUI.py y ver que te sale?
+
+YO: (cambio de directorio a Backgammon/Interfaces y hago python PygameUI.py)
+
+BOT:
+
+Agrega if __name__ == "__main__":
+    game = PygameUI()
+    game.run()
+
+YO (Lo agrego y veo que al correrlo de nuevo me aparece una pantalla blanca de pygame)
+(Sigue fallando la importacion pero me parece un buen avance inicial para este commit)
