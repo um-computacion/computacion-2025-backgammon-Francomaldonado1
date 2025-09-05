@@ -84,3 +84,8 @@
 - Se actualiza el codigo de CLI para pasar los tests y asegurar una cobertura de código alta.
 - Se actualiza el codigo de test_CLI.py para que funcionen todos los tests.
 
+## [0.0.11] 05/09/2025
+### ADDED
+- Se agrega esqueleto incial de interfaz grafica con pygame.
+- Se instala pygame agregandolo a archivo requirements.txt.
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar la interfaz grafica pygame inicial.
