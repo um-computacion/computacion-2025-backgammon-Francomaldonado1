@@ -1338,3 +1338,52 @@ BOT: ¿podes asegurar que tu linea del init se vea asi def __init__(self, board_
 
 YO: (No estaba asi, todavia decia 800 y 600, le cambio estas resoluciones) 
 (Pruebo nuevamente abrir la interfaz y si se ve mucho mas grande) 
+
+YO:
+
+Bien gracias, ahora podrias ayudarme a mostrar en pantalla el tablero original del backgammon?
+
+BOT:
+
+¿Tenés una clase Board en tu proyecto? ¿En qué archivo está?
+¿Cómo se representa internamente el tablero en tu código actual?
+¿Querés que use la lógica de tu tablero existente o empezamos con una representación visual básica?
+
+YO:
+
+Si tengo una clase Board, dentro de Backgammon/Core y tambien tengo ahi una clase Player, Dice y Checker. Tengo una duda, viste que a la hora de hacer las clases nombramos todos los atributos de ellas con doble guion bajo atras y adelante para solo acceder a ellas mediante un self? Esto no deberiamos tambien aplicarlo a las interfaces o solo es necesario en las clases?
+
+BOT:
+
+Como ya tenés el código funcionando, podríamos refactorizarlo para que sea consistente con tu estilo. ¿Querés que actualice el código de PygameUI.py para usar la nomenclatura __atributo__ como en tus otras clases?
+
+YO:
+
+Si porfavor actualiza el codigo de PygameUI con esta nomenclatura, tambien cambia el init con 1280 y 720 para que se vea mas grande la pantalla porfavor.
+
+BOT: (Actualiza el codigo) 
+
+YO:
+
+Se ve bien, pero se ven muy chicos los triangulos, no ocupan todo el tablero como deberia ser, a los costados queda mucho espacio en el tablero sin uso, por favor corregí eso. Y tengo otra consulta, no se podria agrandar aun mas la pantalla? 
+
+BOT: (Me manda el codigo actualizado)
+
+YO:
+
+Todavia sobra espacio a los costados, ademas los triangulos de arriba (los primeros 12) estan mas corridos a la derecha que los de abajo, como se ve en la foto, porfavor corregui esto haciendo nuevamente el archivo desde cero, no actualizando el archivo ya hecho, gracias. (Le mando foto del tablero)
+
+BOT:
+
+(Me actualiza el codigo) 
+
+YO:
+
+me dice que board_height no esta definido.
+
+BOT: 
+
+(Me actualiza el codigo) 
+
+Lo pruebo y veo que muestra correctamente el tablero, hago commit.
+

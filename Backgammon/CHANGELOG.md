@@ -98,3 +98,10 @@
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar las primeras figuras de prueba.
 
 
+### CHANGED 06/09/2025 (17:00 hs)
+- Se cambia la interfaz grafica a una pantalla de 1600x900.
+- Se actualiza el codigo de PygameUI.py para que muestre el tablero de Backgammon. 
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar el tablero de Backgammon.
+
+
+
