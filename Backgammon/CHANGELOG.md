@@ -89,3 +89,12 @@
 - Se agrega esqueleto incial de interfaz grafica con pygame.
 - Se instala pygame agregandolo a archivo requirements.txt.
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar la interfaz grafica pygame inicial.
+
+## [0.0.12] 06/09/2025
+### CHANGED
+- Se cambia la interfaz grafica a una pantalla de 1280x720.
+- Se crean unas figuras iniciales (Cuadrados, circulos, lineas) para ver que funciona bien la interfaz.
+- Se definen algunos colores para las figuras de prueba (que podremos usar luego para el tablero y el juego) 
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar las primeras figuras de prueba.
+
+
