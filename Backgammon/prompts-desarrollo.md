@@ -1309,3 +1309,32 @@ Agrega if __name__ == "__main__":
 
 YO (Lo agrego y veo que al correrlo de nuevo me aparece una pantalla blanca de pygame)
 (Sigue fallando la importacion pero me parece un buen avance inicial para este commit)
+
+
+YO: 
+
+Buenos dias, continuemos con pygame, me gustaria probar la interfaz grafica, en vez de que al correr el codigo aparezca una pantalla blanca, quiero que muestre algunas figuras, por ejemplo un cuadrado con un circulo adentro, o algo asi basico para ver que funcione correctamente. Podrias modificar el codigo de PygameUI.py para que muestre esto?
+
+BOT: (Me manda el codigo actualizado) 
+
+YO: 
+
+Bien gracias, veo que funciona bien, mira te mando un poco de el codigo que me dejaron de referencia para hacer el pygame en un link: # pygame setup
+pygame.init()
+screen = pygame.display.set_mode((1280, 720))
+clock = pygame.time.Clock()
+running = True
+viste que el setup queda con resolucion de 1280x720?, podriamos agregarle esta implementación al codigo actual para ver que se vea en pantalla completa estas primeras figuras?
+
+BOT:
+
+(Me pasa el codigo actualizado) 
+
+YO: 
+
+No se ve mas grande la ventana, se ve igual, me sigue apareciendo ademas el fallo en la importación de pygame, sera esto lo que no deja que se vea bien la interfaz?
+
+BOT: ¿podes asegurar que tu linea del init se vea asi def __init__(self, board_width: int = 1280, board_height: int = 720):?
+
+YO: (No estaba asi, todavia decia 800 y 600, le cambio estas resoluciones) 
+(Pruebo nuevamente abrir la interfaz y si se ve mucho mas grande) 
