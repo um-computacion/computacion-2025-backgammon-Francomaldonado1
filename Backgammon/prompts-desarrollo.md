@@ -1474,3 +1474,8 @@ YO:
 
 Si, en la clase Board estan correctamente definidos en las posiciones que te dije recien.
 
+BOT: (Me manda codigo actualizado)
+
+YO (compruebo que funcione y hago commit) 
+
+
