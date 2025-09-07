@@ -108,4 +108,9 @@
 - Se agrega archivo test_PygameUI.py con tests para la interfaz grafica PygameUI (Actualmente no funcionan todos los tests)
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los primeros eventos de la interfaz grafica PygameUI.
 
+## [0.0.13] 07/09/2025
+### ADDED
+- Se actualiza el codigo de PygameUI.py para que muestre las fichas en el tablero.
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar dicha implementación. 
+
 
