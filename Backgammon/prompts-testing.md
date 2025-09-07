@@ -795,3 +795,46 @@ Ran 54 tests in 0.063s
 OK
 
 (Hago commit)
+
+YO:
+
+Hola, hoy estuve trabajando en la interfaz grafica PygameUI, actualmente al correr la interfaz muestra el tablero de Backgammon vacio con una resolución de 1600x900 ahora me gustaria agregarle algunos tests iniciales, no muchos por que tengo pensado terminar el trabajo en 10 dias y tengo que ir haciendo commits diarios, por lo que no quiero avanzar tanto en un solo commit, por favor ayudame a hacer algunos tests de esta interfaz tratando de cubrir la mayoria de casos para asegurar una buena cobertura. a continuacion te dejo el codigo de la interfaz para que veas que podemos testear de ella. (Le dejo codigo de PygameUI.py)
+
+BOT:
+
+(Me lanza codigo con algunos tests iniciales)
+
+YO: 
+
+Me lanza error, te dejo codigo de error: (le mando codigo de error)
+
+BOT: 
+
+Fijate si tenes bien instalado el pygame en tu entorno virtual
+
+YO:
+
+ahi entre al entorno virtual, si tengo instalado en el pygame, me fallan 4 tests te dejo el codigo de error: (le mando codigo de error)
+
+BOT: Cambiar todos los atributos privados de tu clase PygameUI a un solo doble guion bajo inicial, sin guiones al final.
+
+YO:
+
+No puedo hacer eso ya que uno de los requisitos del proyecto es que la clase PygameUI tenga todos sus atributos privados con doble guion bajo antes y despues del atributo, ajustemos los tests para que funcionen aunque los atributos de pygame esten definidos de esta manera.
+
+BOT:    
+
+Si querés, puedo escribir la versión corregida completa de Test_PygameUI.py lista para que funcione con tu clase tal cual está, incluyendo todos los tests de inicialización, eventos y dibujo.
+
+YO:
+
+Si porfavor escribi la version corregida. 
+
+BOT (Me manda el codigo actualizado)
+
+YO: Fallan dos tests, te dejo el codigo de error: (le mando codigo de error) 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Sigue sin funcionar, pero hago commit y mañana lo soluciono) 
+

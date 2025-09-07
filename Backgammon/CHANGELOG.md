@@ -104,6 +104,8 @@
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar el tablero de Backgammon.
 - Se actualizan tambien los atributos de la interfaz PygameUI.py para cumplan con los principios SOLID, agregando doble guion bajo antes y despues de los atributos, para acceder unicamente con self.
 
-
+### ADDED 06/09/2025 (22:00 hs)
+- Se agrega archivo test_PygameUI.py con tests para la interfaz grafica PygameUI (Actualmente no funcionan todos los tests)
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los primeros eventos de la interfaz grafica PygameUI.
 
 
