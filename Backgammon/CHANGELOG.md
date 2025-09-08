@@ -114,3 +114,8 @@
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar dicha implementación. 
 
 
+## [0.0.14] 08/09/2025
+### CHANGED
+- Se cambia el archivo de tests de PygameUI.py cubriendo los casos de la implementación de las fichas al tablero grafico al pygame.
+- Se vuelve a probar cobertura de codigo con Coverage (actualmente 90%).
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los tests de la interfaz grafica PygameUI.
