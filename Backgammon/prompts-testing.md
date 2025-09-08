@@ -838,3 +838,59 @@ BOT: (Me pasa el codigo actualizado)
 
 YO: (Sigue sin funcionar, pero hago commit y mañana lo soluciono) 
 
+### Utilizando claude.ai
+
+YO:
+
+Ahi si me funciono bien (Pygame), ahora me gustaria agregar mas tests para esta nueva imagen que se muestra con las fichas ya en sus posiciones iniciales y correguir los tests viejos, podrias ayudarme a probar bien las ultimas modifiaciones de pygame asegurando una cubertura alta haciendo tests para la mayoria de casos que puedas.
+
+BOT: 
+
+(Me pasa el codigo actualizado)
+
+YO:
+
+
+Podrias definir los tests en español? Y actualizar los nuevos metodos en este archivo de test_pygame creado anteriormente: (Le mando el codigo de test_pygame.py)
+
+BOT:
+
+(Me pasa el codigo actualizado)
+
+YO: (Arreglo las importaciones y lo pruebo)
+
+hay 8 errores, te dejo el codigo de error: 
+
+BOT:
+
+(Me pasa el codigo actualizado)
+
+YO: (Arreglo las importaciones y lo pruebo)
+
+siguen fallando, te dejo el codigo del error:
+
+BOT:
+
+(Me pasa el codigo actualizado)
+
+YO: (Arreglo las importaciones y lo pruebo)
+
+Siguen fallando, trata de rehacer el archivo, porque cuando correguis el que ya esta hecho, te cuesta solucionar problemas, asi que hace el archivo desde cero y tambien si podes agregale la importacion de board desde Board (con mayuscula) arriba donde importamos las librerias. 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: pruebo los nuevos tests y funcionan todos;
+
+(venv) franco@franco-IdeaPad-Slim-5-16IRL8:~/computacion-2025-backgammon-Francomaldonado1$ python3 -m unittest Backgammon/Tests/Test_PygameUI.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.12.3)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+.................................
+----------------------------------------------------------------------
+Ran 33 tests in 5.335s
+
+OK
+
+Y pruebo cobertura, sigue del 90% 
+
+TOTAL                                1960    192    90%
+(Hago commit)
