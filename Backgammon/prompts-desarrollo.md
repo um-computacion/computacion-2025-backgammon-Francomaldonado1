@@ -1478,4 +1478,78 @@ BOT: (Me manda codigo actualizado)
 
 YO (compruebo que funcione y hago commit) 
 
+YO:
 
+Buenas tardes, hoy me gustaria implementar la logica para que se puedan mover fichas en pygameUI, podrias ayudarme a implementar esto? sin implementar todo el juego directamente, teniendo en cuenta que todo lo agregado pueda ser testeado para asegurar la cobertura alta y tambien manteniendo los principios solid en cada avance, necesitas el codigo actual de pygame o recordas lo ultimo que hicimos de agregar las fichas al tablero?
+
+BOT:
+
+3. Implementación incremental testeable
+Paso 1: Detección de clicks en puntos
+
+Agregar método para detectar qué punto fue clickeado
+Tests para verificar mapeo correcto de coordenadas a puntos
+
+Paso 2: Selección visual de fichas
+
+Highlight de fichas seleccionadas
+Estado visual de selección
+Tests para estados de UI
+
+Paso 3: Validación de movimientos
+
+Integración con lógica de Board existente
+Tests para movimientos válidos/inválidos
+
+Paso 4: Ejecución de movimientos
+
+Actualización visual + lógica
+Tests de integración
+
+YO:
+
+Bien, me parece un buen avance lo de agregar metodos para detectar que punto fue clickeado, y luego tests para este nuevo metodo, vamos con eso.
+
+BOT: (Me pasa el codigo actualizado y me recomienda hacer un archivo de tests para testear unicamente si se detectan bien los clicks en puntos)
+
+YO:
+
+Por lo que veo, el archivo de pygame esta igual que antes, compare todos los metodos y son iguales, no agregaste ningun metodo para detectar clicks en puntos. Y sobre el archivo de tests, no podria agregar todos esos tests dentro del archivo ya existente de Test_PygameUI.py? podria separar los tests normales de estos pero todo en un mismo archivo para poder ejecutarlos de manera mas rapida. (Se me acabo el plan, sigo mas tarde)
+
+(cambio a Gemini pro (para probarlo))
+
+ ### Utilizando Gemini
+
+ YO:
+
+Hola buenas tardes, estoy trabajando en un backgammon y estos archivos corresponden a la clase board (tablero) y a la interfaz grafica PygameUI. Estoy haciendo un commit diario, por lo que tengo que avanzar de a poco. Actualmente la interfaz muestra el tablero de backgammon y las fichas de cada jugador en cada posición inicial, hoy me gustaria agregarle un metodo para identificar los clicks en pantalla (para luego poder jugar haciendo click sobre la ficha que queremos mover) asi que considero que es un buen avance agregar este metodo de identificar el click y luego hacer algunos tests para este nuevo metodo en el archivo test_PygameUI. El trabajo mantiene los principios solid asi que por favor asegurate de esto, ademas tambien se exige una cobertura del 90% por lo que todo lo que agrego debe poder ser testeado y no tan complicado para explicarlo, y tambien agrega docstrings en la mayoria de metodos explicando que hacen como esta actualmente porfavor. 
+
+BOT: 
+
+(Me pasa el codigo actualizado)
+
+YO: 
+
+Esta bien, lo unico que falla es que estan invertidos los triangulos del 7 al 12, osea el que le sigue al 6 (arriba de derecha a izquierda) el 7 es el que esta al lado de la barra central (arriba y siguiente del 6), corriguiendo esto, veo que abajo identifica bien el resto de clicks, (del 1 al 6 y del 13 al 24). Sobre los tests te dejo mi archivo anterior de tests y le agregas estos tests nuevos a ese mismo archivo porfavor; (le mando codigo de tests y foto del tablero).
+
+BOT:
+
+(Me pasa el codigo actualizado)
+
+YO:
+
+Ahora identifica bien los puntos, pero estan mal ubicadas las fichas, las 5 negras van en la posicion 12 y estan en la 7, te mando foto del tablero oficial de backgammon para que veas como inician las fichas: (le mando foto del tablero)
+
+BOT:
+
+(Me pasa el codigo actualizado de pygame y tests)
+
+YO (Le arreglo las importaciones, y actualizo el metodo cambiado get_point_screen_position) 
+(Pruebo y falla un tests, la interfaz funciona correctamente)
+
+Falla un tests, te dejo codigo del fallo: (le mando codigo de error)
+
+BOT: (Me actualiza el tests que falla)
+
+YO: (Le cambio el tests que falla)
+(Pruebo y funciona bien, hago commit)
