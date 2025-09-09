@@ -1,12 +1,20 @@
 import unittest
 from unittest.mock import patch, Mock
 import pygame
+import os
+import sys
+
+# Asegura que los módulos del proyecto se encuentren
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Backgammon.Interfaces.PygameUI import PygameUI
 from Backgammon.Core.Board import Board
-
-
 class TestPygameUI(unittest.TestCase):
     
+    @classmethod
+    def setUpClass(cls):
+        # Evita que pygame intente abrir una ventana durante los tests
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
+
     def setUp(self):
         """Configuración antes de cada test."""
         self.ui = PygameUI()
@@ -276,6 +284,66 @@ class TestPygameUI(unittest.TestCase):
         # Acceder al board de manera más indirecta
         board_attr_names = [attr for attr in dir(self.ui) if 'board' in attr.lower()]
         self.assertGreater(len(board_attr_names), 0, "Debe tener al menos un atributo relacionado con board")
+
+        
+# --- NUEVA CLASE DE TESTS AÑADIDA ---
+class TestPygameUIClickDetection(unittest.TestCase):
+    """
+    Suite de pruebas dedicada a verificar la correcta detección de clics en el tablero.
+    """
+    @classmethod
+    def setUpClass(cls):
+        # Evita que pygame intente abrir una ventana durante los tests
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
+        
+    def setUp(self):
+        """Crea una instancia de PygameUI para cada test."""
+        self.ui = PygameUI(board_width=1600, board_height=900)
+
+    def test_get_point_from_mouse_pos_top_right_quadrant(self):
+        """Prueba clics en cuadrante superior derecho (puntos 1-6)."""
+        # Punto 1 (más a la derecha)
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((1500, 100)), 1)
+        # Punto 3
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((1250, 100)), 3)
+        # Punto 6 (más cercano a la barra)
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((850, 100)), 6)
+
+    def test_get_point_from_mouse_pos_top_left_quadrant(self):
+        """Prueba clics en cuadrante superior izquierdo (puntos 7-12)."""
+        # Punto 7 (más cercano a la barra)
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((750, 100)), 7)
+        # Punto 10
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((400, 100)), 10)
+        # Punto 12 (más a la izquierda)
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((100, 100)), 12)
+
+    def test_get_point_from_mouse_pos_bottom_left_quadrant(self):
+        """Prueba clics en cuadrante inferior izquierdo (puntos 13-18)."""
+        # Punto 13 (más a la izquierda)
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((100, 800)), 13)
+        # Punto 15
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((300, 800)), 15)
+        # Punto 18 (más cercano a la barra)
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((700, 800)), 18)
+
+    def test_get_point_from_mouse_pos_bottom_right_quadrant(self):
+        """Prueba clics en cuadrante inferior derecho (puntos 19-24)."""
+        # Punto 19 (más cercano a la barra)
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((850, 800)), 19)
+        # Punto 21
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((1100, 800)), 21)
+        # Punto 24 (más a la derecha)
+        self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((1500, 800)), 24)
+        
+    def test_get_point_from_mouse_pos_invalid_clicks(self):
+        """Prueba que los clics fuera de las áreas de los puntos devuelven None."""
+        # Click en el margen izquierdo
+        self.assertIsNone(self.ui._PygameUI__get_point_from_mouse_pos((25, 450)))
+        # Click en el margen superior
+        self.assertIsNone(self.ui._PygameUI__get_point_from_mouse_pos((800, 25)))
+        # Click en la barra central
+        self.assertIsNone(self.ui._PygameUI__get_point_from_mouse_pos((790, 450)))
 
 
 if __name__ == "__main__":

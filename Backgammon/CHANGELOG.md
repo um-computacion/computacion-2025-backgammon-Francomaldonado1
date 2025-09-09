@@ -119,3 +119,12 @@
 - Se cambia el archivo de tests de PygameUI.py cubriendo los casos de la implementación de las fichas al tablero grafico al pygame.
 - Se vuelve a probar cobertura de codigo con Coverage (actualmente 90%).
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los tests de la interfaz grafica PygameUI.
+
+## [0.0.15] 09/09/2025
+### ADDED
+- Se agrega un nuevo metodo __get_point_from_mouse_pos en PygameUI.py para identificar los puntos en el tablero a partir de las coordenadas del click del ratón.
+
+### CHANGED
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar el nuevo metodo __get_point_from_mouse_pos.
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar el nuevo metodo __get_point_from_mouse_pos.
+- Se actualiza el codigo de test_PygameUI.py agregando nueva clase de tests para probar la detección de clics en el tablero. 
