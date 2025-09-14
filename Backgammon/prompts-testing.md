@@ -894,3 +894,20 @@ Y pruebo cobertura, sigue del 90%
 
 TOTAL                                1960    192    90%
 (Hago commit)
+
+YO:
+
+Ahi funciona correctamente, tuve que cambiar los metodos que decian get_dado1 y get_dado2 por obtener_dado1 y obtener_dado2, ahora podrias hacerme algunos tests para este nuevo metodo roll_to_start por favor, te dejo el archivo actual de tests; (Le mando el codigo de test_pygameUI.py)
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: Fallan algunos tests, te dejo el codigo de error: (Le mando el codigo de error)
+
+BOT: (Me pasa el codigo actualizado)
+ 
+Funcionan correctamente; 
+
+Ran 38 tests in 0.088s
+
+OK
+(Hago commit)

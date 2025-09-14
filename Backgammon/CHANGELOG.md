@@ -128,3 +128,12 @@
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar el nuevo metodo __get_point_from_mouse_pos.
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar el nuevo metodo __get_point_from_mouse_pos.
 - Se actualiza el codigo de test_PygameUI.py agregando nueva clase de tests para probar la detección de clics en el tablero. 
+
+## [0.0.16] 13/09/2025
+### ADDED
+- Se agrega un nuevo metodo __roll_to_start en PygameUI.py para decidir que jugador empieza a jugar. 
+
+### CHANGED
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar el nuevo metodo __roll_to_start.
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar el nuevo metodo __roll_to_start.
+- Se actualiza el codigo de test_PygameUI.py agregando nueva clase de tests para probar el nuevo metodo __roll_to_start.
