@@ -346,5 +346,76 @@ class TestPygameUIClickDetection(unittest.TestCase):
         self.assertIsNone(self.ui._PygameUI__get_point_from_mouse_pos((790, 450)))
 
 
+# --- NUEVA CLASE DE TESTS AÑADIDA ---
+class TestPygameUIRollToStart(unittest.TestCase):
+  class TestPygameUIRollToStart(unittest.TestCase):
+    """
+    Suite de pruebas para el método de la tirada inicial (__roll_to_start).
+    """
+    def setUp(self):
+        """
+        Inicializa PygameUI, pero con las funciones de Pygame mockeadas para
+        evitar la creación de una ventana real.
+        """
+        # Se 'parchea' pygame.init, display.set_mode y font.Font para que no se ejecuten
+        # y se devuelvan Mocks en su lugar. Esto permite que el __init__ de PygameUI se ejecute
+        # y cree todos los atributos necesarios (__current_player__, etc.).
+        with patch('pygame.init'), \
+             patch('pygame.display.set_mode') as mock_set_mode, \
+             patch('pygame.font.Font'):
+            
+            # Aseguramos que __screen__ no sea None, sino un Mock.
+            mock_set_mode.return_value = Mock()
+            self.ui = PygameUI()
+
+    @patch('Backgammon.Interfaces.PygameUI.Dice')
+    @patch('Backgammon.Interfaces.PygameUI.PygameUI._PygameUI__draw') # Aún necesitamos mockear __draw
+    def test_roll_to_start_negro_wins(self, mock_draw, mock_dice_class):
+        """
+        Verifica que 'negro' es asignado como el primer jugador si saca un dado más alto.
+        """
+        mock_dice_instance = mock_dice_class.return_value
+        mock_dice_instance.obtener_dado1.return_value = 5
+        mock_dice_instance.obtener_dado2.return_value = 3
+
+        self.ui._PygameUI__roll_to_start()
+
+        self.assertEqual(self.ui._PygameUI__current_player__, "negro")
+        self.assertEqual(self.ui._PygameUI__game_state__, "GAMEPLAY")
+        mock_dice_instance.tirar.assert_called_once()
+
+    @patch('Backgammon.Interfaces.PygameUI.Dice')
+    @patch('Backgammon.Interfaces.PygameUI.PygameUI._PygameUI__draw')
+    def test_roll_to_start_blanco_wins(self, mock_draw, mock_dice_class):
+        """
+        Verifica que 'blanco' es asignado como el primer jugador si saca un dado más alto.
+        """
+        mock_dice_instance = mock_dice_class.return_value
+        mock_dice_instance.obtener_dado1.return_value = 2
+        mock_dice_instance.obtener_dado2.return_value = 6
+
+        self.ui._PygameUI__roll_to_start()
+
+        self.assertEqual(self.ui._PygameUI__current_player__, "blanco")
+        self.assertEqual(self.ui._PygameUI__game_state__, "GAMEPLAY")
+        mock_dice_instance.tirar.assert_called_once()
+
+    @patch('Backgammon.Interfaces.PygameUI.Dice')
+    @patch('Backgammon.Interfaces.PygameUI.PygameUI._PygameUI__draw')
+    def test_roll_to_start_handles_tie(self, mock_draw, mock_dice_class):
+        """
+        Verifica que el método vuelve a tirar los dados si ocurre un empate.
+        """
+        mock_dice_instance = mock_dice_class.return_value
+        mock_dice_instance.obtener_dado1.side_effect = [4, 6]
+        mock_dice_instance.obtener_dado2.side_effect = [4, 1]
+
+        self.ui._PygameUI__roll_to_start()
+
+        self.assertEqual(self.ui._PygameUI__current_player__, "negro")
+        self.assertEqual(self.ui._PygameUI__game_state__, "GAMEPLAY")
+        self.assertEqual(mock_dice_instance.tirar.call_count, 2)
+
+
 if __name__ == "__main__":
     unittest.main()

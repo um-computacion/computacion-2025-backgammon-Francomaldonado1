@@ -1553,3 +1553,31 @@ BOT: (Me actualiza el tests que falla)
 
 YO: (Le cambio el tests que falla)
 (Pruebo y funciona bien, hago commit)
+
+YO:
+
+Bien, ahi me funciono correctamente, podriamos agregarle ahora la tirada de los dados? quiero que por lo menos deje tirar un dado a cada jugador para determinar cual es el que va a empezar para el commit de hoy, podrias ayudarme a actualizar el archivo pygame con esta logica implementada?
+
+BOT:
+
+(Me pasa el codigo actualizado)
+
+YO:
+
+Te voy a mandar el codigo actual de pygameUI para que agregues estos cambios a este codigo, por que has borrado varios metodos por lo que veo, y no pongas eso de Nuevo y Modificado, solo utiliza docstrings para explicar que hacen los metodos, que reciben y que devuelven cada uno de ellos. (Le mando codigo de pygameUI)
+
+BOT:
+
+(Me pasa el codigo actualizado)
+
+YO: (Lo pruebo)
+
+Me tira error, te mando codigo de error: (Le mando codigo de error)
+
+BOT: (Me crea un metodo en la clase Dice) 
+
+YO: hay un metodo en Dice similar al roll llamado tirar, que tira los dos dados, podrias verlo y cambiar el nombre de roll en pygameUI (en vez de modificar el metodo de Dice)
+
+BOT: (Me actualiza metodo roll_to_start en pygameUI)
+
+YO: (Identifico que son todos errores de AttributeError, y los arreglo, cambiando lo que esta mal por el nombre correcto utilizado en la clase Dice)
