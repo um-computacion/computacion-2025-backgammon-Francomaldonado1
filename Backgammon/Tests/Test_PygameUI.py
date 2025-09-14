@@ -348,7 +348,6 @@ class TestPygameUIClickDetection(unittest.TestCase):
 
 # --- NUEVA CLASE DE TESTS AÑADIDA ---
 class TestPygameUIRollToStart(unittest.TestCase):
-  class TestPygameUIRollToStart(unittest.TestCase):
     """
     Suite de pruebas para el método de la tirada inicial (__roll_to_start).
     """
