@@ -1581,3 +1581,18 @@ YO: hay un metodo en Dice similar al roll llamado tirar, que tira los dos dados,
 BOT: (Me actualiza metodo roll_to_start en pygameUI)
 
 YO: (Identifico que son todos errores de AttributeError, y los arreglo, cambiando lo que esta mal por el nombre correcto utilizado en la clase Dice)
+
+YO: 
+
+Hola buen dia, recuerdas lo ultimo que hicimos en el metodo roll_to_start?, Bueno funciona correctamente, algunos tests fallan pero eso lo correguimos luego. En el commit de hoy pensaba implementar la validación de movimientos, osea la logica de que si en una posición hay mas de 1 ficha del rival, no te deje mover, y el resto de movimientos si sean posibles, excepto los movimientos para salir del tabero si todavia no tenes todas tus fichas en tu ultimo cuadrante (negro entre 19 y 24 y blanco entre 1 y 6), quiero implementar esta lógica de movimiento pero IGNORANDO la logica de sacar fichas del tablero, como asi también la de "comer" fichas cuando hay una sola del rival en la casilla a la que se intenta mover, ya que estas dos funcionalidades las quiero implementar en los proximos commits. Recuerda antes de implementarla que un jugador puede elegir mover una ficha con ambos dados o realizar dos movimientos con fichas distintas uno con cada dado, la logica de DOBLES pensaba implementarla mañana luego de este commit que valida movimientos, que te parece esta estructura?, cambiarias algo de la división de commits?, hace el codigo agregando este metodo para validar movimientos posibles por favor.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Bien, identifica bien la posicion que eligo para mover la ficha pero me deja elegir cualquier posicion, osea no valida correctamente que en esa posición hayan fichas del jugador que quiere realizar el movimiento. Por favor corregi esto ignorando el movimiento de la ficha, osea solo tiene que validar si en esa posición (que ahora son las posiciones inciales del tablero) hay fichas para mover y si es posible moverla. Por ejemplo en la posicion 1 inicialmente hay 2 fichas negras, y en la posición 6 hay inicialmente 5 fichas blancas, por lo que si me sale un dado 5 y intento mover desde la posición 1 me debe devolver movimiento no disponible, se entiende? y si intento mover desde la posición 11 (no hay ninguna ficha negra en esta) actualmente dice "El movimiento no corresponde con ninguno de los dados tirados. Intento de mover de 11 a 14 (usando un dado de valor -3)" por ejemplo y deberia decir "No hay fichas en esta posición para mover" o algo asi. Tampoco me gusta que diga el dado de valor -3, me gustaria que este numero sea siempre positivo o que directamente no se muestre. 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Identifico que el error es de AttributeError, y arreglo el error, poniendo el nombre del metodo de board correctamente) 
+(Pruebo y funciona bien, hago commit)

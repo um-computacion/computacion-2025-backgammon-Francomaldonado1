@@ -137,3 +137,13 @@
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar el nuevo metodo __roll_to_start.
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar el nuevo metodo __roll_to_start.
 - Se actualiza el codigo de test_PygameUI.py agregando nueva clase de tests para probar el nuevo metodo __roll_to_start.
+
+## [0.0.17] 19/09/2025
+### ADDED
+- Se agrega un nuevo metodo __validate_and_report_move en PygameUI.py para validar y mostrar el resultado de un movimiento.
+- Se agrega un nuevo metodo roll_player_dice en PygameUI.py para tirar los dos dados del jugador actual. (El que gana en roll_to_start)
+
+### CHANGED
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar los nuevos metodos __validate_and_report_move y roll_player_dice. 
+
+

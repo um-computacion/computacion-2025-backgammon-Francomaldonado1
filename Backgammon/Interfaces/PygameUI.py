@@ -10,32 +10,25 @@ from Backgammon.Core.Dice import Dice # Se importa la clase para los dados
 
 class PygameUI:
     def __init__(self, board_width: int = 1600, board_height: int = 900):
-        """
-        Inicializa la interfaz gráfica para el juego de Backgammon usando pygame.
-
-        Args:
-            board_width (int): Ancho de la ventana del juego.
-            board_height (int): Alto de la ventana del juego.
-        """
+        """Inicializa la interfaz gráfica para el juego de Backgammon."""
         pygame.init()
+        # ... (código del constructor sin cambios) ...
         self.__screen__ = pygame.display.set_mode((board_width, board_height))
         pygame.display.set_caption("Backgammon")
         self.__clock__ = pygame.time.Clock()
         self.__running__ = True
         
         # --- Lógica de la partida ---
-        self.__game_state__ = 'START_ROLL' # Estados posibles: 'START_ROLL', 'GAMEPLAY'
+        self.__game_state__ = 'START_ROLL'
         self.__dice__ = Dice()
-        self.__dice_rolls__ = [0, 0] # Almacena el resultado de los dados: [Dado 1, Dado 2]
-        self.__current_player__ = None # Puede ser 'negro' o 'blanco'
+        self.__dice_rolls__ = []
+        self.__current_player__ = None
         self.__font__ = pygame.font.Font(None, 45)
         self.__message__ = "Presiona 'R' para decidir quién empieza."
 
-        # Instancia del tablero de juego
         self.__board__ = Board()
         self.__board__.inicializar_posiciones_estandar()
         
-        # Estado de la UI
         self.__selected_point__: Optional[int] = None
 
         # --- Paleta de Colores ---
@@ -51,16 +44,14 @@ class PygameUI:
         self.__dice_color__ = (250, 250, 250)
         self.__pip_color__ = (0, 0, 0)
         
-        # --- Dimensiones del Tablero ---
+        # --- Dimensiones ---
         self.__board_margin__ = 50
         self.__board_width__ = 1500
         self.__board_height__ = 800
         self.__bar_width__ = 80
         
     def run(self) -> None:
-        """
-        Inicia el bucle principal del juego, que maneja eventos, actualizaciones y renderizado.
-        """
+        """Inicia el bucle principal del juego."""
         while self.__running__:
             self.__handle_events()
             self.__update()
@@ -71,10 +62,7 @@ class PygameUI:
         sys.exit()
             
     def __handle_events(self) -> None:
-        """
-        Gestiona todas las entradas del usuario, como cerrar la ventana,
-        presionar teclas y hacer clics con el ratón.
-        """
+        """Gestiona las entradas del usuario."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.__running__ = False
@@ -83,55 +71,101 @@ class PygameUI:
                 if event.key == pygame.K_ESCAPE:
                     self.__running__ = False
                 
-                # Si el juego está en la fase de tirada inicial, la tecla 'R' tira los dados.
-                if event.key == pygame.K_r and self.__game_state__ == 'START_ROLL':
-                    self.__roll_to_start()
+                if event.key == pygame.K_r:
+                    if self.__game_state__ == 'START_ROLL':
+                        self.__roll_to_start()
+                    elif self.__game_state__ == 'AWAITING_ROLL':
+                        self.__roll_player_dice()
 
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1: # Click izquierdo
-                    # La detección de clics en el tablero solo se activa después de la tirada inicial.
-                    if self.__game_state__ == 'GAMEPLAY':
-                        mouse_pos = pygame.mouse.get_pos()
-                        clicked_point = self.__get_point_from_mouse_pos(mouse_pos)
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                # La lógica de clics solo funciona cuando se espera la selección de una pieza.
+                if self.__game_state__ == 'AWAITING_PIECE_SELECTION':
+                    mouse_pos = pygame.mouse.get_pos()
+                    clicked_point = self.__get_point_from_mouse_pos(mouse_pos)
+                    
+                    if clicked_point is not None:
+                        # --- LÓGICA CORREGIDA ---
+                        # Si no hay ninguna ficha seleccionada (primer clic), se valida y selecciona el origen.
+                        if self.__selected_point__ is None:
+                            estado_punto = self.__board__.obtener_estado_punto(clicked_point)
+                            
+                            # Comprobar si hay fichas y si son del jugador actual
+                            if estado_punto and estado_punto[0] == self.__current_player__:
+                                self.__selected_point__ = clicked_point
+                                self.__message__ = f"Ficha en {clicked_point} seleccionada. Elige el destino."
+                            else:
+                                self.__message__ = f"No tienes fichas en el punto {clicked_point}. Elige una válida."
                         
-                        if clicked_point is not None:
-                            self.__selected_point__ = clicked_point
-                            print(f"Click detectado en el punto: {self.__selected_point__}")
+                        # Si ya hay una ficha seleccionada (segundo clic), se valida el movimiento al destino.
                         else:
+                            origen = self.__selected_point__
+                            destino = clicked_point
+                            
+                            self.__validate_and_report_move(origen, destino)
+                            
+                            # Reiniciar la selección para el próximo intento de movimiento
                             self.__selected_point__ = None
-                            print("Click fuera de un punto válido.")
+                            # El mensaje se actualiza dentro de __validate_and_report_move o se resetea aquí
+                            if "VÁLIDO" not in self.__message__:
+                                self.__message__ = f"Turno de {self.__current_player__}. Dados: {self.__dice_rolls__}. Elige una ficha."
 
 
     def __roll_to_start(self):
-        """
-        Realiza la tirada de un dado por jugador para determinar quién empieza.
-        Utiliza el método tirar() de la clase Dice y maneja los empates.
-        """
-        self.__message__ = "Tirando los dados..."
-        self.__draw()
-        pygame.time.wait(400)
-
-        # Tira los dados y obtiene los valores
+        """Realiza la tirada inicial para decidir quién empieza."""
+        # ... (código sin cambios) ...
         self.__dice__.tirar()
         roll1 = self.__dice__.obtener_dado1()
         roll2 = self.__dice__.obtener_dado2()
         
-        # Vuelve a tirar si hay empate
         while roll1 == roll2:
             self.__dice__.tirar()
             roll1 = self.__dice__.obtener_dado1()
             roll2 = self.__dice__.obtener_dado2()
-            
+        
         self.__dice_rolls__ = [roll1, roll2]
         
         if roll1 > roll2:
             self.__current_player__ = "negro"
-            self.__message__ = f"Negro saca un {roll1} y Blanco un {roll2}. ¡Empieza Negro!"
+            self.__message__ = f"Negro ({roll1}) gana a Blanco ({roll2}). Presiona 'R' para tirar tus dados."
         else:
             self.__current_player__ = "blanco"
-            self.__message__ = f"Blanco saca un {roll2} y Negro un {roll1}. ¡Empieza Blanco!"
+            self.__message__ = f"Blanco ({roll2}) gana a Negro ({roll1}). Presiona 'R' para tirar tus dados."
+
+        self.__game_state__ = 'AWAITING_ROLL'
+
+    def __roll_player_dice(self):
+        """El jugador actual tira los dos dados para su turno."""
+        # ... (código sin cambios) ...
+        self.__dice__.tirar()
+        self.__dice_rolls__ = [self.__dice__.obtener_dado1(), self.__dice__.obtener_dado2()]
+        self.__game_state__ = 'AWAITING_PIECE_SELECTION'
+        self.__message__ = f"Turno de {self.__current_player__}. Tienes los dados: {self.__dice_rolls__}. Elige una ficha."
+
+
+    def __validate_and_report_move(self, origen: int, destino: int):
+        """
+        Valida un movimiento usando el Board y actualiza el mensaje de la UI.
+        """
+        # --- LÓGICA CORREGIDA ---
+        # Calcular el valor del dado como un número siempre positivo
+        dado_usado = abs(origen - destino)
             
-        self.__game_state__ = 'GAMEPLAY'
+        print(f"Intento de mover de {origen} a {destino} (requiere un dado de {dado_usado})")
+
+        # Comprobar si el dado utilizado corresponde a uno de los disponibles
+        if dado_usado in self.__dice_rolls__:
+            # Llamar al método de validación del tablero
+            es_valido = self.__board__._mover_ficha_bool(origen, destino, self.__current_player__)
+            
+            print(f"El movimiento es posible?: {es_valido}")
+            if es_valido:
+                self.__message__ = f"Movimiento de {origen} a {destino} es VÁLIDO."
+                # Nota: En un futuro commit, aquí se eliminaría el dado_usado de self.__dice_rolls__
+            else:
+                self.__message__ = f"Movimiento de {origen} a {destino} NO ES VÁLIDO. Intenta de nuevo."
+        else:
+            print("El valor del movimiento no corresponde con los dados tirados.")
+            self.__message__ = "El valor del dado no coincide. Intenta de nuevo."
 
     def __get_point_from_mouse_pos(self, mouse_pos: Tuple[int, int]) -> Optional[int]:
         """
@@ -191,7 +225,7 @@ class PygameUI:
         self.__draw_checkers()
         self.__draw_message()
         
-        if self.__dice_rolls__[0] != 0:
+        if self.__dice_rolls__:
             self.__draw_dice()
             
         pygame.display.flip()
