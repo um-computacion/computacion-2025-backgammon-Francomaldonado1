@@ -911,3 +911,45 @@ Ran 38 tests in 0.088s
 
 OK
 (Hago commit)
+
+### Utilizando Gemini
+
+YO:
+
+Ahora necesito que me ayudes a correguir los tests de roll_to_start que estan fallando, y agregar mas test para los nuevos metodo agregados para la validación de movimientos, y la tirada de dados para arrancar a jugar. Te dejo codigo de test_PygameUI.py y codigo de error actual. (Le mando el codigo de tests y error)
+
+BOT:
+
+(Me actualiza algunos metodos y me agrega una nueva clase de tests, lo actualizo en el archivo de tests)
+
+YO:
+
+Hay un error te mando el codigo: (Le mando el codigo de error)
+
+BOT: (Me actualiza el codigo)
+
+YO: Fallan todavia mas tests que antes, podrias rehacer esta clase de tests tratando de correguir estos errores; (Le mando el codigo de error)
+
+BOT: (Me actualiza el codigo)
+
+YO: Veo que borraste el test de test_roll_to_start_handles_tie por que? 
+
+BOT: (Me actualiza el codigo agregando nuevamente este test) 
+
+YO: 
+
+Siguen fallando muchos tests, te dejo el codigo actual de test_pygameui para que veas como quedo, tambien tuve que cambiar la definicion de las clases con unittest.testcase. Por favor corregui estos errores y pone correctamente unittest.testcase en la definicion de clases.
+
+BOT: (Me actualiza el codigo)
+
+YO:
+
+Esta bien pero me estas borrando los tests de la clase RollMechanics que comprueban que gana el negro o el blanco en la tirada inicial de un dado, y estos tests me parecen importantes asi que agregalos y pasame el codigo unicamente de esta clase, dividiendo como antes en clase de roll (tirada de dados y MoveValidation) las clases de arriba ya estan bien y las importaciones tambien.
+
+BOT: (Me actualiza el codigo)
+
+YO: Fallan 6 tests, te dejo el codigo de error: (Le mando el codigo de error)
+
+BOT: (Me actualiza el codigo)
+
+YO: (Siguen fallando, pero hago commit y mañana lo soluciono) 

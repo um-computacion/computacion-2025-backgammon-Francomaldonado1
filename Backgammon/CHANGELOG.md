@@ -146,4 +146,8 @@
 ### CHANGED
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar los nuevos metodos __validate_and_report_move y roll_player_dice. 
 
+### ADDED 19/|09/2025 (21:00 hs)
+- Se agregan nuevos tests para la logica de movimientos posibles y las tiradas de dados para realizarlos. (No funcionales actualmente)
 
+### CHANGED
+Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los nuevos tests de la lógica de movimientos y las tiradas de dados.

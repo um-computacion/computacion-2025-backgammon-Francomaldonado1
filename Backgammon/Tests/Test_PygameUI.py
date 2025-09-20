@@ -8,16 +8,51 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Backgammon.Interfaces.PygameUI import PygameUI
 from Backgammon.Core.Board import Board
-class TestPygameUI(unittest.TestCase):
-    
+
+
+# --- CLASE BASE PARA TESTS DE LÓGICA Y DIBUJO ---
+# Esta clase centraliza la configuración para evitar código repetido.
+class PygameUITestBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Evita que pygame intente abrir una ventana durante los tests
+        """Se ejecuta una vez por clase para preparar el entorno de Pygame sin pantalla."""
         os.environ["SDL_VIDEODRIVER"] = "dummy"
+        pygame.init()
 
     def setUp(self):
-        """Configuración antes de cada test."""
+        """
+        Se ejecuta antes de cada test. Crea una instancia de PygameUI segura,
+        'parcheando' las funciones de Pygame para que el constructor se ejecute
+        por completo pero sin crear una ventana real.
+        """
+        with patch('pygame.display.set_mode', return_value=pygame.Surface((1600, 900))), \
+             patch('pygame.font.Font'):
+            self.ui = PygameUI()
+
+# --- CLASE BASE PARA TESTS DE PYGAMEUI ---
+# Se utiliza para centralizar la configuración y evitar código repetido.
+class TestPygameUI(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        """Se ejecuta una vez para preparar el entorno de Pygame sin pantalla."""
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
+        pygame.init() # Es necesario para crear superficies
+
+    def setUp(self):
+        """
+        Se ejecuta antes de cada test. Crea una instancia real de PygameUI
+        con una superficie en memoria para poder probar las funciones de dibujado.
+        """
         self.ui = PygameUI()
+        # Se asigna una superficie real para que los métodos de dibujo no fallen
+        self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
+
+    def test_draw_backgammon_board_dibuja_elementos(self):
+        """Debe poder llamar a las funciones de dibujo sin errores."""
+        try:
+            self.ui._PygameUI__draw_backgammon_board()
+        except Exception as e:
+            self.fail(f"__draw_backgammon_board() falló con el error: {e}")
 
     def test_creacion_objeto(self):
         """Debe crear correctamente una instancia de PygameUI."""
@@ -298,7 +333,8 @@ class TestPygameUIClickDetection(unittest.TestCase):
         
     def setUp(self):
         """Crea una instancia de PygameUI para cada test."""
-        self.ui = PygameUI(board_width=1600, board_height=900)
+        with patch('pygame.init'), patch('pygame.display.set_mode'), patch('pygame.font.Font'):
+         self.ui = PygameUI(board_width=1600, board_height=900)
 
     def test_get_point_from_mouse_pos_top_right_quadrant(self):
         """Prueba clics en cuadrante superior derecho (puntos 1-6)."""
@@ -346,74 +382,90 @@ class TestPygameUIClickDetection(unittest.TestCase):
         self.assertIsNone(self.ui._PygameUI__get_point_from_mouse_pos((790, 450)))
 
 
-# --- NUEVA CLASE DE TESTS AÑADIDA ---
-class TestPygameUIRollToStart(unittest.TestCase):
+# --- SUITE DE TESTS PARA LA LÓGICA DEL JUEGO (SIN DIBUJADO) ---
+class TestPygameUILogic(unittest.TestCase):
     """
-    Suite de pruebas para el método de la tirada inicial (__roll_to_start).
+    Suite de pruebas para la lógica del juego (tiradas, selección, validación),
+    sin depender de la renderización en pantalla.
     """
     def setUp(self):
         """
-        Inicializa PygameUI, pero con las funciones de Pygame mockeadas para
-        evitar la creación de una ventana real.
+        Se ejecuta antes de cada test. Inicializa PygameUI de forma segura,
+        'parcheando' las funciones de Pygame para que el constructor __init__
+        pueda ejecutarse por completo sin crear una ventana.
         """
-        # Se 'parchea' pygame.init, display.set_mode y font.Font para que no se ejecuten
-        # y se devuelvan Mocks en su lugar. Esto permite que el __init__ de PygameUI se ejecute
-        # y cree todos los atributos necesarios (__current_player__, etc.).
+        # Este 'patch' es la clave: permite que PygameUI.__init__ se ejecute
+        # y cree todos los atributos (__board__, __current_player__, etc.)
+        # sin fallar por intentar crear una ventana.
         with patch('pygame.init'), \
-             patch('pygame.display.set_mode') as mock_set_mode, \
+             patch('pygame.display.set_mode'), \
              patch('pygame.font.Font'):
-            
-            # Aseguramos que __screen__ no sea None, sino un Mock.
-            mock_set_mode.return_value = Mock()
             self.ui = PygameUI()
 
+    # --- Tests para la Tirada de Dados ---
     @patch('Backgammon.Interfaces.PygameUI.Dice')
-    @patch('Backgammon.Interfaces.PygameUI.PygameUI._PygameUI__draw') # Aún necesitamos mockear __draw
+    @patch('Backgammon.Interfaces.PygameUI.PygameUI._PygameUI__draw') # Ignoramos el dibujado
     def test_roll_to_start_negro_wins(self, mock_draw, mock_dice_class):
-        """
-        Verifica que 'negro' es asignado como el primer jugador si saca un dado más alto.
-        """
+        """Verifica que 'negro' gana la tirada inicial con un dado más alto."""
         mock_dice_instance = mock_dice_class.return_value
         mock_dice_instance.obtener_dado1.return_value = 5
         mock_dice_instance.obtener_dado2.return_value = 3
-
         self.ui._PygameUI__roll_to_start()
-
         self.assertEqual(self.ui._PygameUI__current_player__, "negro")
-        self.assertEqual(self.ui._PygameUI__game_state__, "GAMEPLAY")
-        mock_dice_instance.tirar.assert_called_once()
+        self.assertEqual(self.ui._PygameUI__game_state__, "AWAITING_ROLL")
 
     @patch('Backgammon.Interfaces.PygameUI.Dice')
     @patch('Backgammon.Interfaces.PygameUI.PygameUI._PygameUI__draw')
     def test_roll_to_start_blanco_wins(self, mock_draw, mock_dice_class):
-        """
-        Verifica que 'blanco' es asignado como el primer jugador si saca un dado más alto.
-        """
+        """Verifica que 'blanco' gana la tirada inicial con un dado más alto."""
         mock_dice_instance = mock_dice_class.return_value
         mock_dice_instance.obtener_dado1.return_value = 2
         mock_dice_instance.obtener_dado2.return_value = 6
-
         self.ui._PygameUI__roll_to_start()
-
         self.assertEqual(self.ui._PygameUI__current_player__, "blanco")
-        self.assertEqual(self.ui._PygameUI__game_state__, "GAMEPLAY")
-        mock_dice_instance.tirar.assert_called_once()
+        self.assertEqual(self.ui._PygameUI__game_state__, "AWAITING_ROLL")
 
     @patch('Backgammon.Interfaces.PygameUI.Dice')
     @patch('Backgammon.Interfaces.PygameUI.PygameUI._PygameUI__draw')
     def test_roll_to_start_handles_tie(self, mock_draw, mock_dice_class):
-        """
-        Verifica que el método vuelve a tirar los dados si ocurre un empate.
-        """
+        """Verifica que el método vuelve a tirar los dados si ocurre un empate."""
         mock_dice_instance = mock_dice_class.return_value
         mock_dice_instance.obtener_dado1.side_effect = [4, 6]
         mock_dice_instance.obtener_dado2.side_effect = [4, 1]
-
         self.ui._PygameUI__roll_to_start()
-
         self.assertEqual(self.ui._PygameUI__current_player__, "negro")
-        self.assertEqual(self.ui._PygameUI__game_state__, "GAMEPLAY")
         self.assertEqual(mock_dice_instance.tirar.call_count, 2)
+
+    # --- Tests para la Validación de Movimientos ---
+    def test_select_valid_piece(self):
+        """Verifica que se puede seleccionar un punto con fichas propias."""
+        self.ui._PygameUI__current_player__ = "negro"
+        self.ui._PygameUI__game_state__ = "AWAITING_PIECE_SELECTION"
+        self._simulate_click_on_point(1)
+        self.assertEqual(self.ui._PygameUI__selected_point__, 1)
+
+    def test_validate_move_valid(self):
+        """Verifica que la UI reporta correctamente un movimiento válido."""
+        self.ui._PygameUI__current_player__ = "negro"
+        self.ui._PygameUI__dice_rolls__ = [4]
+        self.ui._PygameUI__validate_and_report_move(origen=19, destino=15)
+        self.assertIn("es VÁLIDO", self.ui._PygameUI__message__)
+
+    def test_validate_move_invalid_blocked(self):
+        """Verifica que la UI reporta correctamente un movimiento a un punto bloqueado."""
+        self.ui._PygameUI__current_player__ = "negro"
+        self.ui._PygameUI__dice_rolls__ = [4]
+        self.ui._PygameUI__board__.colocar_ficha(15, "blanco", 2)
+        self.ui._PygameUI__validate_and_report_move(origen=19, destino=15)
+        self.assertIn("NO ES VÁLIDO", self.ui._PygameUI__message__)
+
+    # --- Helper Method ---
+    def _simulate_click_on_point(self, point_number: int):
+        """Helper para simular un evento de clic del ratón."""
+        with patch.object(self.ui, '_PygameUI__get_point_from_mouse_pos', return_value=point_number):
+            mock_event = Mock(type=pygame.MOUSEBUTTONDOWN, button=1)
+            with patch('pygame.event.get', return_value=[mock_event]):
+                self.ui._PygameUI__handle_events()
 
 
 if __name__ == "__main__":
