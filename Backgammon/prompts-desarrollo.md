@@ -1596,3 +1596,35 @@ BOT: (Me pasa el codigo actualizado)
 
 YO: (Identifico que el error es de AttributeError, y arreglo el error, poniendo el nombre del metodo de board correctamente) 
 (Pruebo y funciona bien, hago commit)
+
+YO: 
+
+Hola podrias ahora ayudarme a terminar el metodo de validación de movimientos iniciales, actualmente juega un jugador infinitamente, que es correcto por que todavia no quiero agregar la función que haga cambiar de turno. Cuando el jugador suponiendo que inicia el negro, elige mover desde la posición uno hasta una que no puede por que no tiene un dado para moverlo esa cantidad, automaticamente vuelve a pedir elegir una ficha para mover. Me gustaria que muestre un mensaje como "Movimiento invalido, vuelva a elegir ficha" y ahi que el jugador eliga de vuelta el origen y destino de su movimiento. Y ademas de esta corrección me gustaría cambiar el mensaje que se muestra por consola, por ejemplo: El valor del movimiento no corresponde con los dados tirados. Intento de mover de 6 a 22 (requiere un dado de 16). Esto que dice "Requiere un dado de 16" es absurdo, deberia decir simplemente el valor del movimiento no corresponde con los dados tirados , estas son las dos modificaciones para este commit, se entiende el objetivo del commit? Te dejo archivo actual de pygame para que veas como quedaron las ultimas modificaciones de estos metodos correspondientes a los movimientos.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: 
+
+Bien, ahora se muestra correctamente el mensaje en consola, pero el mensaje de la interfaz que aparece arriba de la pantalla es el que hay que modificar tambien. Sigue estando como antes que al realizar un movimiento no correspondiente a los dados directamente aparece "Turno de negro, Dados, elige una ficha" y deberia mostrar "Movimiento no valido, Dados, eliga otra ficha" se entiende?
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Bien gracias ahora funciona bien, me gustaría tambien corregir la logica de movimiento para cada jugador, osea el blanco cuyo objetivo es llevar todas las fichas al cuadrante 1-6, solo puede mover para atras, osea restando posiciones, y el negro al reves ya que su objetivo es llevar todas sus fichas al cuadrante 19-24, este solo puede mover en esta dirección. Esta restricción es clave para que funcione bien el juego.
+
+BOT: (Me recomienda cambiar mover_ficha_bool en board.py, pero esta modificación hace que falle la CLI)
+
+YO:
+
+Si modifico eso en board, falla la interfaz de texto CLI por lo que me gustaria cambiarlo directamente en pygame. 
+
+BOT: (Me pasa el codigo actualizado del metodo validate_and_report_move en pygameUI.py)
+
+YO: 
+
+Esta al reves la logica, el negro mueve aumentando las posiciones del 1 al 24, y el blanco disminuye las posiciones.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Actualizo el codigo y cambio algunos mensajes de el handle events, para que se vea mas agradable. Hago commit) 

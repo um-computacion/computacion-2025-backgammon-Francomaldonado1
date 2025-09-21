@@ -151,3 +151,10 @@
 
 ### CHANGED
 Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los nuevos tests de la lógica de movimientos y las tiradas de dados.
+
+## [0.0.18] 20/09/2025
+### ADDED 
+- Se agrega en validate_and_report_move un nueva logica para detectar la dirección de movimiento.
+### CHANGED
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la nueva lógica de dirección de movimiento.
+

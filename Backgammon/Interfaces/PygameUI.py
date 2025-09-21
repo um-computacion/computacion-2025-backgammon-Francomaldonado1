@@ -78,36 +78,35 @@ class PygameUI:
                         self.__roll_player_dice()
 
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                # La lógica de clics solo funciona cuando se espera la selección de una pieza.
                 if self.__game_state__ == 'AWAITING_PIECE_SELECTION':
                     mouse_pos = pygame.mouse.get_pos()
                     clicked_point = self.__get_point_from_mouse_pos(mouse_pos)
                     
                     if clicked_point is not None:
-                        # --- LÓGICA CORREGIDA ---
-                        # Si no hay ninguna ficha seleccionada (primer clic), se valida y selecciona el origen.
                         if self.__selected_point__ is None:
                             estado_punto = self.__board__.obtener_estado_punto(clicked_point)
                             
-                            # Comprobar si hay fichas y si son del jugador actual
                             if estado_punto and estado_punto[0] == self.__current_player__:
                                 self.__selected_point__ = clicked_point
                                 self.__message__ = f"Ficha en {clicked_point} seleccionada. Elige el destino."
                             else:
                                 self.__message__ = f"No tienes fichas en el punto {clicked_point}. Elige una válida."
                         
-                        # Si ya hay una ficha seleccionada (segundo clic), se valida el movimiento al destino.
                         else:
                             origen = self.__selected_point__
                             destino = clicked_point
+                            # Validar y reportar el movimiento. La función ahora devuelve True/False.
+                            movimiento_valido = self.__validate_and_report_move(origen, destino)
                             
-                            self.__validate_and_report_move(origen, destino)
-                            
-                            # Reiniciar la selección para el próximo intento de movimiento
+                            # Se reinicia la selección para el próximo intento de movimiento.
                             self.__selected_point__ = None
-                            # El mensaje se actualiza dentro de __validate_and_report_move o se resetea aquí
-                            if "VÁLIDO" not in self.__message__:
-                                self.__message__ = f"Turno de {self.__current_player__}. Dados: {self.__dice_rolls__}. Elige una ficha."
+                            
+                            # El mensaje de la UI ahora depende del resultado de la validación.
+                            if not movimiento_valido:
+                                self.__message__ = "Movimiento inválido. Vuelve a elegir una ficha."
+                            else:
+                                # Si fue válido, se indica al jugador (en el futuro aquí se actualizará el turno).
+                                self.__message__ = f"Movimiento realizado. Turno de {self.__current_player__}. Dados: {self.__dice_rolls__}."
 
 
     def __roll_to_start(self):
@@ -142,31 +141,41 @@ class PygameUI:
         self.__message__ = f"Turno de {self.__current_player__}. Tienes los dados: {self.__dice_rolls__}. Elige una ficha."
 
 
-    def __validate_and_report_move(self, origen: int, destino: int):
+    def __validate_and_report_move(self, origen: int, destino: int) -> bool:
         """
-        Valida un movimiento usando el Board y actualiza el mensaje de la UI.
+        Valida un movimiento, incluyendo la dirección correcta para cada jugador.
         """
-        # --- LÓGICA CORREGIDA ---
-        # Calcular el valor del dado como un número siempre positivo
+        # --- LÓGICA DE DIRECCIÓN CORREGIDA ---
+        # El jugador negro mueve a puntos de numeración MAYOR (de 1 a 24).
+        if self.__current_player__ == "negro" and destino <= origen:
+            print(f"Error de dirección para Negro: solo puede mover a un punto de mayor numeración.")
+            self.__message__ = "Movimiento inválido (dirección incorrecta)."
+            return False
+        
+        # El jugador blanco mueve a puntos de numeración MENOR (de 24 a 1).
+        if self.__current_player__ == "blanco" and destino >= origen:
+            print(f"Error de dirección para Blanco: solo puede mover a un punto de menor numeración.")
+            self.__message__ = "Movimiento inválido (dirección incorrecta)."
+            return False
+        
         dado_usado = abs(origen - destino)
-            
-        print(f"Intento de mover de {origen} a {destino} (requiere un dado de {dado_usado})")
+        print(f"Intento de mover de {origen} a {destino}.")
 
-        # Comprobar si el dado utilizado corresponde a uno de los disponibles
         if dado_usado in self.__dice_rolls__:
-            # Llamar al método de validación del tablero
             es_valido = self.__board__._mover_ficha_bool(origen, destino, self.__current_player__)
             
             print(f"El movimiento es posible?: {es_valido}")
             if es_valido:
                 self.__message__ = f"Movimiento de {origen} a {destino} es VÁLIDO."
-                # Nota: En un futuro commit, aquí se eliminaría el dado_usado de self.__dice_rolls__
+                return True
             else:
-                self.__message__ = f"Movimiento de {origen} a {destino} NO ES VÁLIDO. Intenta de nuevo."
+                self.__message__ = f"Movimiento de {origen} a {destino} NO ES VÁLIDO."
+                return False
         else:
             print("El valor del movimiento no corresponde con los dados tirados.")
-            self.__message__ = "El valor del dado no coincide. Intenta de nuevo."
-
+            self.__message__ = "El valor del dado no coincide."
+            return False
+        
     def __get_point_from_mouse_pos(self, mouse_pos: Tuple[int, int]) -> Optional[int]:
         """
         Calcula en qué punto del tablero (1-24) se hizo click.
