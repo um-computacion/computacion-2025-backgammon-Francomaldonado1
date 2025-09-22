@@ -158,3 +158,11 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 ### CHANGED
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar y probar la nueva lógica de dirección de movimiento.
 
+## [0.0.19] 21/09/2025
+### ADDED
+- Se agregan tests para la lógica de dirección de movimientos.
+
+### CHANGED
+- Se arreglan tests de movimientos que fallaban para que pasen.
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los nuevos tests de la lógica de dirección de movimientos.
+
