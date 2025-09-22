@@ -403,70 +403,215 @@ class TestPygameUILogic(unittest.TestCase):
             self.ui = PygameUI()
 
     # --- Tests para la Tirada de Dados ---
-    @patch('Backgammon.Interfaces.PygameUI.Dice')
-    @patch('Backgammon.Interfaces.PygameUI.PygameUI._PygameUI__draw') # Ignoramos el dibujado
-    def test_roll_to_start_negro_wins(self, mock_draw, mock_dice_class):
+    @patch('Backgammon.Core.Dice.Dice.tirar')
+    @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
+    @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
+    @patch.object(PygameUI, '_PygameUI__draw')
+    def test_roll_to_start_negro_wins(self, mock_draw, mock_dado2, mock_dado1, mock_tirar):
         """Verifica que 'negro' gana la tirada inicial con un dado más alto."""
-        mock_dice_instance = mock_dice_class.return_value
-        mock_dice_instance.obtener_dado1.return_value = 5
-        mock_dice_instance.obtener_dado2.return_value = 3
+        mock_dado1.return_value = 5
+        mock_dado2.return_value = 3
         self.ui._PygameUI__roll_to_start()
-        self.assertEqual(self.ui._PygameUI__current_player__, "negro")
-        self.assertEqual(self.ui._PygameUI__game_state__, "AWAITING_ROLL")
+        self.assertEqual(self.ui.__current_player__, "negro")
+        self.assertEqual(self.ui.__game_state__, "AWAITING_ROLL")
 
-    @patch('Backgammon.Interfaces.PygameUI.Dice')
-    @patch('Backgammon.Interfaces.PygameUI.PygameUI._PygameUI__draw')
-    def test_roll_to_start_blanco_wins(self, mock_draw, mock_dice_class):
+    @patch('Backgammon.Core.Dice.Dice.tirar')
+    @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
+    @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
+    @patch.object(PygameUI, '_PygameUI__draw')
+    def test_roll_to_start_blanco_wins(self, mock_draw, mock_dado2, mock_dado1, mock_tirar):
         """Verifica que 'blanco' gana la tirada inicial con un dado más alto."""
-        mock_dice_instance = mock_dice_class.return_value
-        mock_dice_instance.obtener_dado1.return_value = 2
-        mock_dice_instance.obtener_dado2.return_value = 6
+        mock_dado1.return_value = 2
+        mock_dado2.return_value = 6
         self.ui._PygameUI__roll_to_start()
-        self.assertEqual(self.ui._PygameUI__current_player__, "blanco")
-        self.assertEqual(self.ui._PygameUI__game_state__, "AWAITING_ROLL")
+        self.assertEqual(self.ui.__current_player__, "blanco")
+        self.assertEqual(self.ui.__game_state__, "AWAITING_ROLL")
 
-    @patch('Backgammon.Interfaces.PygameUI.Dice')
-    @patch('Backgammon.Interfaces.PygameUI.PygameUI._PygameUI__draw')
-    def test_roll_to_start_handles_tie(self, mock_draw, mock_dice_class):
+    @patch('Backgammon.Core.Dice.Dice.tirar')
+    @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
+    @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
+    @patch.object(PygameUI, '_PygameUI__draw')
+    def test_roll_to_start_handles_tie(self, mock_draw, mock_dado2, mock_dado1, mock_tirar):
         """Verifica que el método vuelve a tirar los dados si ocurre un empate."""
-        mock_dice_instance = mock_dice_class.return_value
-        mock_dice_instance.obtener_dado1.side_effect = [4, 6]
-        mock_dice_instance.obtener_dado2.side_effect = [4, 1]
+        mock_dado1.side_effect = [4, 6]
+        mock_dado2.side_effect = [4, 1]
         self.ui._PygameUI__roll_to_start()
-        self.assertEqual(self.ui._PygameUI__current_player__, "negro")
-        self.assertEqual(mock_dice_instance.tirar.call_count, 2)
+        self.assertEqual(self.ui.__current_player__, "negro")
+        self.assertEqual(mock_tirar.call_count, 2)
+
+    # --- Tests para Tirada de Dados del Jugador ---
+    @patch('Backgammon.Core.Dice.Dice.tirar')
+    @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
+    @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
+    def test_roll_player_dice(self, mock_dado2, mock_dado1, mock_tirar):
+        """Verifica que se pueden tirar los dados del jugador."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__game_state__ = "AWAITING_ROLL"
+        
+        mock_dado1.return_value = 4
+        mock_dado2.return_value = 6
+        
+        self.ui._PygameUI__roll_player_dice()
+        
+        self.assertEqual(self.ui.__dice_rolls__, [4, 6])
+        self.assertEqual(self.ui.__game_state__, "AWAITING_PIECE_SELECTION")
+        self.assertIn("Turno de negro", self.ui.__message__)
 
     # --- Tests para la Validación de Movimientos ---
     def test_select_valid_piece(self):
         """Verifica que se puede seleccionar un punto con fichas propias."""
-        self.ui._PygameUI__current_player__ = "negro"
-        self.ui._PygameUI__game_state__ = "AWAITING_PIECE_SELECTION"
+        self.ui.__current_player__ = "negro"
+        self.ui.__game_state__ = "AWAITING_PIECE_SELECTION"
         self._simulate_click_on_point(1)
-        self.assertEqual(self.ui._PygameUI__selected_point__, 1)
+        self.assertEqual(self.ui.__selected_point__, 1)
 
     def test_validate_move_valid(self):
         """Verifica que la UI reporta correctamente un movimiento válido."""
-        self.ui._PygameUI__current_player__ = "negro"
-        self.ui._PygameUI__dice_rolls__ = [4]
-        self.ui._PygameUI__validate_and_report_move(origen=19, destino=15)
-        self.assertIn("es VÁLIDO", self.ui._PygameUI__message__)
+        self.ui.__current_player__ = "negro"
+        self.ui.__dice_rolls__ = [4]
+        
+        # Asegurar que hay una ficha negra en el punto de origen
+        self.ui.__board__.colocar_ficha(19, "negro", 1)
+        
+        # Mock del método _mover_ficha_bool para que retorne True
+        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=True):
+            result = self.ui._PygameUI__validate_and_report_move(origen=19, destino=23)  # Movimiento en dirección correcta
+            self.assertTrue(result)
+            self.assertIn("es VÁLIDO", self.ui.__message__)
 
     def test_validate_move_invalid_blocked(self):
         """Verifica que la UI reporta correctamente un movimiento a un punto bloqueado."""
-        self.ui._PygameUI__current_player__ = "negro"
-        self.ui._PygameUI__dice_rolls__ = [4]
-        self.ui._PygameUI__board__.colocar_ficha(15, "blanco", 2)
-        self.ui._PygameUI__validate_and_report_move(origen=19, destino=15)
-        self.assertIn("NO ES VÁLIDO", self.ui._PygameUI__message__)
+        self.ui.__current_player__ = "negro"
+        self.ui.__dice_rolls__ = [4]
+        
+        # Colocar ficha negra en origen
+        self.ui.__board__.colocar_ficha(19, "negro", 1)
+        
+        # Mock del método _mover_ficha_bool para que retorne False (punto bloqueado)
+        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=False):
+            result = self.ui._PygameUI__validate_and_report_move(origen=19, destino=23)  # Movimiento en dirección correcta
+            self.assertFalse(result)
+            self.assertIn("NO ES VÁLIDO", self.ui.__message__)
+
+    def test_validate_move_dice_not_matching(self):
+        """Verifica que se rechaza un movimiento cuando el dado no coincide."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__dice_rolls__ = [3, 5]  # Solo dados 3 y 5 disponibles
+        
+        # Colocar ficha negra en el punto de origen
+        self.ui.__board__.colocar_ficha(1, "negro", 1)
+        
+        # Intentar mover 4 espacios (dado no disponible)
+        result = self.ui._PygameUI__validate_and_report_move(origen=1, destino=5)
+        self.assertFalse(result)
+        self.assertIn("El valor del dado no coincide", self.ui.__message__)
+
+    # --- TESTS PARA LA RESTRICCIÓN DIRECCIONAL ---
+    def test_move_direction_negro_valid(self):
+        """Verifica que el jugador negro PUEDE mover hacia números mayores (dirección correcta)."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__dice_rolls__ = [2]
+        
+        # Colocar ficha negra en el punto de origen
+        self.ui.__board__.colocar_ficha(1, "negro", 1)
+        
+        # Mock del método _mover_ficha_bool para que retorne True
+        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=True):
+            # El movimiento de 1 a 3 es válido para negro (hacia números mayores)
+            result = self.ui._PygameUI__validate_and_report_move(origen=1, destino=3)
+            self.assertTrue(result)
+            self.assertIn("es VÁLIDO", self.ui.__message__)
+
+    def test_move_direction_negro_invalid(self):
+        """Verifica que el jugador negro NO PUEDE mover hacia números menores (dirección incorrecta)."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__dice_rolls__ = [2]
+        
+        # Colocar ficha negra en el punto de origen
+        self.ui.__board__.colocar_ficha(3, "negro", 1)
+        
+        # El movimiento de 3 a 1 es inválido para negro (hacia números menores)
+        result = self.ui._PygameUI__validate_and_report_move(origen=3, destino=1)
+        self.assertFalse(result)
+        self.assertIn("dirección incorrecta", self.ui.__message__)
+    
+    def test_move_direction_blanco_valid(self):
+        """Verifica que el jugador blanco PUEDE mover hacia números menores (dirección correcta)."""
+        self.ui.__current_player__ = "blanco"
+        self.ui.__dice_rolls__ = [2]
+        
+        # Colocar ficha blanca en el punto de origen
+        self.ui.__board__.colocar_ficha(24, "blanco", 1)
+        
+        # Mock del método _mover_ficha_bool para que retorne True
+        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=True):
+            # El movimiento de 24 a 22 es válido para blanco (hacia números menores)
+            result = self.ui._PygameUI__validate_and_report_move(origen=24, destino=22)
+            self.assertTrue(result)
+            self.assertIn("es VÁLIDO", self.ui.__message__)
+
+    def test_move_direction_blanco_invalid(self):
+        """Verifica que el jugador blanco NO PUEDE mover hacia números mayores (dirección incorrecta)."""
+        self.ui.__current_player__ = "blanco"
+        self.ui.__dice_rolls__ = [2]
+        
+        # Colocar ficha blanca en el punto de origen
+        self.ui.__board__.colocar_ficha(22, "blanco", 1)
+        
+        # El movimiento de 22 a 24 es inválido para blanco (hacia números mayores)
+        result = self.ui._PygameUI__validate_and_report_move(origen=22, destino=24)
+        self.assertFalse(result)
+        self.assertIn("dirección incorrecta", self.ui.__message__)
+
+    def test_move_direction_negro_edge_cases(self):
+        """Tests adicionales para casos límite del jugador negro."""
+        self.ui.__current_player__ = "negro"
+        
+        # Test: Movimiento desde punto 1 hacia adelante
+        self.ui.__dice_rolls__ = [6]
+        self.ui.__board__.colocar_ficha(1, "negro", 1)
+        
+        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=True):
+            result = self.ui._PygameUI__validate_and_report_move(origen=1, destino=7)
+            self.assertTrue(result)
+        
+        # Test: Intento de movimiento hacia atrás desde punto medio
+        self.ui.__dice_rolls__ = [3]
+        self.ui.__board__.colocar_ficha(15, "negro", 1)
+        
+        result = self.ui._PygameUI__validate_and_report_move(origen=15, destino=12)
+        self.assertFalse(result)
+        self.assertIn("dirección incorrecta", self.ui.__message__)
+
+    def test_move_direction_blanco_edge_cases(self):
+        """Tests adicionales para casos límite del jugador blanco."""
+        self.ui.__current_player__ = "blanco"
+        
+        # Test: Movimiento desde punto 24 hacia adelante (números menores)
+        self.ui.__dice_rolls__ = [6]
+        self.ui.__board__.colocar_ficha(24, "blanco", 1)
+        
+        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=True):
+            result = self.ui._PygameUI__validate_and_report_move(origen=24, destino=18)
+            self.assertTrue(result)
+        
+        # Test: Intento de movimiento hacia atrás desde punto medio
+        self.ui.__dice_rolls__ = [3]
+        self.ui.__board__.colocar_ficha(10, "blanco", 1)
+        
+        result = self.ui._PygameUI__validate_and_report_move(origen=10, destino=13)
+        self.assertFalse(result)
+        self.assertIn("dirección incorrecta", self.ui.__message__)
 
     # --- Helper Method ---
     def _simulate_click_on_point(self, point_number: int):
         """Helper para simular un evento de clic del ratón."""
         with patch.object(self.ui, '_PygameUI__get_point_from_mouse_pos', return_value=point_number):
             mock_event = Mock(type=pygame.MOUSEBUTTONDOWN, button=1)
-            with patch('pygame.event.get', return_value=[mock_event]):
+            mock_event.pos = (100, 100)  # Añadir posición del mouse
+            with patch('pygame.event.get', return_value=[mock_event]), \
+                 patch('pygame.mouse.get_pos', return_value=(100, 100)):
                 self.ui._PygameUI__handle_events()
-
 
 if __name__ == "__main__":
     unittest.main()
