@@ -1628,3 +1628,32 @@ Esta al reves la logica, el negro mueve aumentando las posiciones del 1 al 24, y
 BOT: (Me pasa el codigo actualizado)
 
 YO: (Actualizo el codigo y cambio algunos mensajes de el handle events, para que se vea mas agradable. Hago commit) 
+
+### Utilizando claude.ai
+
+YO: 
+
+Hola buen dia, podrias ayudarme a hacer hoy la logica de los turnos? por que actualmente se tiran los dados para ver quien empieza y este juega infinitamente, me gustaria agregar la logica para que use los dos dados realizando los dos movimientos y cambie de turno para que pueda jugar el otro jugador. Siempre cumpliendo con los principios SOLID, gracias.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Esta medianamente bien pero, al realizar el movimiento mueve dos fichas juntas, no una. Esto es lo primero a cambiar y lo otro es que el cartel de "Movimientos disponibles: [][]" interrumpe en el tablero, deberia estar mas arriba para que no se vea en las posiciones 1,2,3 como se ve ahora, cambiando estas dos cosas creo que esta bastante bien. Tambien me gustaria cambiar el tablero de backgammon para que intercale los colores de los triangulos de los de arriba y los de abajo, osea que los de arriba empiecen con un color y los de abajo con el otro. (Marron y Beige).
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Lo pruebo y le cambio un mensaje en pantalla que esta con un espacio demas)
+
+No se aplicó correctamente la modificación de los colores del tablero, siguen estando como antes empezando los dos (posición 1 y 24) con marron oscuro e intercalando. Y lo que hace que se muevan dos fichas juntas en vez de una no puede ser del metodo Board.mover_ficha, ya que antes de hacer esta validación utilizaba el mismo metodo y funcionaba correctamente. Osea que habria que actualizar el tablero, y ver en que metodos es que se realiza esta selección de dos fichas al tocar el origen del movimiento.
+
+BOT: 
+
+¿Podrias pasarme el codigo de tus metodos de mover_ficha() y _mover_ficha_bool() de tu clase Board? 
+
+YO:
+
+Bien te dejo los dos metodos de board, trata de hacer los cambios en pygameUI, ya que el hacer los cambios en board implicaria agregar tests a otros archivos y probablemente correguir la CLI, igualmente el ultimo codigo que me mandaste sigue dibujando mal al tablero, no hace bien la intercalación de colores. Por favor rehace el archivo de pygame luego de ver estos metodos, ya que si lo actualizas queda mal algo siempre.
+
+BOT: (Me pasa el codigo actualizado)
+

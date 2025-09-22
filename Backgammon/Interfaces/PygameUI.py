@@ -1,18 +1,17 @@
 import pygame
 import sys
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 import os
 
 # Agregamos la ruta para encontrar los módulos del Core
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from Backgammon.Core.Board import Board
-from Backgammon.Core.Dice import Dice # Se importa la clase para los dados
+from Backgammon.Core.Dice import Dice
 
 class PygameUI:
     def __init__(self, board_width: int = 1600, board_height: int = 900):
         """Inicializa la interfaz gráfica para el juego de Backgammon."""
         pygame.init()
-        # ... (código del constructor sin cambios) ...
         self.__screen__ = pygame.display.set_mode((board_width, board_height))
         pygame.display.set_caption("Backgammon")
         self.__clock__ = pygame.time.Clock()
@@ -22,6 +21,7 @@ class PygameUI:
         self.__game_state__ = 'START_ROLL'
         self.__dice__ = Dice()
         self.__dice_rolls__ = []
+        self.__available_moves__ = []  # Lista de dados disponibles para usar
         self.__current_player__ = None
         self.__font__ = pygame.font.Font(None, 45)
         self.__message__ = "Presiona 'R' para decidir quién empieza."
@@ -49,7 +49,7 @@ class PygameUI:
         self.__board_width__ = 1500
         self.__board_height__ = 800
         self.__bar_width__ = 80
-        
+
     def run(self) -> None:
         """Inicia el bucle principal del juego."""
         while self.__running__:
@@ -79,39 +79,87 @@ class PygameUI:
 
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if self.__game_state__ == 'AWAITING_PIECE_SELECTION':
-                    mouse_pos = pygame.mouse.get_pos()
-                    clicked_point = self.__get_point_from_mouse_pos(mouse_pos)
-                    
-                    if clicked_point is not None:
-                        if self.__selected_point__ is None:
-                            estado_punto = self.__board__.obtener_estado_punto(clicked_point)
-                            
-                            if estado_punto and estado_punto[0] == self.__current_player__:
-                                self.__selected_point__ = clicked_point
-                                self.__message__ = f"Ficha en {clicked_point} seleccionada. Elige el destino."
-                            else:
-                                self.__message__ = f"No tienes fichas en el punto {clicked_point}. Elige una válida."
-                        
-                        else:
-                            origen = self.__selected_point__
-                            destino = clicked_point
-                            # Validar y reportar el movimiento. La función ahora devuelve True/False.
-                            movimiento_valido = self.__validate_and_report_move(origen, destino)
-                            
-                            # Se reinicia la selección para el próximo intento de movimiento.
-                            self.__selected_point__ = None
-                            
-                            # El mensaje de la UI ahora depende del resultado de la validación.
-                            if not movimiento_valido:
-                                self.__message__ = "Movimiento inválido. Vuelve a elegir una ficha."
-                            else:
-                                # Si fue válido, se indica al jugador (en el futuro aquí se actualizará el turno).
-                                self.__message__ = f"Movimiento realizado. Turno de {self.__current_player__}. Dados: {self.__dice_rolls__}."
+                    self.__handle_piece_selection(pygame.mouse.get_pos())
 
+    def __handle_piece_selection(self, mouse_pos: Tuple[int, int]) -> None:
+        """
+        Maneja la selección de fichas y movimientos.
+        Principio de Responsabilidad Única (SRP): Se enfoca solo en la selección.
+        """
+        clicked_point = self.__get_point_from_mouse_pos(mouse_pos)
+        
+        if clicked_point is None:
+            return
+            
+        if self.__selected_point__ is None:
+            self.__attempt_piece_selection(clicked_point)
+        else:
+            self.__attempt_move(self.__selected_point__, clicked_point)
+            self.__selected_point__ = None
 
-    def __roll_to_start(self):
+    def __attempt_piece_selection(self, point: int) -> None:
+        """
+        Intenta seleccionar una ficha en el punto dado.
+        """
+        estado_punto = self.__board__.obtener_estado_punto(point)
+        
+        if estado_punto and estado_punto[0] == self.__current_player__:
+            self.__selected_point__ = point
+            self.__message__ = f"Ficha en {point} seleccionada. Dados disponibles: {self.__available_moves__}. Elige destino."
+        else:
+            self.__message__ = f"No tienes fichas en el punto {point}. Elige una válida."
+
+    def __attempt_move(self, origen: int, destino: int) -> None:
+        """
+        Intenta realizar un movimiento y maneja el resultado.
+        """
+        movimiento_valido = self.__validate_and_report_move(origen, destino)
+        
+        if movimiento_valido:
+            self.__execute_move(origen, destino)
+        else:
+            self.__message__ = "Movimiento inválido. Vuelve a elegir una ficha."
+
+    def __execute_move(self, origen: int, destino: int) -> None:
+        """
+        Ejecuta un movimiento válido y actualiza el estado del juego.
+        """
+        dado_usado = abs(origen - destino)
+        
+        # Realizar el movimiento en el tablero (UNA sola ficha)
+        # Usamos mover_ficha() que es el método real para hacer movimientos
+        self.__board__.mover_ficha(origen, destino, self.__current_player__)
+        
+        # Remover el dado usado de los movimientos disponibles
+        self.__available_moves__.remove(dado_usado)
+        
+        # Actualizar mensaje y verificar si el turno debe cambiar
+        remaining_moves = len(self.__available_moves__)
+        
+        if remaining_moves == 0:
+            self.__end_turn()
+        else:
+            self.__message__ = f"Movimiento realizado. Te quedan {remaining_moves} dados: {self.__available_moves__}. Elige ficha."
+
+    def __end_turn(self) -> None:
+        """
+        Termina el turno actual y pasa al siguiente jugador.
+        Principio de Responsabilidad Única: Se enfoca solo en cambiar turnos.
+        """
+        self.__switch_player()
+        self.__game_state__ = 'AWAITING_ROLL'
+        self.__dice_rolls__ = []
+        self.__available_moves__ = []
+        self.__message__ = f"Turno de {self.__current_player__}. Presiona 'R' para tirar los dados."
+
+    def __switch_player(self) -> None:
+        """
+        Cambia al siguiente jugador.
+        """
+        self.__current_player__ = "blanco" if self.__current_player__ == "negro" else "negro"
+
+    def __roll_to_start(self) -> None:
         """Realiza la tirada inicial para decidir quién empieza."""
-        # ... (código sin cambios) ...
         self.__dice__.tirar()
         roll1 = self.__dice__.obtener_dado1()
         roll2 = self.__dice__.obtener_dado2()
@@ -132,60 +180,84 @@ class PygameUI:
 
         self.__game_state__ = 'AWAITING_ROLL'
 
-    def __roll_player_dice(self):
+    def __roll_player_dice(self) -> None:
         """El jugador actual tira los dos dados para su turno."""
-        # ... (código sin cambios) ...
         self.__dice__.tirar()
-        self.__dice_rolls__ = [self.__dice__.obtener_dado1(), self.__dice__.obtener_dado2()]
+        dado1 = self.__dice__.obtener_dado1()
+        dado2 = self.__dice__.obtener_dado2()
+        
+        self.__dice_rolls__ = [dado1, dado2]
+        
+        # Configurar movimientos disponibles (solo dados normales por ahora)
+        self.__available_moves__ = [dado1, dado2]
+        
         self.__game_state__ = 'AWAITING_PIECE_SELECTION'
-        self.__message__ = f"Turno de {self.__current_player__}. Tienes los dados: {self.__dice_rolls__}. Elige una ficha."
-
+        self.__message__ = f"Turno de {self.__current_player__}. Tienes dados {self.__available_moves__}. Elige una ficha."
 
     def __validate_and_report_move(self, origen: int, destino: int) -> bool:
         """
-        Valida un movimiento, incluyendo la dirección correcta para cada jugador.
+        Valida un movimiento completo incluyendo dirección, dados disponibles y reglas del tablero.
+        IMPORTANTE: Solo valida, NO hace cambios en el tablero.
         """
-        # --- LÓGICA DE DIRECCIÓN CORREGIDA ---
-        # El jugador negro mueve a puntos de numeración MAYOR (de 1 a 24).
-        if self.__current_player__ == "negro" and destino <= origen:
-            print(f"Error de dirección para Negro: solo puede mover a un punto de mayor numeración.")
+        # Validar dirección del movimiento
+        if not self.__is_valid_direction(origen, destino):
             self.__message__ = "Movimiento inválido (dirección incorrecta)."
             return False
         
-        # El jugador blanco mueve a puntos de numeración MENOR (de 24 a 1).
-        if self.__current_player__ == "blanco" and destino >= origen:
-            print(f"Error de dirección para Blanco: solo puede mover a un punto de menor numeración.")
-            self.__message__ = "Movimiento inválido (dirección incorrecta)."
+        # Validar que el dado esté disponible
+        dado_necesario = abs(origen - destino)
+        if dado_necesario not in self.__available_moves__:
+            self.__message__ = f"No tienes el dado {dado_necesario} disponible. Dados: {self.__available_moves__}."
             return False
         
-        dado_usado = abs(origen - destino)
-        print(f"Intento de mover de {origen} a {destino}.")
+        # Validar reglas del tablero SIN hacer cambios
+        # Necesitamos una validación que no modifique el tablero
+        if not self.__can_move_piece(origen, destino):
+            self.__message__ = f"Movimiento de {origen} a {destino} bloqueado o inválido."
+            return False
+        
+        return True
 
-        if dado_usado in self.__dice_rolls__:
-            es_valido = self.__board__._mover_ficha_bool(origen, destino, self.__current_player__)
-            
-            print(f"El movimiento es posible?: {es_valido}")
-            if es_valido:
-                self.__message__ = f"Movimiento de {origen} a {destino} es VÁLIDO."
-                return True
-            else:
-                self.__message__ = f"Movimiento de {origen} a {destino} NO ES VÁLIDO."
-                return False
-        else:
-            print("El valor del movimiento no corresponde con los dados tirados.")
-            self.__message__ = "El valor del dado no coincide."
+    def __can_move_piece(self, origen: int, destino: int) -> bool:
+        """
+        Valida si un movimiento es posible SIN modificar el tablero.
+        """
+        # Validar origen
+        estado_origen = self.__board__.obtener_estado_punto(origen)
+        if estado_origen is None or estado_origen[0] != self.__current_player__:
             return False
-        
+
+        # Validar destino
+        estado_destino = self.__board__.obtener_estado_punto(destino)
+        if estado_destino is not None:
+            color_destino, cantidad_destino = estado_destino
+            if color_destino != self.__current_player__ and cantidad_destino > 1:
+                return False  # Punto bloqueado
+
+        return True
+
+    def __is_valid_direction(self, origen: int, destino: int) -> bool:
+        """
+        Verifica que el movimiento sea en la dirección correcta para el jugador actual.
+        Principio de Responsabilidad Única: Solo valida direcciones.
+        """
+        if self.__current_player__ == "negro":
+            return destino > origen  # Negro mueve hacia números mayores
+        else:  # blanco
+            return destino < origen  # Blanco mueve hacia números menores
+
+    def __has_valid_moves(self) -> bool:
+        """
+        Verifica si el jugador actual tiene movimientos válidos disponibles.
+        Esto se usará en futuras implementaciones para detectar bloqueos.
+        """
+        # Por ahora retorna True, pero aquí se implementaría la lógica
+        # para verificar si existen movimientos válidos con los dados disponibles
+        return len(self.__available_moves__) > 0
+
     def __get_point_from_mouse_pos(self, mouse_pos: Tuple[int, int]) -> Optional[int]:
         """
         Calcula en qué punto del tablero (1-24) se hizo click.
-
-        Args:
-            mouse_pos (Tuple[int, int]): Las coordenadas (x, y) del click del ratón.
-
-        Returns:
-            Optional[int]: El número del punto (1-24) si el click fue en un punto válido,
-                           o None si fue fuera de cualquier punto.
         """
         mx, my = mouse_pos
         side_width = (self.__board_width__ - self.__bar_width__) // 2
@@ -219,16 +291,11 @@ class PygameUI:
         return None
 
     def __update(self) -> None:
-        """
-        Actualiza la lógica del juego en cada frame. (Actualmente sin uso).
-        """
+        """Actualiza la lógica del juego en cada frame."""
         pass
         
     def __draw(self) -> None:
-        """
-        Dibuja todos los elementos del juego en la pantalla, incluyendo el tablero,
-        las fichas, los dados y los mensajes de estado.
-        """
+        """Dibuja todos los elementos del juego en la pantalla."""
         self.__screen__.fill((139, 69, 19))
         self.__draw_backgammon_board()
         self.__draw_checkers()
@@ -236,22 +303,36 @@ class PygameUI:
         
         if self.__dice_rolls__:
             self.__draw_dice()
+        
+        # Mostrar movimientos disponibles
+        self.__draw_available_moves()
             
         pygame.display.flip()
     
-    def __draw_message(self):
+    def __draw_available_moves(self) -> None:
         """
-        Renderiza y muestra el mensaje de estado actual en la parte superior central de la pantalla.
+        Dibuja los dados/movimientos disponibles en la pantalla.
         """
+        if not self.__available_moves__:
+            return
+            
+        font_small = pygame.font.Font(None, 30)
+        moves_text = f"Movimientos disponibles: {self.__available_moves__}"
+        text_surface = font_small.render(moves_text, True, self.__white__)
+        
+        # Posicionar muy arriba para no interferir con el tablero
+        text_rect = text_surface.get_rect()
+        text_rect.topright = (self.__screen__.get_width() - 20, 10)
+        self.__screen__.blit(text_surface, text_rect)
+    
+    def __draw_message(self) -> None:
+        """Renderiza y muestra el mensaje de estado actual."""
         text_surface = self.__font__.render(self.__message__, True, self.__white__)
         text_rect = text_surface.get_rect(center=(self.__screen__.get_width() / 2, 25))
         self.__screen__.blit(text_surface, text_rect)
 
-    def __draw_dice(self):
-        """
-        Dibuja los dos dados en el centro del tablero, a cada lado de la barra central,
-        mostrando los resultados de la última tirada.
-        """
+    def __draw_dice(self) -> None:
+        """Dibuja los dos dados en el centro del tablero."""
         dice_size = 80
         margin = 20
         x1 = self.__board_margin__ + (self.__board_width__ / 2) - self.__bar_width__ - dice_size - margin
@@ -267,14 +348,8 @@ class PygameUI:
         self.__draw_pips(dice_rect1, self.__dice_rolls__[0])
         self.__draw_pips(dice_rect2, self.__dice_rolls__[1])
 
-    def __draw_pips(self, rect: pygame.Rect, number: int):
-        """
-        Dibuja los puntos (pips) en la cara de un dado según el número resultado.
-
-        Args:
-            rect (pygame.Rect): El rectángulo que define la superficie del dado.
-            number (int): El número (de 1 a 6) a representar con pips.
-        """
+    def __draw_pips(self, rect: pygame.Rect, number: int) -> None:
+        """Dibuja los puntos (pips) en la cara de un dado."""
         pip_radius = 8
         margin = 20
         positions = {
@@ -294,7 +369,7 @@ class PygameUI:
                 pygame.draw.circle(self.__screen__, self.__pip_color__, pos, pip_radius)
 
     def __draw_backgammon_board(self) -> None:
-        """Dibuja el tablero de Backgammon, incluyendo el fondo, borde y la barra central."""
+        """Dibuja el tablero de Backgammon."""
         board_rect = pygame.Rect(self.__board_margin__, self.__board_margin__, self.__board_width__, self.__board_height__)
         pygame.draw.rect(self.__screen__, self.__brown_light__, board_rect)
         pygame.draw.rect(self.__screen__, self.__board_border__, board_rect, 5)
@@ -307,49 +382,47 @@ class PygameUI:
         self.__draw_points()
         
     def __draw_points(self) -> None:
-        """Dibuja los 24 puntos triangulares del tablero con colores alternados."""
+        """Dibuja los 24 puntos triangulares del tablero con colores correctamente intercalados."""
         side_width = (self.__board_width__ - self.__bar_width__) // 2
         point_width = side_width // 6
         point_height = 320
         
+        # Cuadrante superior derecho (puntos 1-6)
+        # Punto 1=claro, 2=oscuro, 3=claro, 4=oscuro, 5=claro, 6=oscuro
         start_x_top_right = self.__board_margin__ + side_width + self.__bar_width__
         for i in range(6):
             x = start_x_top_right + ((5 - i) * point_width) 
             y = self.__board_margin__
-            color = self.__brown_dark__ if i % 2 != 0 else self.__brown_light__ 
+            color = self.__brown_light__ if i % 2 == 0 else self.__brown_dark__
             self.__draw_triangle_point(x, y, point_width, point_height, color, pointing_down=True)
             
+        # Cuadrante superior izquierdo (puntos 7-12)
+        # Punto 7=claro, 8=oscuro, 9=claro, 10=oscuro, 11=claro, 12=oscuro
         start_x_top_left = self.__board_margin__
         for i in range(6):
             x = start_x_top_left + i * point_width
             y = self.__board_margin__
-            color = self.__brown_light__ if i % 2 != 0 else self.__brown_dark__
+            color = self.__brown_light__ if i % 2 == 0 else self.__brown_dark__
             self.__draw_triangle_point(x, y, point_width, point_height, color, pointing_down=True)
             
+        # Cuadrante inferior izquierdo (puntos 13-18)
+        # Punto 13=oscuro, 14=claro, 15=oscuro, 16=claro, 17=oscuro, 18=claro
         for i in range(6):
             x = start_x_top_left + i * point_width
             y = self.__board_margin__ + self.__board_height__ - point_height
             color = self.__brown_dark__ if i % 2 == 0 else self.__brown_light__
             self.__draw_triangle_point(x, y, point_width, point_height, color, pointing_down=False)
             
+        # Cuadrante inferior derecho (puntos 19-24)
+        # Punto 19=oscuro, 20=claro, 21=oscuro, 22=claro, 23=oscuro, 24=claro
         for i in range(6):
             x = start_x_top_right + ((5 - i) * point_width)
             y = self.__board_margin__ + self.__board_height__ - point_height
-            color = self.__brown_light__ if i % 2 == 0 else self.__brown_dark__
+            color = self.__brown_dark__ if i % 2 == 0 else self.__brown_light__
             self.__draw_triangle_point(x, y, point_width, point_height, color, pointing_down=False)
 
     def __draw_triangle_point(self, x: int, y: int, width: int, height: int, color: Tuple[int, int, int], pointing_down: bool = True) -> None:
-        """
-        Dibuja un único punto triangular en el tablero.
-
-        Args:
-            x (int): Coordenada x de la esquina superior izquierda del rectángulo del punto.
-            y (int): Coordenada y de la esquina superior izquierda del rectángulo del punto.
-            width (int): Ancho del punto.
-            height (int): Alto del punto.
-            color (Tuple[int, int, int]): Color RGB del punto.
-            pointing_down (bool): True si el triángulo apunta hacia abajo, False si apunta hacia arriba.
-        """
+        """Dibuja un único punto triangular en el tablero."""
         if pointing_down:
             points = [(x + width // 2, y + height), (x, y), (x + width, y)]
         else:
@@ -368,15 +441,7 @@ class PygameUI:
                 self.__draw_checker_stack(point_x, point_y, color, cantidad, point_num, checker_radius)
     
     def __get_point_screen_position(self, point_num: int) -> Tuple[int, int]:
-        """
-        Calcula la posición central en la pantalla para apilar fichas en un punto específico.
-
-        Args:
-            point_num (int): El número del punto (1-24).
-
-        Returns:
-            Tuple[int, int]: Las coordenadas (x, y) del centro de la base del punto.
-        """
+        """Calcula la posición central en la pantalla para apilar fichas en un punto específico."""
         side_width = (self.__board_width__ - self.__bar_width__) // 2
         point_width = side_width // 6
         checker_radius = 25
@@ -400,17 +465,7 @@ class PygameUI:
         return x, y
 
     def __draw_checker_stack(self, x: int, y: int, color: str, cantidad: int, point_num: int, radius: int) -> None:
-        """
-        Dibuja una pila de fichas en una posición específica.
-
-        Args:
-            x (int): Coordenada x del centro de la pila.
-            y (int): Coordenada y de la base de la pila.
-            color (str): "blanco" o "negro".
-            cantidad (int): Número de fichas a dibujar.
-            point_num (int): Número del punto para determinar la dirección del apilamiento.
-            radius (int): Radio de cada ficha.
-        """
+        """Dibuja una pila de fichas en una posición específica."""
         checker_color = self.__checker_white__ if color == "blanco" else self.__checker_black__
         going_down = 1 <= point_num <= 12
         

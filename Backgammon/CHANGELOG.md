@@ -166,3 +166,9 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 - Se arreglan tests de movimientos que fallaban para que pasen.
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los nuevos tests de la lógica de dirección de movimientos.
 
+## [0.0.20] 22/09/2025
+### ADDED
+- Se agrega la logica de el cambio de turno en pygameUI.
+
+### CHANGED
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar la lógica de el cambio de turno en pygameUI.
