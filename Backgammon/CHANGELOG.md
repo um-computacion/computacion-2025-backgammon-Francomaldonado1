@@ -168,7 +168,15 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 
 ## [0.0.20] 22/09/2025
 ### ADDED
-- Se agrega la logica de el cambio de turno en pygameUI.
+- Se agregan metodos __switch_player y __end_turn para la logica del cambio de turno en pygameUI.
 
 ### CHANGED
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar la lógica de el cambio de turno en pygameUI.
+
+## [0.0.21] 24/09/2025
+### ADDED
+- Se agrega la lógica de los dobles en pygameUI.
+
+### CHANGED
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar la lógica de los dobles en pygameUI.
+- Se agregan nuevas clases asegurando principio de responsabilidad unica. 

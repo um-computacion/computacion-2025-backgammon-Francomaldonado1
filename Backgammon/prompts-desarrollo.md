@@ -1657,3 +1657,10 @@ Bien te dejo los dos metodos de board, trata de hacer los cambios en pygameUI, y
 
 BOT: (Me pasa el codigo actualizado)
 
+YO:
+
+Hola buen dia, ahora si me gustaria aplicar la logica de los dobles, permitiendo que cuando un jugador saca dos dados iguales pueda realizar cuatro movimientos con el valor del dado. Podrias agregarle esta validación siempre asegurando los principios SOLID para asegurar una buena orientación a objetos? Te dejo codigo de pygame actual: (Le dejo codigo de pygameUI)
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Lo pruebo y funciona bien pero los mensajes se interponian, por lo que borro algunos mensajes innecesarios para mejorar la interfaz visualmente, hago commit) 
