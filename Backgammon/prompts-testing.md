@@ -991,3 +991,35 @@ BOT: (Me actualiza la clase de tests)
 Ran 52 tests in 0.111s
 
 OK
+
+YO:
+
+Funciona todo correctamente, ahora me gustaría hacer tests para probar esta validación de los dobles, tambien habria que hacer una clase de tests que sean unicamente destinada a los principios SOLID para cada interfaz y clase, hoy unicamente lo haremos en la interfaz grafica, pero esto es clave para luego en la justificación demostrar que testeamos que el código cumpla con una orientación a objetos correctamente. Te dejo codigo actual de Test_PygameUI.py
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Los tests fallan, podrias rehacerlos poniendo las nuevas clases de tests de dobles y las otras que son para verificar los principios SOLID al final del codigo como se ve en el archivo que te mando? Gracias.
+
+BOT: (Me pasa el codigo actualizado pero se traba porque es muy largo)
+
+YO:
+
+Pasame unicamente los test de las clases nuevas corregidas que serian class TestDoublesValidation(unittest.TestCase), class TestDiceMovesCalculator(unittest.TestCase), class TestGameStateManager(unittest.TestCase),  class TestMessageManager(unittest.TestCase) y class TestSOLIDPrinciples(unittest.TestCase).
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Los tests siguen fallando, podrias rehacer estas clases de tests porfavor, la mayoria de errores son de AtributeError, por lo que te dejo codigo de error y codigo actual de pygameUI para que compruebes que utilices bien los metodos de la interfaz para evitar este tipo de errores. 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Bien, redujimos los errores, ahora fallan menos pero siguen fallando. Podrias encargarte de correguir estos errores a partir del ultimo archivo correguido? Gracias (Le mando codigo de error)
+
+BOT: (Me pasa el codigo actualizado)
+
+YO (Siguen fallando, pero hago commit y mañana lo soluciono) 

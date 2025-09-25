@@ -176,7 +176,16 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 ## [0.0.21] 24/09/2025
 ### ADDED
 - Se agrega la lógica de los dobles en pygameUI.
+- Se agregan nuevas clases DiceMovesCalculator, GameStateManager y MessageManager para aseguar una buena orientación a objetos (SRP principalmente).
 
 ### CHANGED
-- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar la lógica de los dobles en pygameUI.
-- Se agregan nuevas clases asegurando principio de responsabilidad unica. 
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar la lógica de los dobles en pygameUI. 
+
+## [0.0.22] 25/09/2025
+### ADDED
+- Se agregan tests para la lógica de los dobles en pygameUI.
+- Se agregan tests para verificar los principios SOLID en pygameUI.
+
+### CHANGED
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los nuevos tests de la lógica de los dobles en pygameUI y los principios SOLID en pygameUI.
+
