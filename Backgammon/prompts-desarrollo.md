@@ -1664,3 +1664,4 @@ Hola buen dia, ahora si me gustaria aplicar la logica de los dobles, permitiendo
 BOT: (Me pasa el codigo actualizado)
 
 YO: (Lo pruebo y funciona bien pero los mensajes se interponian, por lo que borro algunos mensajes innecesarios para mejorar la interfaz visualmente, hago commit) 
+

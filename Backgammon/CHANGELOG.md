@@ -193,3 +193,10 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 ### CHANGED
 - Se actualiza el codigo de test_PygameUI.py para que pasen los tests de la lógica de los dobles y los principios SOLID en pygameUI.
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los nuevos tests de la lógica de los dobles y los principios SOLID en pygameUI.
+
+## [0.0.24] 27/09/2025 (19:30 hs)
+### ADDED
+- Se agrega el archivo generate_reports.py con el código para generar el archivo REPORTS.md.
+- Se agrega el archivo pylint_report.txt con el reporte de pylint.
+- Se agrega el archivo coverage_report.txt con el reporte de coverage.
+- Se agrega el archivo .pylintrc con la configuración de pylint.
