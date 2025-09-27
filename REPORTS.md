@@ -1,0 +1,27 @@
+# Automated Reports
+
+## Coverage Report
+Name                                Stmts   Miss  Cover
+-------------------------------------------------------
+Backgammon/Core/Board.py              306    113    63%
+Backgammon/Core/Checker.py             14      0   100%
+Backgammon/Core/Dice.py                34      0   100%
+Backgammon/Core/Player.py              18      0   100%
+Backgammon/Core/__init__.py             0      0   100%
+Backgammon/Interfaces/CLI.py          326     40    88%
+Backgammon/Interfaces/PygameUI.py     380     66    83%
+Backgammon/Interfaces/__init__.py       0      0   100%
+Backgammon/Tests/Test_Board.py        200      1    99%
+Backgammon/Tests/Test_CLI.py          559      3    99%
+Backgammon/Tests/Test_Checker.py       27      1    96%
+Backgammon/Tests/Test_Dice.py         124      1    99%
+Backgammon/Tests/Test_Player.py        34      1    97%
+Backgammon/Tests/Test_PygameUI.py     517     23    96%
+Backgammon/__init__.py                  0      0   100%
+-------------------------------------------------------
+TOTAL                                2539    249    90%
+
+---
+## Pylint Score
+------------------------------------------------------------------
+Your code has been rated at 6.47/10 (previous run: 6.45/10, +0.01)
