@@ -21,17 +21,22 @@ def extract_pylint_score(filepath):
 
 # --- Lógica Principal ---
 
-coverage_report = read_full_file("coverage_report.txt")
+# 1. Leer el contenido crudo del reporte de cobertura
+coverage_report_raw = read_full_file("coverage_report.txt")
+
+# 2. NUEVO: Procesar cada línea para agregarle un guión
+lines = coverage_report_raw.splitlines()
+formatted_lines = [f"- {line}" for line in lines]
+coverage_report = "\n".join(formatted_lines)
+
+
 pylint_summary = extract_pylint_score("pylint_report.txt")
 
-# --- Construcción del reporte por partes (MÉTODO MÁS SEGURO) ---
-# En lugar de un solo f-string, creamos el contenido paso a paso.
-# Esto evita que caracteres en los reportes rompan la cadena principal.
-
+# --- Construcción del reporte por partes ---
 reports_content_parts = [
     "# Automated Reports\n",
     "## Coverage Report",
-    coverage_report,
+    coverage_report, # Usamos la versión ya formateada
     "---",
     "## Pylint Score",
     "------------------------------------------------------------------",
