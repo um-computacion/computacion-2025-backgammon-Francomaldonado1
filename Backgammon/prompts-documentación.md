@@ -34,3 +34,11 @@ Bien, por este commit voy a dejar ese numero asi en 6,44, ya en los proximos com
 BOT: (Me actualiza generate_reports.py para que extraiga solo la linea de la puntuación de pylint)
 
 YO: (Le borro algunas lineas que hacian que se vea feo el archivo de REPORTS.md, corro el comando python generate_reports.py y hago commit porque se ve correctamente) 
+
+YO: 
+
+Ya le modifique esta linea para que se vea como se ve en el reporte de pylint, te dejo el archivo. Acabo de hacer el merge a main desde la rama en la que estaba trabajando y no me gusta como se ve el archivo REPORTS.md por que nos olvidamos de ponerle el guion medio antes de cada linea para que separe estas lineas y no se vea todo junto.
+
+BOT: (Me actualiza el archivo generate_reports.py)
+
+YO (Hago commit)
