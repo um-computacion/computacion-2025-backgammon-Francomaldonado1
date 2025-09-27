@@ -1023,3 +1023,49 @@ Bien, redujimos los errores, ahora fallan menos pero siguen fallando. Podrias en
 BOT: (Me pasa el codigo actualizado)
 
 YO (Siguen fallando, pero hago commit y mañana lo soluciono) 
+
+YO:
+
+Hola, ahi estuve viendo los fallos y son de las clases de tests: TestDoublesValidation y TestPygameUILogic, osea que las clases corrspondientes a los principios SOLID estan bien, asi que te vuelvo a mandar codigo de error y tambien codigo de test_pygame para que corrigas correctamente los tests de PygameUILogic. Por favor corregui los tests que fallan y agrega mas si es necesario para cubrir la mayor cantidad de escenarios posibles para mejorar la cobertura de este. 
+
+BOT: (Me pasa el codigo actualizado) 
+
+(Se me acaba el plan, procedo a usar gemini pro)
+
+
+### Utilizando Gemini
+
+YO:
+
+Hola, me estan fallando los tests de las clases de tests TestDoublesValidation y TestPygameUILogic, por lo que te dejo el codigo de error y tambien el codigo de test_pygame para que corrijas correctamente estos tests. Solamente devolveme el codigo de estas clases, ya que el resto de codigo de test_pygame funciona bien y no pienso cambiarlo. Gracias.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Siguen fallando, por favor encargate de correguirlos bien, si es necesario rehace estas clases desde cero. 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Siguen fallando los mismos 20, son todos errores de AtributeError, recorda que cuando definimos los atributos de las clases e interfaces, utilizamos doble guion bajo antes y despues de cada atributo para que solo se puedan acceder con un self, asi que teniendo en cuenta esto, modifica todos los tests de estas dos clases de test con doble guion bajo al principio del atributo.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: 
+
+Bien, redujieron bastante los errores, pero siguen fallando, por favor encargate de corregirlos. 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+El problema es en realidad, ademas de eso de que no utilizas la convención correcta de atributos, es que no existe el metodo "vaciar", por lo que eso es lo que lanza error.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Pasan todos los tests por lo que hago commit)
+
+
+

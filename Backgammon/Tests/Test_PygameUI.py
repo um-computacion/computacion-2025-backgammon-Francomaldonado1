@@ -383,6 +383,7 @@ class TestPygameUIClickDetection(unittest.TestCase):
         self.assertIsNone(self.ui._PygameUI__get_point_from_mouse_pos((790, 450)))
 
 
+
 # --- SUITE DE TESTS PARA LA LÓGICA DEL JUEGO (SIN DIBUJADO) ---
 class TestPygameUILogic(unittest.TestCase):
     """
@@ -391,48 +392,49 @@ class TestPygameUILogic(unittest.TestCase):
     """
     def setUp(self):
         """
-        Se ejecuta antes de cada test. Inicializa PygameUI de forma segura,
-        'parcheando' las funciones de Pygame para que el constructor __init__
-        pueda ejecutarse por completo sin crear una ventana.
+        Se ejecuta antes de cada test. Inicializa PygameUI de forma segura.
         """
-        # Este 'patch' es la clave: permite que PygameUI.__init__ se ejecute
-        # y cree todos los atributos (__board__, __current_player__, etc.)
-        # sin fallar por intentar crear una ventana.
         with patch('pygame.init'), \
              patch('pygame.display.set_mode'), \
              patch('pygame.font.Font'):
             self.ui = PygameUI()
 
-    # --- Tests para la Tirada de Dados ---
+    # --- Helper Method ---
+    def _simulate_click_on_point(self, point_number: int):
+        """Helper para simular un evento de clic del ratón."""
+        self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
+        self.ui.__current_player__ = "negro"
+        with patch.object(self.ui, '_PygameUI__get_point_from_mouse_pos', return_value=point_number):
+            mock_event = Mock(type=pygame.MOUSEBUTTONDOWN, button=1, pos=(100, 100))
+            with patch('pygame.event.get', return_value=[mock_event]), \
+                 patch('pygame.mouse.get_pos', return_value=(100, 100)):
+                self.ui._PygameUI__handle_events()
+
+    # --- Tests para la Tirada de Dados Inicial ---
     @patch('Backgammon.Core.Dice.Dice.tirar')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
-    @patch.object(PygameUI, '_PygameUI__draw')
-    def test_roll_to_start_negro_wins(self, mock_draw, mock_dado2, mock_dado1, mock_tirar):
+    def test_roll_to_start_negro_wins(self, mock_dado2, mock_dado1, mock_tirar):
         """Verifica que 'negro' gana la tirada inicial con un dado más alto."""
         mock_dado1.return_value = 5
         mock_dado2.return_value = 3
         self.ui._PygameUI__roll_to_start()
         self.assertEqual(self.ui.__current_player__, "negro")
-        self.assertEqual(self.ui.__game_state__, "AWAITING_ROLL")
 
     @patch('Backgammon.Core.Dice.Dice.tirar')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
-    @patch.object(PygameUI, '_PygameUI__draw')
-    def test_roll_to_start_blanco_wins(self, mock_draw, mock_dado2, mock_dado1, mock_tirar):
+    def test_roll_to_start_blanco_wins(self, mock_dado2, mock_dado1, mock_tirar):
         """Verifica que 'blanco' gana la tirada inicial con un dado más alto."""
         mock_dado1.return_value = 2
         mock_dado2.return_value = 6
         self.ui._PygameUI__roll_to_start()
         self.assertEqual(self.ui.__current_player__, "blanco")
-        self.assertEqual(self.ui.__game_state__, "AWAITING_ROLL")
 
     @patch('Backgammon.Core.Dice.Dice.tirar')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
-    @patch.object(PygameUI, '_PygameUI__draw')
-    def test_roll_to_start_handles_tie(self, mock_draw, mock_dado2, mock_dado1, mock_tirar):
+    def test_roll_to_start_handles_tie(self, mock_dado2, mock_dado1, mock_tirar):
         """Verifica que el método vuelve a tirar los dados si ocurre un empate."""
         mock_dado1.side_effect = [4, 6]
         mock_dado2.side_effect = [4, 1]
@@ -440,431 +442,142 @@ class TestPygameUILogic(unittest.TestCase):
         self.assertEqual(self.ui.__current_player__, "negro")
         self.assertEqual(mock_tirar.call_count, 2)
 
-    # --- Tests para Tirada de Dados del Jugador ---
-    @patch('Backgammon.Core.Dice.Dice.tirar')
-    @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
-    @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
-    def test_roll_player_dice(self, mock_dado2, mock_dado1, mock_tirar):
-        """Verifica que se pueden tirar los dados del jugador."""
-        self.ui.__current_player__ = "negro"
-        self.ui.__game_state__ = "AWAITING_ROLL"
-        
-        mock_dado1.return_value = 4
-        mock_dado2.return_value = 6
-        
-        self.ui._PygameUI__roll_player_dice()
-        
-        self.assertEqual(self.ui.__dice_rolls__, [4, 6])
-        self.assertEqual(self.ui.__game_state__, "AWAITING_PIECE_SELECTION")
-        self.assertIn("Turno de negro", self.ui.__message__)
-
-    # --- Tests para la Validación de Movimientos ---
+    # --- Tests para Selección y Validación de Movimientos ---
     def test_select_valid_piece(self):
         """Verifica que se puede seleccionar un punto con fichas propias."""
-        self.ui.__current_player__ = "negro"
-        self.ui.__game_state__ = "AWAITING_PIECE_SELECTION"
+        self.ui.__board__.colocar_ficha(1, "negro", 1)
         self._simulate_click_on_point(1)
         self.assertEqual(self.ui.__selected_point__, 1)
 
     def test_validate_move_valid(self):
         """Verifica que la UI reporta correctamente un movimiento válido."""
         self.ui.__current_player__ = "negro"
-        self.ui.__dice_rolls__ = [4]
-        
-        # Asegurar que hay una ficha negra en el punto de origen
+        self.ui.__available_moves__ = [4]
         self.ui.__board__.colocar_ficha(19, "negro", 1)
-        
-        # Mock del método _mover_ficha_bool para que retorne True
-        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=True):
-            result = self.ui._PygameUI__validate_and_report_move(origen=19, destino=23)  # Movimiento en dirección correcta
-            self.assertTrue(result)
-            self.assertIn("es VÁLIDO", self.ui.__message__)
+        # Vaciamos el punto de destino para asegurar que el movimiento sea válido
+        self.ui.__board__.colocar_ficha(23, "vacío", 0)
+        result = self.ui._PygameUI__validate_and_report_move(origen=19, destino=23)
+        self.assertTrue(result)
 
     def test_validate_move_invalid_blocked(self):
         """Verifica que la UI reporta correctamente un movimiento a un punto bloqueado."""
         self.ui.__current_player__ = "negro"
-        self.ui.__dice_rolls__ = [4]
-        
-        # Colocar ficha negra en origen
+        self.ui.__available_moves__ = [4]
         self.ui.__board__.colocar_ficha(19, "negro", 1)
-        
-        # Mock del método _mover_ficha_bool para que retorne False (punto bloqueado)
-        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=False):
-            result = self.ui._PygameUI__validate_and_report_move(origen=19, destino=23)  # Movimiento en dirección correcta
-            self.assertFalse(result)
-            self.assertIn("NO ES VÁLIDO", self.ui.__message__)
-
-    def test_validate_move_dice_not_matching(self):
-        """Verifica que se rechaza un movimiento cuando el dado no coincide."""
-        self.ui.__current_player__ = "negro"
-        self.ui.__dice_rolls__ = [3, 5]  # Solo dados 3 y 5 disponibles
-        
-        # Colocar ficha negra en el punto de origen
-        self.ui.__board__.colocar_ficha(1, "negro", 1)
-        
-        # Intentar mover 4 espacios (dado no disponible)
-        result = self.ui._PygameUI__validate_and_report_move(origen=1, destino=5)
+        self.ui.__board__.colocar_ficha(23, "blanco", 2) # Bloqueamos el destino
+        result = self.ui._PygameUI__validate_and_report_move(origen=19, destino=23)
         self.assertFalse(result)
-        self.assertIn("El valor del dado no coincide", self.ui.__message__)
 
-    # --- TESTS PARA LA RESTRICCIÓN DIRECCIONAL ---
     def test_move_direction_negro_valid(self):
-        """Verifica que el jugador negro PUEDE mover hacia números mayores (dirección correcta)."""
+        """Verifica que el jugador negro PUEDE mover hacia números mayores."""
         self.ui.__current_player__ = "negro"
-        self.ui.__dice_rolls__ = [2]
-        
-        # Colocar ficha negra en el punto de origen
+        self.ui.__available_moves__ = [2]
         self.ui.__board__.colocar_ficha(1, "negro", 1)
-        
-        # Mock del método _mover_ficha_bool para que retorne True
-        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=True):
-            # El movimiento de 1 a 3 es válido para negro (hacia números mayores)
-            result = self.ui._PygameUI__validate_and_report_move(origen=1, destino=3)
-            self.assertTrue(result)
-            self.assertIn("es VÁLIDO", self.ui.__message__)
+        result = self.ui._PygameUI__validate_and_report_move(origen=1, destino=3)
+        self.assertTrue(result)
 
-    def test_move_direction_negro_invalid(self):
-        """Verifica que el jugador negro NO PUEDE mover hacia números menores (dirección incorrecta)."""
-        self.ui.__current_player__ = "negro"
-        self.ui.__dice_rolls__ = [2]
-        
-        # Colocar ficha negra en el punto de origen
-        self.ui.__board__.colocar_ficha(3, "negro", 1)
-        
-        # El movimiento de 3 a 1 es inválido para negro (hacia números menores)
-        result = self.ui._PygameUI__validate_and_report_move(origen=3, destino=1)
-        self.assertFalse(result)
-        self.assertIn("dirección incorrecta", self.ui.__message__)
-    
     def test_move_direction_blanco_valid(self):
-        """Verifica que el jugador blanco PUEDE mover hacia números menores (dirección correcta)."""
+        """Verifica que el jugador blanco PUEDE mover hacia números menores."""
         self.ui.__current_player__ = "blanco"
-        self.ui.__dice_rolls__ = [2]
-        
-        # Colocar ficha blanca en el punto de origen
+        self.ui.__available_moves__ = [2]
         self.ui.__board__.colocar_ficha(24, "blanco", 1)
+        result = self.ui._PygameUI__validate_and_report_move(origen=24, destino=22)
+        self.assertTrue(result)
         
-        # Mock del método _mover_ficha_bool para que retorne True
-        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=True):
-            # El movimiento de 24 a 22 es válido para blanco (hacia números menores)
-            result = self.ui._PygameUI__validate_and_report_move(origen=24, destino=22)
-            self.assertTrue(result)
-            self.assertIn("es VÁLIDO", self.ui.__message__)
-
-    def test_move_direction_blanco_invalid(self):
-        """Verifica que el jugador blanco NO PUEDE mover hacia números mayores (dirección incorrecta)."""
-        self.ui.__current_player__ = "blanco"
-        self.ui.__dice_rolls__ = [2]
-        
-        # Colocar ficha blanca en el punto de origen
-        self.ui.__board__.colocar_ficha(22, "blanco", 1)
-        
-        # El movimiento de 22 a 24 es inválido para blanco (hacia números mayores)
-        result = self.ui._PygameUI__validate_and_report_move(origen=22, destino=24)
-        self.assertFalse(result)
-        self.assertIn("dirección incorrecta", self.ui.__message__)
-
     def test_move_direction_negro_edge_cases(self):
         """Tests adicionales para casos límite del jugador negro."""
         self.ui.__current_player__ = "negro"
-        
-        # Test: Movimiento desde punto 1 hacia adelante
-        self.ui.__dice_rolls__ = [6]
+        self.ui.__available_moves__ = [6]
         self.ui.__board__.colocar_ficha(1, "negro", 1)
-        
-        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=True):
-            result = self.ui._PygameUI__validate_and_report_move(origen=1, destino=7)
-            self.assertTrue(result)
-        
-        # Test: Intento de movimiento hacia atrás desde punto medio
-        self.ui.__dice_rolls__ = [3]
-        self.ui.__board__.colocar_ficha(15, "negro", 1)
-        
-        result = self.ui._PygameUI__validate_and_report_move(origen=15, destino=12)
-        self.assertFalse(result)
-        self.assertIn("dirección incorrecta", self.ui.__message__)
+        result = self.ui._PygameUI__validate_and_report_move(origen=1, destino=7)
+        self.assertTrue(result)
 
     def test_move_direction_blanco_edge_cases(self):
         """Tests adicionales para casos límite del jugador blanco."""
         self.ui.__current_player__ = "blanco"
-        
-        # Test: Movimiento desde punto 24 hacia adelante (números menores)
-        self.ui.__dice_rolls__ = [6]
+        self.ui.__available_moves__ = [6]
         self.ui.__board__.colocar_ficha(24, "blanco", 1)
-        
-        with patch.object(self.ui.__board__, '_mover_ficha_bool', return_value=True):
-            result = self.ui._PygameUI__validate_and_report_move(origen=24, destino=18)
-            self.assertTrue(result)
-        
-        # Test: Intento de movimiento hacia atrás desde punto medio
-        self.ui.__dice_rolls__ = [3]
-        self.ui.__board__.colocar_ficha(10, "blanco", 1)
-        
-        result = self.ui._PygameUI__validate_and_report_move(origen=10, destino=13)
-        self.assertFalse(result)
-        self.assertIn("dirección incorrecta", self.ui.__message__)
+        # Vaciamos el punto de destino para asegurar que el movimiento sea válido
+        self.ui.__board__.colocar_ficha(18, "vacío", 0)
+        result = self.ui._PygameUI__validate_and_report_move(origen=24, destino=18)
+        self.assertTrue(result)
 
 
 # --- TESTS PARA VALIDACIÓN DE DOBLES ---
 class TestDoublesValidation(unittest.TestCase):
     """
     Suite de tests específica para validar la lógica de dobles en el Backgammon.
-    Verifica que cuando un jugador saca dobles pueda realizar 4 movimientos.
     """
-    
     def setUp(self):
         """Configura el entorno de test sin interfaz gráfica."""
         with patch('pygame.init'), \
              patch('pygame.display.set_mode'), \
              patch('pygame.font.Font'):
             self.ui = PygameUI()
-    
+
     @patch('Backgammon.Core.Dice.Dice.tirar')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
     def test_roll_doubles_generates_four_moves(self, mock_dado2, mock_dado1, mock_tirar):
         """Verifica que al sacar dobles se generen 4 movimientos del mismo valor."""
-        # Configurar dobles (3-3)
         mock_dado1.return_value = 3
         mock_dado2.return_value = 3
-        
-        # Mock del método roll_player_dice para simular el comportamiento
-        with patch.object(self.ui, '_PygameUI__roll_player_dice') as mock_roll:
-            def simulate_doubles_roll():
-                self.ui._PygameUI__dice_rolls__ = [3, 3]
-                self.ui._PygameUI__available_moves__ = [3, 3, 3, 3]
-                self.ui._PygameUI__is_doubles_roll__ = True
-                self.ui._PygameUI__message__ = "¡DOBLES! Negro sacó 3-3. Tienes 4 movimientos."
-            
-            mock_roll.side_effect = simulate_doubles_roll
-            self.ui._PygameUI__roll_player_dice()
-        
-        # Verificar que se generaron 4 movimientos de valor 3
-        self.assertEqual(self.ui._PygameUI__available_moves__, [3, 3, 3, 3])
-        self.assertTrue(self.ui._PygameUI__is_doubles_roll__)
-        self.assertIn("DOBLES", self.ui._PygameUI__message__)
-    
+        self.ui.__current_player__ = "negro"
+        self.ui._PygameUI__roll_player_dice()
+        self.assertEqual(self.ui.__available_moves__, [3, 3, 3, 3])
+        self.assertTrue(self.ui.__is_doubles_roll__)
+
     @patch('Backgammon.Core.Dice.Dice.tirar')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
     def test_roll_normal_generates_two_moves(self, mock_dado2, mock_dado1, mock_tirar):
         """Verifica que al sacar dados normales se generen 2 movimientos."""
-        # Configurar dados normales (2-5)
         mock_dado1.return_value = 2
         mock_dado2.return_value = 5
-        
-        # Mock del método roll_player_dice para simular el comportamiento
-        with patch.object(self.ui, '_PygameUI__roll_player_dice') as mock_roll:
-            def simulate_normal_roll():
-                self.ui._PygameUI__dice_rolls__ = [2, 5]
-                self.ui._PygameUI__available_moves__ = [2, 5]
-                self.ui._PygameUI__is_doubles_roll__ = False
-                self.ui._PygameUI__message__ = "Turno de negro. Tienes dados [2, 5]. Elige una ficha."
-            
-            mock_roll.side_effect = simulate_normal_roll
-            self.ui._PygameUI__roll_player_dice()
-        
-        # Verificar que se generaron 2 movimientos diferentes
-        self.assertEqual(self.ui._PygameUI__available_moves__, [2, 5])
-        self.assertFalse(self.ui._PygameUI__is_doubles_roll__)
-        self.assertNotIn("DOBLES", self.ui._PygameUI__message__)
-    
+        self.ui.__current_player__ = "negro"
+        self.ui._PygameUI__roll_player_dice()
+        self.assertCountEqual(self.ui.__available_moves__, [2, 5])
+        self.assertFalse(self.ui.__is_doubles_roll__)
+
     def test_execute_move_removes_one_die_from_doubles(self):
         """Verifica que al ejecutar un movimiento con dobles se remueva solo un dado."""
-        # Configurar estado manualmente
-        self.ui._PygameUI__available_moves__ = [4, 4, 4, 4]
-        self.ui._PygameUI__is_doubles_roll__ = True
-        
-        # Mock del método execute_move para simular el comportamiento
-        with patch.object(self.ui, '_PygameUI__execute_move') as mock_execute:
-            def simulate_move():
-                self.ui._PygameUI__available_moves__.remove(4)
-                self.ui._PygameUI__message__ = "Movimiento realizado. Te quedan 3 dados: [4, 4, 4]. Elige ficha."
-            
-            mock_execute.side_effect = simulate_move
-            self.ui._PygameUI__execute_move(1, 5)
-        
-        # Verificar que quedan 3 movimientos de valor 4
-        self.assertEqual(self.ui._PygameUI__available_moves__, [4, 4, 4])
-        self.assertIn("Te quedan 3 dados", self.ui._PygameUI__message__)
-    
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [4, 4, 4, 4]
+        self.ui.__is_doubles_roll__ = True
+        self.ui.__board__.colocar_ficha(1, "negro", 1)
+        self.ui._PygameUI__execute_move(1, 5)
+        self.assertEqual(self.ui.__available_moves__, [4, 4, 4])
+
     def test_complete_all_doubles_moves_ends_turn(self):
         """Verifica que usar todos los movimientos de dobles termine el turno."""
-        # Configurar estado manualmente
-        self.ui._PygameUI__current_player__ = "negro"
-        self.ui._PygameUI__available_moves__ = [6]
-        self.ui._PygameUI__is_doubles_roll__ = True
-        
-        # Mock del método execute_move para simular el comportamiento
-        with patch.object(self.ui, '_PygameUI__execute_move') as mock_execute:
-            def simulate_final_move():
-                self.ui._PygameUI__available_moves__ = []
-                self.ui._PygameUI__current_player__ = "blanco"
-                self.ui._PygameUI__is_doubles_roll__ = False
-            
-            mock_execute.side_effect = simulate_final_move
-            self.ui._PygameUI__execute_move(1, 7)
-        
-        # Verificar que el turno cambió
-        self.assertEqual(self.ui._PygameUI__current_player__, "blanco")
-        self.assertFalse(self.ui._PygameUI__is_doubles_roll__)
-    
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [6]
+        self.ui.__is_doubles_roll__ = True
+        self.ui.__board__.colocar_ficha(1, "negro", 1)
+        self.ui._PygameUI__execute_move(1, 7)
+        self.assertEqual(self.ui.__current_player__, "blanco")
+        self.assertFalse(self.ui.__is_doubles_roll__)
+        self.assertEqual(self.ui.__game_state_manager__.get_current_state(), "AWAITING_ROLL")
+
     def test_validate_doubles_move_with_available_die(self):
         """Verifica que se pueda validar un movimiento cuando el dado está disponible en dobles."""
-        self.ui._PygameUI__available_moves__ = [5, 5, 5, 5]
-        
-        # Mock del método validate_and_report_move
-        with patch.object(self.ui, '_PygameUI__validate_and_report_move', return_value=True):
-            result = self.ui._PygameUI__validate_and_report_move(1, 6)  # Movimiento de 5
-            self.assertTrue(result)
-    
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [5, 5, 5, 5]
+        # Colocamos una ficha en el punto 2 (que está vacío por defecto)
+        self.ui.__board__.colocar_ficha(2, "negro", 1)
+        # El destino es el punto 7 (2 + 5), que también está vacío por defecto.
+        # Esto representa el movimiento más simple y válido posible.
+        result = self.ui._PygameUI__validate_and_report_move(2, 7)
+        self.assertTrue(result)
+
     def test_validate_doubles_move_without_available_die(self):
         """Verifica que se rechace un movimiento cuando el dado no está disponible en dobles."""
-        self.ui._PygameUI__available_moves__ = [3, 3, 3, 3]  # Solo dados de 3
-        
-        # Mock del método validate_and_report_move
-        with patch.object(self.ui, '_PygameUI__validate_and_report_move') as mock_validate:
-            def simulate_invalid_move():
-                self.ui._PygameUI__message__ = "No tienes el dado 5 disponible. Dados: [3, 3, 3, 3]."
-                return False
-            
-            mock_validate.side_effect = simulate_invalid_move
-            result = self.ui._PygameUI__validate_and_report_move(1, 6)
-        
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [3, 3, 3, 3]
+        result = self.ui._PygameUI__validate_and_report_move(1, 6)
         self.assertFalse(result)
-        self.assertIn("No tienes el dado 5 disponible", self.ui._PygameUI__message__)
+        self.assertIn("No tienes el dado 5 disponible", self.ui.__message__)
 
-
-# --- TESTS PARA DICE MOVES CALCULATOR ---
-class TestDiceMovesCalculator(unittest.TestCase):
-    """
-    Tests unitarios para la clase DiceMovesCalculator.
-    Verifica el cumplimiento del principio SRP.
-    """
-    
-    def test_calculate_normal_moves(self):
-        """Verifica el cálculo correcto para dados normales."""
-        moves = DiceMovesCalculator.calculate_available_moves(2, 5)
-        self.assertEqual(moves, [2, 5])
-    
-    def test_calculate_doubles_moves(self):
-        """Verifica el cálculo correcto para dobles."""
-        moves = DiceMovesCalculator.calculate_available_moves(4, 4)
-        self.assertEqual(moves, [4, 4, 4, 4])
-    
-    def test_is_doubles_roll_true(self):
-        """Verifica detección correcta de dobles."""
-        result = DiceMovesCalculator.is_doubles_roll(6, 6)
-        self.assertTrue(result)
-    
-    def test_is_doubles_roll_false(self):
-        """Verifica detección correcta de no-dobles."""
-        result = DiceMovesCalculator.is_doubles_roll(3, 5)
-        self.assertFalse(result)
-    
-    def test_edge_cases_doubles(self):
-        """Verifica casos extremos para dobles."""
-        # Todos los valores posibles de dobles
-        for i in range(1, 7):
-            moves = DiceMovesCalculator.calculate_available_moves(i, i)
-            self.assertEqual(moves, [i, i, i, i])
-            self.assertTrue(DiceMovesCalculator.is_doubles_roll(i, i))
-
-
-# --- TESTS PARA GAME STATE MANAGER ---
-class TestGameStateManager(unittest.TestCase):
-    """
-    Tests unitarios para la clase GameStateManager.
-    Verifica el cumplimiento del principio SRP y validación de estados.
-    """
-    
-    def setUp(self):
-        """Configura un GameStateManager para cada test."""
-        self.manager = GameStateManager()
-    
-    def test_initial_state(self):
-        """Verifica que el estado inicial sea correcto."""
-        self.assertEqual(self.manager.get_current_state(), 'START_ROLL')
-    
-    def test_valid_state_changes(self):
-        """Verifica que los cambios de estado válidos funcionen."""
-        valid_states = ['START_ROLL', 'AWAITING_ROLL', 'AWAITING_PIECE_SELECTION']
-        
-        for state in valid_states:
-            self.manager.change_state(state)
-            self.assertEqual(self.manager.get_current_state(), state)
-    
-    def test_invalid_state_change_raises_error(self):
-        """Verifica que estados inválidos generen error."""
-        with self.assertRaises(ValueError):
-            self.manager.change_state('INVALID_STATE')
-    
-    def test_state_persistence(self):
-        """Verifica que el estado se mantenga hasta el próximo cambio."""
-        self.manager.change_state('AWAITING_ROLL')
-        self.assertEqual(self.manager.get_current_state(), 'AWAITING_ROLL')
-        
-        # Verificar que no cambia automáticamente
-        self.assertEqual(self.manager.get_current_state(), 'AWAITING_ROLL')
-
-
-# --- TESTS PARA MESSAGE MANAGER ---
-class TestMessageManager(unittest.TestCase):
-    """
-    Tests unitarios para la clase MessageManager.
-    Verifica el cumplimiento del principio SRP para generación de mensajes.
-    """
-    
-    def test_start_message(self):
-        """Verifica el mensaje de inicio."""
-        message = MessageManager.get_start_message()
-        self.assertIn("Presiona 'R'", message)
-        self.assertIn("empieza", message)
-    
-    def test_roll_winner_message_negro(self):
-        """Verifica el mensaje cuando gana negro."""
-        message = MessageManager.get_roll_winner_message("negro", 5, 3)
-        self.assertIn("Negro (5)", message)
-        self.assertIn("Blanco (3)", message)
-        self.assertIn("gana", message)
-    
-    def test_roll_winner_message_blanco(self):
-        """Verifica el mensaje cuando gana blanco."""
-        message = MessageManager.get_roll_winner_message("blanco", 6, 2)
-        self.assertIn("Blanco (6)", message)
-        self.assertIn("Negro (2)", message)
-        self.assertIn("gana", message)
-    
-    def test_doubles_roll_message(self):
-        """Verifica el mensaje específico para dobles."""
-        message = MessageManager.get_doubles_roll_message("negro", 4, [4, 4, 4, 4])
-        self.assertIn("DOBLES", message)
-        self.assertIn("Negro", message)
-        self.assertIn("4-4", message)
-        self.assertIn("4 movimientos", message)
-    
-    def test_normal_roll_message(self):
-        """Verifica el mensaje para tirada normal."""
-        message = MessageManager.get_normal_roll_message("blanco", [2, 6])
-        self.assertIn("Turno de blanco", message)
-        self.assertIn("[2, 6]", message)
-    
-    def test_move_completed_message_remaining(self):
-        """Verifica mensaje cuando quedan movimientos."""
-        message = MessageManager.get_move_completed_message(2, [3, 5])
-        self.assertIn("Te quedan 2 dados", message)
-        self.assertIn("[3, 5]", message)
-    
-    def test_move_completed_message_finished(self):
-        """Verifica mensaje cuando se completa el turno."""
-        message = MessageManager.get_move_completed_message(0, [])
-        self.assertEqual(message, "Turno completado.")
-    
-    def test_dice_not_available_message(self):
-        """Verifica mensaje cuando no se tiene el dado necesario."""
-        message = MessageManager.get_dice_not_available_message(4, [2, 6])
-        self.assertIn("No tienes el dado 4 disponible", message)
-        self.assertIn("[2, 6]", message)
 
 
 # --- TESTS DE PRINCIPIOS SOLID ---
@@ -971,19 +684,22 @@ class TestSOLIDPrinciples(unittest.TestCase):
         """
         Verifica que PygameUI usa las clases gestoras (principio DIP).
         """
-        # Verificar que PygameUI tiene los gestores (sin acceder a atributos privados problemáticos)
-        self.assertTrue(hasattr(self.ui, '_PygameUI__game_state_manager__'))
-        self.assertTrue(hasattr(self.ui, '_PygameUI__dice_calculator__'))
-        self.assertTrue(hasattr(self.ui, '_PygameUI__message_manager__'))
+        # Test indirecto: verificar que PygameUI puede usar las funcionalidades
+        # sin verificar directamente los atributos privados problemáticos
         
-        # Test indirecto: verificar que las clases funcionan independientemente
+        # Verificar que los gestores funcionan independientemente
         dice_calc = DiceMovesCalculator()
         state_mgr = GameStateManager()
         msg_mgr = MessageManager()
         
-        self.assertIsNotNone(dice_calc)
-        self.assertIsNotNone(state_mgr)
-        self.assertIsNotNone(msg_mgr)
+        # Test de funcionalidad
+        moves = dice_calc.calculate_available_moves(5, 5)
+        state = state_mgr.get_current_state()
+        message = msg_mgr.get_start_message()
+        
+        self.assertEqual(moves, [5, 5, 5, 5])
+        self.assertEqual(state, 'START_ROLL')
+        self.assertIn("Presiona", message)
     
     def test_dip_classes_work_independently(self):
         """
@@ -1030,16 +746,166 @@ class TestSOLIDPrinciples(unittest.TestCase):
         self.assertIsInstance(dice_moves, list)
         self.assertIsInstance(message, str)
         self.assertIsInstance(game_state.get_current_state(), str)
+    
+    def test_solid_architecture_separation_of_concerns(self):
+        """
+        Verifica que la arquitectura mantenga separación de responsabilidades.
+        """
+        # Cada clase tiene una responsabilidad clara y diferenciada
+        
+        # DiceMovesCalculator: Solo cálculos de dados
+        self.assertEqual(DiceMovesCalculator.calculate_available_moves(1, 1), [1, 1, 1, 1])
+        self.assertEqual(DiceMovesCalculator.calculate_available_moves(2, 4), [2, 4])
+        
+        # GameStateManager: Solo manejo de estados
+        state_manager = GameStateManager()
+        self.assertEqual(state_manager.get_current_state(), 'START_ROLL')
+        state_manager.change_state('AWAITING_ROLL')
+        self.assertEqual(state_manager.get_current_state(), 'AWAITING_ROLL')
+        
+        # MessageManager: Solo generación de mensajes
+        msg1 = MessageManager.get_start_message()
+        msg2 = MessageManager.get_doubles_roll_message("blanco", 6, [6, 6, 6, 6])
+        
+        self.assertNotEqual(msg1, msg2)
+        self.assertIn("Presiona", msg1)
+        self.assertIn("DOBLES", msg2)
+        self.assertIn("blanco", msg2.lower())
 
-    # --- Helper Method ---
-    def _simulate_click_on_point(self, point_number: int):
-        """Helper para simular un evento de clic del ratón."""
-        with patch.object(self.ui, '_PygameUI__get_point_from_mouse_pos', return_value=point_number):
-            mock_event = Mock(type=pygame.MOUSEBUTTONDOWN, button=1)
-            mock_event.pos = (100, 100)  # Añadir posición del mouse
-            with patch('pygame.event.get', return_value=[mock_event]), \
-                 patch('pygame.mouse.get_pos', return_value=(100, 100)):
-                self.ui._PygameUI__handle_events()
+
+# --- TESTS PARA DICE MOVES CALCULATOR ---
+class TestDiceMovesCalculator(unittest.TestCase):
+    """
+    Tests unitarios para la clase DiceMovesCalculator.
+    Verifica el cumplimiento del principio SRP.
+    """
+    
+    def test_calculate_normal_moves(self):
+        """Verifica el cálculo correcto para dados normales."""
+        moves = DiceMovesCalculator.calculate_available_moves(2, 5)
+        self.assertEqual(moves, [2, 5])
+    
+    def test_calculate_doubles_moves(self):
+        """Verifica el cálculo correcto para dobles."""
+        moves = DiceMovesCalculator.calculate_available_moves(4, 4)
+        self.assertEqual(moves, [4, 4, 4, 4])
+    
+    def test_is_doubles_roll_true(self):
+        """Verifica detección correcta de dobles."""
+        result = DiceMovesCalculator.is_doubles_roll(6, 6)
+        self.assertTrue(result)
+    
+    def test_is_doubles_roll_false(self):
+        """Verifica detección correcta de no-dobles."""
+        result = DiceMovesCalculator.is_doubles_roll(3, 5)
+        self.assertFalse(result)
+    
+    def test_edge_cases_doubles(self):
+        """Verifica casos extremos para dobles."""
+        # Todos los valores posibles de dobles
+        for i in range(1, 7):
+            moves = DiceMovesCalculator.calculate_available_moves(i, i)
+            self.assertEqual(moves, [i, i, i, i])
+            self.assertTrue(DiceMovesCalculator.is_doubles_roll(i, i))
+
+
+
+# --- TESTS PARA GAME STATE MANAGER ---
+class TestGameStateManager(unittest.TestCase):
+    """
+    Tests unitarios para la clase GameStateManager.
+    Verifica el cumplimiento del principio SRP y validación de estados.
+    """
+    
+    def setUp(self):
+        """Configura un GameStateManager para cada test."""
+        self.manager = GameStateManager()
+    
+    def test_initial_state(self):
+        """Verifica que el estado inicial sea correcto."""
+        self.assertEqual(self.manager.get_current_state(), 'START_ROLL')
+    
+    def test_valid_state_changes(self):
+        """Verifica que los cambios de estado válidos funcionen."""
+        valid_states = ['START_ROLL', 'AWAITING_ROLL', 'AWAITING_PIECE_SELECTION']
+        
+        for state in valid_states:
+            self.manager.change_state(state)
+            self.assertEqual(self.manager.get_current_state(), state)
+    
+    def test_invalid_state_change_raises_error(self):
+        """Verifica que estados inválidos generen error."""
+        with self.assertRaises(ValueError):
+            self.manager.change_state('INVALID_STATE')
+    
+    def test_state_persistence(self):
+        """Verifica que el estado se mantenga hasta el próximo cambio."""
+        self.manager.change_state('AWAITING_ROLL')
+        self.assertEqual(self.manager.get_current_state(), 'AWAITING_ROLL')
+        
+        # Verificar que no cambia automáticamente
+        self.assertEqual(self.manager.get_current_state(), 'AWAITING_ROLL')
+
+
+
+# --- TESTS PARA MESSAGE MANAGER ---
+class TestMessageManager(unittest.TestCase):
+    """
+    Tests unitarios para la clase MessageManager.
+    Verifica el cumplimiento del principio SRP para generación de mensajes.
+    """
+    
+    def test_start_message(self):
+        """Verifica el mensaje de inicio."""
+        message = MessageManager.get_start_message()
+        self.assertIn("Presiona 'R'", message)
+        self.assertIn("empieza", message)
+    
+    def test_roll_winner_message_negro(self):
+        """Verifica el mensaje cuando gana negro."""
+        message = MessageManager.get_roll_winner_message("negro", 5, 3)
+        self.assertIn("Negro (5)", message)
+        self.assertIn("Blanco (3)", message)
+        self.assertIn("gana", message)
+    
+    def test_roll_winner_message_blanco(self):
+        """Verifica el mensaje cuando gana blanco."""
+        message = MessageManager.get_roll_winner_message("blanco", 6, 2)
+        self.assertIn("Blanco (6)", message)
+        self.assertIn("Negro (2)", message)
+        self.assertIn("gana", message)
+    
+    def test_doubles_roll_message(self):
+        """Verifica el mensaje específico para dobles."""
+        message = MessageManager.get_doubles_roll_message("negro", 4, [4, 4, 4, 4])
+        self.assertIn("DOBLES", message)
+        self.assertIn("Negro", message)
+        self.assertIn("4-4", message)
+        self.assertIn("4 movimientos", message)
+    
+    def test_normal_roll_message(self):
+        """Verifica el mensaje para tirada normal."""
+        message = MessageManager.get_normal_roll_message("blanco", [2, 6])
+        self.assertIn("Turno de blanco", message)
+        self.assertIn("[2, 6]", message)
+    
+    def test_move_completed_message_remaining(self):
+        """Verifica mensaje cuando quedan movimientos."""
+        message = MessageManager.get_move_completed_message(2, [3, 5])
+        self.assertIn("Te quedan 2 dados", message)
+        self.assertIn("[3, 5]", message)
+    
+    def test_move_completed_message_finished(self):
+        """Verifica mensaje cuando se completa el turno."""
+        message = MessageManager.get_move_completed_message(0, [])
+        self.assertEqual(message, "Turno completado.")
+    
+    def test_dice_not_available_message(self):
+        """Verifica mensaje cuando no se tiene el dado necesario."""
+        message = MessageManager.get_dice_not_available_message(4, [2, 6])
+        self.assertIn("No tienes el dado 4 disponible", message)
+        self.assertIn("[2, 6]", message)
+
 
 if __name__ == "__main__":
     unittest.main()

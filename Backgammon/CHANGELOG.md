@@ -189,3 +189,7 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 ### CHANGED
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los nuevos tests de la lógica de los dobles en pygameUI y los principios SOLID en pygameUI.
 
+## [0.0.23] 27/09/2025
+### CHANGED
+- Se actualiza el codigo de test_PygameUI.py para que pasen los tests de la lógica de los dobles y los principios SOLID en pygameUI.
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar los nuevos tests de la lógica de los dobles y los principios SOLID en pygameUI.
