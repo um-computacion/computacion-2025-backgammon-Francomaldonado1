@@ -143,6 +143,173 @@ class MessageManager:
         """Mensaje para movimiento bloqueado."""
         return f"Movimiento de {origin} a {destination} bloqueado o inválido."
 
+
+class BarManager:
+    """
+    Clase responsable de gestionar la lógica de la barra central.
+    Principio SRP: Solo maneja operaciones relacionadas con la barra.
+    """
+    
+    def __init__(self):
+        """Inicializa la barra vacía para ambos jugadores."""
+        self.__bar_pieces__ = {
+            "negro": 0,
+            "blanco": 0
+        }
+    
+    def add_piece_to_bar(self, color: str) -> None:
+        """
+        Agrega una ficha a la barra.
+        
+        Args:
+            color: Color de la ficha ("negro" o "blanco")
+        """
+        if color in self.__bar_pieces__:
+            self.__bar_pieces__[color] += 1
+        else:
+            raise ValueError(f"Color inválido: {color}")
+    
+    def remove_piece_from_bar(self, color: str) -> bool:
+        """
+        Remueve una ficha de la barra.
+        
+        Args:
+            color: Color de la ficha a remover
+            
+        Returns:
+            True si se pudo remover, False si no había fichas
+        """
+        if color in self.__bar_pieces__ and self.__bar_pieces__[color] > 0:
+            self.__bar_pieces__[color] -= 1
+            return True
+        return False
+    
+    def get_pieces_count(self, color: str) -> int:
+        """
+        Obtiene el número de fichas en la barra para un jugador.
+        
+        Args:
+            color: Color del jugador
+            
+        Returns:
+            Número de fichas en la barra
+        """
+        return self.__bar_pieces__.get(color, 0)
+    
+    def has_pieces_on_bar(self, color: str) -> bool:
+        """
+        Verifica si un jugador tiene fichas en la barra.
+        
+        Args:
+            color: Color del jugador
+            
+        Returns:
+            True si tiene fichas en la barra
+        """
+        return self.get_pieces_count(color) > 0
+    
+    def get_bar_state(self) -> dict:
+        """
+        Obtiene el estado completo de la barra.
+        
+        Returns:
+            Diccionario con el conteo de fichas por color
+        """
+        return self.__bar_pieces__.copy()
+
+
+class CaptureValidator:
+    """
+    Clase responsable de validar y determinar capturas.
+    Principio SRP: Solo se encarga de la lógica de captura.
+    """
+    
+    @staticmethod
+    def can_capture_piece(destination_state: tuple, attacking_color: str) -> bool:
+        """
+        Determina si se puede capturar una ficha en el destino.
+        
+        Args:
+            destination_state: Estado del punto destino (color, cantidad) o None
+            attacking_color: Color de la ficha que ataca
+            
+        Returns:
+            True si se puede capturar
+        """
+        if destination_state is None:
+            return False  # Punto vacío, no hay nada que capturar
+        
+        destination_color, destination_count = destination_state
+        
+        # Solo se puede capturar si:
+        # 1. El punto tiene fichas del oponente
+        # 2. Solo hay 1 ficha (blot)
+        return (destination_color != attacking_color and 
+                destination_count == 1)
+    
+    @staticmethod
+    def is_move_blocked(destination_state: tuple, attacking_color: str) -> bool:
+        """
+        Determina si un movimiento está bloqueado.
+        
+        Args:
+            destination_state: Estado del punto destino
+            attacking_color: Color de la ficha que ataca
+            
+        Returns:
+            True si el movimiento está bloqueado
+        """
+        if destination_state is None:
+            return False  # Punto vacío, no está bloqueado
+        
+        destination_color, destination_count = destination_state
+        
+        # El movimiento está bloqueado si hay 2+ fichas del oponente
+        return (destination_color != attacking_color and 
+                destination_count > 1)
+
+
+class BarMovementRules:
+    """
+    Clase que define las reglas específicas para movimientos desde la barra.
+    Principio SRP: Solo maneja reglas de movimiento desde la barra.
+    """
+    
+    @staticmethod
+    def get_entry_point(color: str, dice_value: int) -> int:
+        """
+        Calcula el punto de entrada desde la barra según el color y dado.
+        
+        Args:
+            color: Color del jugador
+            dice_value: Valor del dado
+            
+        Returns:
+            Número del punto de entrada (1-24)
+        """
+        if color == "negro":
+            # Negro entra por los puntos 1-6
+            return dice_value
+        else:  # blanco
+            # Blanco entra por los puntos 19-24
+            return 25 - dice_value
+    
+    @staticmethod
+    def must_enter_from_bar_first(bar_manager: 'BarManager', color: str) -> bool:
+        """
+        Determina si el jugador debe mover desde la barra antes de otros movimientos.
+        
+        Args:
+            bar_manager: Instancia del gestor de barra
+            color: Color del jugador
+            
+        Returns:
+            True si debe mover primero desde la barra
+        """
+        return bar_manager.has_pieces_on_bar(color)
+
+
+
 class PygameUI:
     def __init__(self, board_width: int = 1600, board_height: int = 900):
         """Inicializa la interfaz gráfica para el juego de Backgammon."""
@@ -156,6 +323,8 @@ class PygameUI:
         self.__game_state_manager__ = GameStateManager()
         self.__dice_calculator__ = DiceMovesCalculator()
         self.__message_manager__ = MessageManager()
+        self.__bar_manager__ = BarManager()  # NUEVO: Gestor de barra
+        self.__capture_validator__ = CaptureValidator()  # NUEVO: Validador de capturas
         
         # --- Lógica de la partida ---
         self.__dice__ = Dice()
@@ -184,6 +353,7 @@ class PygameUI:
         self.__dice_color__ = (250, 250, 250)
         self.__pip_color__ = (0, 0, 0)
         self.__doubles_highlight__ = (255, 215, 0)  # Color dorado para destacar dobles
+        self.__capture_highlight__ = (255, 0, 0)  # NUEVO: Color para capturas
         
         # --- Dimensiones ---
         self.__board_margin__ = 50
@@ -250,7 +420,22 @@ class PygameUI:
     def __attempt_piece_selection(self, point: int) -> None:
         """
         Intenta seleccionar una ficha en el punto dado.
+        ACTUALIZADO: Incluye selección desde la barra.
         """
+        if point == 0:  # Selección desde la barra
+            if self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
+                self.__selected_point__ = 0
+                self.__message__ = f"Ficha en la barra seleccionada. Dados disponibles: {self.__available_moves__}. Elige punto de entrada."
+            else:
+                self.__message__ = "No tienes fichas en la barra."
+            return
+        
+        # Validar si debe mover desde la barra primero
+        if BarMovementRules.must_enter_from_bar_first(self.__bar_manager__, self.__current_player__):
+            self.__message__ = "Debes mover primero desde la barra. Haz clic en el centro del tablero."
+            return
+        
+        # Lógica original para puntos normales
         estado_punto = self.__board__.obtener_estado_punto(point)
         
         if estado_punto and estado_punto[0] == self.__current_player__:
@@ -258,6 +443,7 @@ class PygameUI:
             self.__message__ = self.__message_manager__.get_piece_selected_message(point, self.__available_moves__)
         else:
             self.__message__ = self.__message_manager__.get_invalid_piece_message(point)
+
 
     def __attempt_move(self, origen: int, destino: int) -> None:
         """
@@ -273,22 +459,47 @@ class PygameUI:
     def __execute_move(self, origen: int, destino: int) -> None:
         """
         Ejecuta un movimiento válido y actualiza el estado del juego.
+        ACTUALIZADO: Ahora incluye lógica de captura.
         """
-        dado_usado = abs(origen - destino)
+        # Verificar si hay captura
+        destination_state = self.__board__.obtener_estado_punto(destino)
+        capture_occurred = False
         
-        # Realizar el movimiento en el tablero (UNA sola ficha)
-        self.__board__.mover_ficha(origen, destino, self.__current_player__)
+        if self.__capture_validator__.can_capture_piece(destination_state, self.__current_player__):
+            # Capturar la ficha del oponente
+            captured_color = destination_state[0]
+            self.__bar_manager__.add_piece_to_bar(captured_color)
+            capture_occurred = True
         
-        # Remover el dado usado de los movimientos disponibles
+        # Realizar el movimiento en el tablero
+        if origen == 0:  # Movimiento desde la barra
+            # Remover ficha de la barra y colocar en el tablero
+            self.__bar_manager__.remove_piece_from_bar(self.__current_player__)
+            self.__board__.colocar_ficha(destino, self.__current_player__, 1)
+        else:
+            # Movimiento normal en el tablero
+            self.__board__.mover_ficha(origen, destino, self.__current_player__)
+        
+        # Remover el dado usado
+        dado_usado = abs(origen - destino) if origen != 0 else destino
+        if origen == 0:  # Desde la barra, usar valor directo del destino según las reglas
+            if self.__current_player__ == "negro":
+                dado_usado = destino
+            else:  # blanco
+                dado_usado = 25 - destino
+        
         self.__available_moves__.remove(dado_usado)
         
-        # Actualizar mensaje y verificar si el turno debe cambiar
+        # Actualizar mensaje
         remaining_moves = len(self.__available_moves__)
         
         if remaining_moves == 0:
             self.__end_turn()
         else:
-            self.__message__ = self.__message_manager__.get_move_completed_message(remaining_moves, self.__available_moves__)
+            if capture_occurred:
+                self.__message__ = f"¡Captura realizada! Te quedan {remaining_moves} dados: {self.__available_moves__}. Elige ficha."
+            else:
+                self.__message__ = self.__message_manager__.get_move_completed_message(remaining_moves, self.__available_moves__)
 
     def __end_turn(self) -> None:
         """
@@ -359,28 +570,65 @@ class PygameUI:
 
     def __validate_and_report_move(self, origen: int, destino: int) -> bool:
         """
-        Valida un movimiento completo incluyendo dirección, dados disponibles y reglas del tablero.
-        IMPORTANTE: Solo valida, NO hace cambios en el tablero.
+        Valida un movimiento completo incluyendo lógica de barra y captura.
+        ACTUALIZADO: Incluye validaciones de barra.
         """
-        # Validar dirección del movimiento
-        if not self.__is_valid_direction(origen, destino):
+        # Validar si debe mover desde la barra primero
+        if (origen != 0 and 
+            BarMovementRules.must_enter_from_bar_first(self.__bar_manager__, self.__current_player__)):
+            self.__message__ = "Debes mover primero desde la barra."
+            return False
+        
+        # Validar movimiento desde la barra
+        if origen == 0:
+            if not self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
+                self.__message__ = "No tienes fichas en la barra."
+                return False
+            
+            # Calcular si el destino es correcto para entrada desde barra
+            expected_destination = BarMovementRules.get_entry_point(
+                self.__current_player__, 
+                destino if self.__current_player__ == "negro" else (25 - destino)
+            )
+            
+            if destino != expected_destination:
+                self.__message__ = "Punto de entrada inválido desde la barra."
+                return False
+        
+        # Validar dirección del movimiento (solo para movimientos normales)
+        if origen != 0 and not self.__is_valid_direction(origen, destino):
             self.__message__ = self.__message_manager__.get_invalid_direction_message()
             return False
         
         # Validar que el dado esté disponible
-        dado_necesario = abs(origen - destino)
+        dado_necesario = self.__calculate_dice_needed(origen, destino)
         if dado_necesario not in self.__available_moves__:
             self.__message__ = self.__message_manager__.get_dice_not_available_message(
                 dado_necesario, self.__available_moves__
             )
             return False
         
-        # Validar reglas del tablero SIN hacer cambios
-        if not self.__can_move_piece(origen, destino):
-            self.__message__ = self.__message_manager__.get_blocked_move_message(origen, destino)
+        # Validar que el movimiento no esté bloqueado
+        destination_state = self.__board__.obtener_estado_punto(destino)
+        if self.__capture_validator__.is_move_blocked(destination_state, self.__current_player__):
+            self.__message__ = f"Movimiento bloqueado: el punto {destino} tiene 2+ fichas del oponente."
             return False
         
         return True
+
+    def __calculate_dice_needed(self, origen: int, destino: int) -> int:
+        """
+        Calcula qué dado se necesita para un movimiento específico.
+        NUEVO: Maneja cálculos desde la barra.
+        """
+        if origen == 0:  # Desde la barra
+            if self.__current_player__ == "negro":
+                return destino  # Para negro, el punto de destino ES el valor del dado
+            else:  # blanco
+                return 25 - destino  # Para blanco, es 25 menos el punto de destino
+        else:
+            return abs(origen - destino)  # Movimiento normal
+        
 
     def __can_move_piece(self, origen: int, destino: int) -> bool:
         """
@@ -419,12 +667,22 @@ class PygameUI:
 
     def __get_point_from_mouse_pos(self, mouse_pos: Tuple[int, int]) -> Optional[int]:
         """
-        Calcula en qué punto del tablero (1-24) se hizo click.
+        Calcula en qué punto del tablero (0-24) se hizo click.
+        ACTUALIZADO: Incluye detección de clic en la barra (punto 0).
         """
         mx, my = mouse_pos
         side_width = (self.__board_width__ - self.__bar_width__) // 2
         point_width = side_width // 6
         
+        # Verificar clic en la barra central
+        bar_x_start = self.__board_margin__ + side_width
+        bar_x_end = bar_x_start + self.__bar_width__
+        
+        if (bar_x_start <= mx <= bar_x_end and 
+            self.__board_margin__ <= my <= self.__board_margin__ + self.__board_height__):
+            return 0  # Punto especial para la barra
+        
+        # Lógica original para puntos 1-24
         if self.__board_margin__ < my < self.__board_margin__ + self.__board_height__ // 2:
             start_x_top_right = self.__board_margin__ + side_width + self.__bar_width__
             if start_x_top_right < mx < self.__board_margin__ + self.__board_width__:
@@ -456,21 +714,69 @@ class PygameUI:
         """Actualiza la lógica del juego en cada frame."""
         pass
         
+    def __draw_bar_pieces(self) -> None:
+        """
+        NUEVO: Dibuja las fichas en la barra central.
+        """
+        bar_x = self.__board_margin__ + (self.__board_width__ // 2) - (self.__bar_width__ // 2)
+        bar_center_x = bar_x + (self.__bar_width__ // 2)
+        
+        checker_radius = 20  # Ligeramente más pequeño para la barra
+        
+        # Dibujar fichas negras (parte superior de la barra)
+        negro_count = self.__bar_manager__.get_pieces_count("negro")
+        if negro_count > 0:
+            start_y = self.__board_margin__ + 50
+            for i in range(min(negro_count, 8)):  # Máximo 8 fichas visibles
+                ficha_y = start_y + (i * checker_radius * 1.5)
+                pygame.draw.circle(self.__screen__, self.__checker_black__, 
+                                 (bar_center_x, int(ficha_y)), checker_radius)
+                pygame.draw.circle(self.__screen__, self.__checker_border__, 
+                                 (bar_center_x, int(ficha_y)), checker_radius, 2)
+            
+            # Si hay más de 8, mostrar número
+            if negro_count > 8:
+                font_small = pygame.font.Font(None, 20)
+                count_text = font_small.render(str(negro_count), True, self.__white__)
+                text_rect = count_text.get_rect(center=(bar_center_x, start_y + 200))
+                self.__screen__.blit(count_text, text_rect)
+        
+        # Dibujar fichas blancas (parte inferior de la barra)
+        blanco_count = self.__bar_manager__.get_pieces_count("blanco")
+        if blanco_count > 0:
+            start_y = self.__board_margin__ + self.__board_height__ - 50
+            for i in range(min(blanco_count, 8)):
+                ficha_y = start_y - (i * checker_radius * 1.5)
+                pygame.draw.circle(self.__screen__, self.__checker_white__, 
+                                 (bar_center_x, int(ficha_y)), checker_radius)
+                pygame.draw.circle(self.__screen__, self.__checker_border__, 
+                                 (bar_center_x, int(ficha_y)), checker_radius, 2)
+            
+            # Si hay más de 8, mostrar número
+            if blanco_count > 8:
+                font_small = pygame.font.Font(None, 20)
+                count_text = font_small.render(str(blanco_count), True, self.__black__)
+                text_rect = count_text.get_rect(center=(bar_center_x, start_y - 200))
+                self.__screen__.blit(count_text, text_rect)
+
     def __draw(self) -> None:
-        """Dibuja todos los elementos del juego en la pantalla."""
+        """
+        Dibuja todos los elementos del juego en la pantalla.
+        ACTUALIZADO: Incluye dibujo de fichas en la barra.
+        """
         self.__screen__.fill((139, 69, 19))
         self.__draw_backgammon_board()
         self.__draw_checkers()
+        self.__draw_bar_pieces()  # NUEVO: Dibujar fichas de la barra
         self.__draw_message()
         
         if self.__dice_rolls__:
             self.__draw_dice()
         
-        # Mostrar movimientos disponibles
         self.__draw_available_moves()
             
         pygame.display.flip()
-    
+
     def __draw_available_moves(self) -> None:
         """
         Dibuja los dados/movimientos disponibles en la pantalla.
@@ -661,6 +967,7 @@ class PygameUI:
                 ficha_y = y - i * (radius * 1.2)
             pygame.draw.circle(self.__screen__, checker_color, (x, int(ficha_y)), radius)
             pygame.draw.circle(self.__screen__, self.__checker_border__, (x, int(ficha_y)), radius, 2)
+
 
 if __name__ == "__main__":
     game = PygameUI()

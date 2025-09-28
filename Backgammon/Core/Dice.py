@@ -106,3 +106,4 @@ class Dice:
         self.__dado1__ = dado1
         self.__dado2__ = dado2
         self.__tirados__ = True
+
