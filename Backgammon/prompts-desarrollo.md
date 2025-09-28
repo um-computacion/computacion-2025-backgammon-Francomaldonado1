@@ -1665,3 +1665,19 @@ BOT: (Me pasa el codigo actualizado)
 
 YO: (Lo pruebo y funciona bien pero los mensajes se interponian, por lo que borro algunos mensajes innecesarios para mejorar la interfaz visualmente, hago commit) 
 
+YO:
+
+Hola buen día, hoy me gustaría implementar la lógica de la barra, osea que cuando un jugador realice un movimiento hacia una posición en donde hay solo una ficha del rival, se realice este movimiento y esta ficha se guarde en la barra central. Podrias ayudarme a implementarlo siguiendo siempre los principios SOLID y asegurando usar funciones testeables para poder mantener la cobertura del 90% como esta actualmente? 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+No se entiende bien el archivo, me estas pasando codigo de la interfaz y codigo de los tests de estas juntos en un mismo archivo, van por separado. Segundo, en la clase PygameUI estas borrando los metodos de handle events, handle roll request, handle piece selection y uno o dos mas. Tambien me parece innecesario en el metodo de get point from mouse pos, que calcule la detección de click en la barra, ya que el jugador nunca hace click en la barra, osea si tiene una ficha capturada su unica opción es mover desde la barra por lo que directamente toca la posición de llegada por asi decirlo de la ficha . Por lo que te mando el codigo actual de pygameUI para que puedas actualizarlo desde este implementando estos ajustes mencionados, gracias.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Lo pruebo y funciona bien, hago commit)
+
+
+
