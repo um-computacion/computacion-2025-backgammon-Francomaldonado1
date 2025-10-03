@@ -215,3 +215,11 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 - Se actualiza el codigo de todo el proyecto agregando docstrings iniciales para mejorar el pylint.
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para corregir los movimientos desde la barra y la captura en pygameUI.
 - Se actualiza prompts-documentación.md con los prompts y las indicaciones que se utilizaron para corregir el pylint.
+
+### [0.0.27] 03/10/2025
+## ADDED
+- Se agrega clase MovementValidator para validar si un jugador tiene movimientos disponibles.
+- Se agrega logica para saltar turno si un jugador no tiene movimientos disponibles.
+
+## CHANGED
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para agregar la validación de movimientos invalidos.

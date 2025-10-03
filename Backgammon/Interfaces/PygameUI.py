@@ -29,7 +29,7 @@ class GameStateManager:
 
     def __init__(self):
         self.current_state = 'START_ROLL'
-        self.valid_states = {'START_ROLL', 'AWAITING_ROLL', 'AWAITING_PIECE_SELECTION'}
+        self.valid_states = {'START_ROLL', 'AWAITING_ROLL', 'AWAITING_PIECE_SELECTION', 'AWAITING_SKIP_CONFIRMATION'}
 
     def change_state(self, new_state: str) -> None:
         """Cambia el estado del juego con validación."""
@@ -65,33 +65,36 @@ class MessageManager:
         return f"Turno de {current_player}. Presiona 'R' para tirar los dados."
 
     @staticmethod
-
     def get_doubles_roll_message(current_player: str, dice_value: int,
                                 available_moves: List[int]) -> str:
         """Mensaje cuando se sacan dobles."""
-        return f"{current_player.capitalize()} sacó dobles de {dice_value}. Elige ficha."
+        moves_count = len(available_moves)
+        return f"{current_player.capitalize()} sacó dobles de {dice_value}! Tienes {moves_count} movimientos de {dice_value}. Elige ficha."
 
     @staticmethod
     def get_normal_roll_message(current_player: str, available_moves: List[int]) -> str:
         """Mensaje para tirada normal."""
-        return f"Turno de {current_player}. Elige una ficha para mover."
+        dice_str = ', '.join(map(str, available_moves))
+        return f"Turno de {current_player}. Dados: [{dice_str}]. Elige una ficha para mover."
 
     @staticmethod
     def get_piece_selected_message(point: int, available_moves: List[int]) -> str:
         """Mensaje cuando se selecciona una ficha."""
-        return f"Ficha en punto {point} seleccionada. Elige destino."
-
-    @staticmethod
-    def get_invalid_piece_message(point: int) -> str:
-        """Mensaje cuando se selecciona una ficha inválida."""
-        return f"No tienes fichas en el punto {point}. Elige una válida."
+        dice_str = ', '.join(map(str, available_moves))
+        return f"Ficha en punto {point} seleccionada. Dados disponibles: [{dice_str}]. Elige destino."
 
     @staticmethod
     def get_move_completed_message(remaining_moves: int, available_moves: List[int]) -> str:
         """Mensaje cuando se completa un movimiento."""
         if remaining_moves == 0:
             return "Turno completado."
-        return f"Movimiento realizado. Elige otra ficha."
+        dice_str = ', '.join(map(str, available_moves))
+        return f"Movimiento realizado. Te quedan {remaining_moves} dados: [{dice_str}]. Elige ficha."
+
+    @staticmethod
+    def get_invalid_piece_message(point: int) -> str:
+        """Mensaje cuando se selecciona una ficha inválida."""
+        return f"No tienes fichas en el punto {point}. Elige una válida."
 
     @staticmethod
     def get_invalid_move_message() -> str:
@@ -112,6 +115,97 @@ class MessageManager:
     def get_blocked_move_message(origin: int, destination: int) -> str:
         """Mensaje para movimiento bloqueado."""
         return f"Movimiento de {origin} a {destination} bloqueado o inválido."
+    
+    @staticmethod
+    def get_no_moves_available_message(player: str, reason: str) -> str:
+        """Mensaje cuando no hay movimientos disponibles."""
+        return f"¡{player.capitalize()} no puede mover! {reason} Presiona 'R' para continuar."
+
+
+class MovementValidator:
+    """Valida si un jugador tiene movimientos disponibles."""
+
+    def __init__(self, board, bar_manager):
+        self.board = board
+        self.bar_manager = bar_manager
+
+    def has_any_valid_move(self, player: str, available_moves: list) -> bool:
+        """Verifica si el jugador tiene algún movimiento válido disponible."""
+        # Primero verificar si debe mover desde la barra
+        if self.bar_manager.has_pieces_on_bar(player):
+            return self._can_enter_from_bar(player, available_moves)
+        
+        # Si no hay fichas en la barra, verificar movimientos desde el tablero
+        return self._can_move_from_board(player, available_moves)
+
+    def _can_enter_from_bar(self, player: str, available_moves: list) -> bool:
+        """Verifica si el jugador puede entrar desde la barra con alguno de los dados."""
+        for dice_value in set(available_moves):  # usar set para evitar repetidos
+            entry_point = self._get_entry_point(player, dice_value)
+            destination_state = self.board.obtener_estado_punto(entry_point)
+            
+            # Puede entrar si está vacío, tiene fichas propias, o tiene solo 1 ficha enemiga
+            if destination_state is None:
+                return True
+            
+            dest_color, dest_count = destination_state
+            if dest_color == player or dest_count == 1:
+                return True
+        
+        return False
+
+    def _can_move_from_board(self, player: str, available_moves: list) -> bool:
+        """Verifica si el jugador puede mover alguna ficha del tablero."""
+        for point_num in range(1, 25):
+            point_state = self.board.obtener_estado_punto(point_num)
+            
+            # Si el punto tiene fichas del jugador actual
+            if point_state and point_state[0] == player:
+                # Verificar si puede mover con alguno de los dados disponibles
+                for dice_value in set(available_moves):
+                    destination = self._calculate_destination(player, point_num, dice_value)
+                    
+                    # Verificar que el destino sea válido
+                    if 1 <= destination <= 24:
+                        if self._is_move_possible(destination, player):
+                            return True
+        
+        return False
+
+    def _is_move_possible(self, destination: int, player: str) -> bool:
+        """Verifica si un destino específico es accesible para el jugador."""
+        destination_state = self.board.obtener_estado_punto(destination)
+        
+        if destination_state is None:
+            return True
+        
+        dest_color, dest_count = destination_state
+        
+        # Accesible si: tiene fichas propias, o tiene solo 1 ficha enemiga (captura)
+        return dest_color == player or dest_count == 1
+
+    def _calculate_destination(self, player: str, origin: int, dice_value: int) -> int:
+        """Calcula el punto de destino basado en el origen y el valor del dado."""
+        if player == "negro":
+            return origin + dice_value
+        else:
+            return origin - dice_value
+
+    def _get_entry_point(self, player: str, dice_value: int) -> int:
+        """Calcula el punto de entrada desde la barra."""
+        if player == "negro":
+            return dice_value
+        else:
+            return 25 - dice_value
+
+    def get_blocked_reason(self, player: str, available_moves: list) -> str:
+        """Obtiene una descripción del por qué el jugador no puede mover."""
+        if self.bar_manager.has_pieces_on_bar(player):
+            return ("No puedes entrar desde la barra. Todos los puntos de entrada "
+                   "están bloqueados por el oponente.")
+        else:
+            return ("No tienes movimientos válidos. Todas tus fichas están bloqueadas "
+                   "por el oponente.")
 
 
 class BarManager:
@@ -181,7 +275,7 @@ class BarMovementRules:
     def must_enter_from_bar_first(bar_manager: 'BarManager', color: str) -> bool:
         """Determina si el jugador debe mover desde la barra."""
         return bar_manager.has_pieces_on_bar(color)
-
+    
 
 # pylint: disable=too-many-instance-attributes,too-few-public-methods
 class PygameUI:
@@ -208,6 +302,7 @@ class PygameUI:
         self.__is_doubles_roll__ = False
         self.__board__ = Board()
         self.__board__.inicializar_posiciones_estandar()
+        self.__movement_validator__ = MovementValidator(self.__board__, self.__bar_manager__)
         self.__selected_point__: Optional[int] = None
         self.__white__ = (255, 255, 255)
         self.__black__ = (0, 0, 0)
@@ -260,6 +355,8 @@ class PygameUI:
             self.__roll_to_start()
         elif current_state == 'AWAITING_ROLL':
             self.__roll_player_dice()
+        elif current_state == 'AWAITING_SKIP_CONFIRMATION':
+            self.__end_turn()
 
     def __handle_piece_selection(self, mouse_pos: Tuple[int, int]) -> None:
         """Maneja la selección de fichas."""
@@ -301,7 +398,18 @@ class PygameUI:
             self.__execute_move(origen, destino)
         else:
             self.__message__ = self.__message_manager__.get_invalid_move_message()
+            # Verificar si aún hay movimientos válidos después del error
+            if len(self.__available_moves__) > 0:
+                if not self.__movement_validator__.has_any_valid_move(
+                        self.__current_player__, self.__available_moves__):
+                    if self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
+                        self.__message__ = "No puedes entrar desde la barra. Presiona 'R' para saltar turno."
+                    else:
+                        self.__message__ = "No puedes usar los dados restantes. Presiona 'R' para saltar turno."
+                    self.__game_state_manager__.change_state('AWAITING_SKIP_CONFIRMATION')
 
+
+    # 5. __execute_move - Mensajes más cortos
     def __execute_move(self, origen: int, destino: int) -> None:
         """Ejecuta un movimiento válido y actualiza el estado del juego."""
         destination_state = self.__board__.obtener_estado_punto(destino)
@@ -315,11 +423,9 @@ class PygameUI:
             capture_occurred = True
             
             # Limpiar el punto destino completamente
-            # Intentamos con el método más simple: solo punto
             try:
                 self.__board__.remover_ficha(destino)
             except TypeError:
-                # Si falla, intentamos con punto y color
                 self.__board__.remover_ficha(destino, captured_color)
             
             # Agregar la ficha capturada a la barra
@@ -328,7 +434,6 @@ class PygameUI:
         # SEGUNDO: Realizar el movimiento
         if origen == 0:  # Desde la barra
             self.__bar_manager__.remove_piece_from_bar(self.__current_player__)
-            # Colocar en el punto destino (ya limpio si hubo captura)
             self.__board__.colocar_ficha(destino, self.__current_player__, 1)
         else:  # Movimiento normal desde un punto
             self.__board__.mover_ficha(origen, destino, self.__current_player__)
@@ -342,16 +447,27 @@ class PygameUI:
 
         if remaining_moves == 0:
             self.__end_turn()
-        elif capture_occurred:
-            self.__message__ = (f"¡Captura realizada! Te quedan {remaining_moves} "
-                            f"dados: {self.__available_moves__}. Elige ficha.")
         else:
-            self.__message__ = (
-                self.__message_manager__.get_move_completed_message(
-                    remaining_moves, self.__available_moves__
+            # Verificar si quedan movimientos válidos
+            if not self.__movement_validator__.has_any_valid_move(
+                    self.__current_player__, self.__available_moves__):
+                if self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
+                    self.__message__ = "No puedes entrar desde la barra. Presiona 'R' para saltar turno."
+                else:
+                    self.__message__ = "No puedes usar los dados restantes. Presiona 'R' para saltar turno."
+                self.__game_state_manager__.change_state('AWAITING_SKIP_CONFIRMATION')
+            elif capture_occurred:
+                dice_str = ', '.join(map(str, self.__available_moves__))
+                self.__message__ = f"¡Captura! Te quedan {remaining_moves} dados: [{dice_str}]. Elige ficha."
+            else:
+                self.__message__ = (
+                    self.__message_manager__.get_move_completed_message(
+                        remaining_moves, self.__available_moves__
+                    )
                 )
-            )
-            
+
+
+    # 6. __end_turn - Limpiar selección
     def __end_turn(self) -> None:
         """Termina el turno actual."""
         self.__switch_player()
@@ -359,6 +475,7 @@ class PygameUI:
         self.__dice_rolls__ = []
         self.__available_moves__ = []
         self.__is_doubles_roll__ = False
+        self.__selected_point__ = None  # Limpiar selección al cambiar turno
         self.__message__ = self.__message_manager__.get_awaiting_roll_message(
             self.__current_player__)
 
@@ -394,6 +511,18 @@ class PygameUI:
         self.__dice_rolls__ = [dado1, dado2]
         self.__available_moves__ = self.__dice_calculator__.calculate_available_moves(dado1, dado2)
         self.__is_doubles_roll__ = self.__dice_calculator__.is_doubles_roll(dado1, dado2)
+        
+        # Verificar si el jugador tiene movimientos disponibles
+        if not self.__movement_validator__.has_any_valid_move(
+                self.__current_player__, self.__available_moves__):
+            if self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
+                self.__message__ = f"{self.__current_player__.capitalize()}: No puedes entrar desde la barra. Presiona 'R' para saltar turno."
+            else:
+                self.__message__ = f"{self.__current_player__.capitalize()}: Todas tus fichas están bloqueadas. Presiona 'R' para saltar turno."
+            self.__game_state_manager__.change_state('AWAITING_SKIP_CONFIRMATION')
+            return
+        
+        # Si hay movimientos disponibles, continuar normalmente
         self.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
         if self.__is_doubles_roll__:
             self.__message__ = self.__message_manager__.get_doubles_roll_message(
@@ -556,7 +685,13 @@ class PygameUI:
 
     def __draw_message(self) -> None:
         """Renderiza el mensaje de estado."""
-        if self.__is_doubles_roll__ and "DOBLES" in self.__message__:
+        # Determinar color del texto
+        current_state = self.__game_state_manager__.get_current_state()
+        
+        if current_state == 'AWAITING_SKIP_CONFIRMATION':
+            # Rojo para indicar que no puede mover
+            text_color = (255, 100, 100)
+        elif self.__is_doubles_roll__ and "DOBLES" in self.__message__:
             text_color = self.__doubles_highlight__
         else:
             text_color = self.__white__

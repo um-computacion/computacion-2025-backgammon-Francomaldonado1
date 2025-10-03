@@ -1719,3 +1719,51 @@ BOT: (Me pasa el codigo actualizado)
 YO:
 
 Bien gracias, no me gusta mucho el fondo negro del mensaje, podrias dejarlo como antes?
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (hago commit) 
+
+YO: 
+
+Hola buenas tardes hoy me gustaria que me ayudes a implentar la logica de el salto de turno cuando un jugador no tiene movimientos disponibles, ya sea por que no puede realizar ningun movimiento desde ninguna posición o por que desde la barra no puede mover por que el rival tiene una ficha en el destino. Podrias ayudarme con esto?  
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Me aparece el siguiente atributeError a la hora de intentar correr la interfaz 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Este mensaje de dobles tambien esta raro, realice un movimiento al azar y le pegue pero no se ve el valor del dado que tengo para realizar los movimientos, por favor agrega esto. (En este caso tengo un dado de 6 pero no se ve)
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Si esta mas claro, identifique otro error, estaba intentando salir de la barra y me quedaba un dado de 6, y en la posición 6 habian 2 fichas rivales, quedando el juego trabado infinitamente. 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Bien y podrias poner un boton "R" para "aceptar" que se va a saltar el turno? para que el jugador compruebe que efectivamente no puede realizar un movimiento y acepte pasar de turno, por que si no queda confuso por que el jugador pierde su turno.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+No quedo bien, aparece turno de negro, se queda asi dos segundos y aparece directamente turno de blanco (si es el negro el que no tiene movimientos disponibles), no muestra el mensaje de  "No tiene movimientos disponibles, presione "R" para saltar su turno." algo asi.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Esta mal, no hace falta que muestre un boton literalmente, simplemente que el mensaje de arriba diga "Presione "R" para saltar su turno". Ya que este boton que agregaste interrumpe la pantalla y se interpone al tablero, impidiendo ver las fichas del jugador en algunas posiciones (6 y 7). Por favor corregui esto. 
+
+BOT: (Me pasa el codigo actualizado)
+
+Esta bien hago commit. 
