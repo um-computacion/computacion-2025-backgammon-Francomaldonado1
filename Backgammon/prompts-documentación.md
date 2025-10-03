@@ -42,3 +42,33 @@ Ya le modifique esta linea para que se vea como se ve en el reporte de pylint, t
 BOT: (Me actualiza el archivo generate_reports.py)
 
 YO (Hago commit)
+
+YO:
+
+Hola buen dia, lo ultimo que agregamos al backgammon fue la implementación de la barra y la logica de las capturas. Note un leve error al probar esto, cuando un jugador tenia una ficha en la barra, y le salia un dado por ejemplo 6, si justo en la posición 6 habia una sola ficha de el otro jugador, se cerraba el juego. Cosa que no deberia pasar, deberia mandar a la barra a esta ficha del otro jugador, osea hay que modificar la validación de movimientos desde la barra para que si cae en una posición donde hay una unica ficha del rival la mande a la barra. Ademas de esta simple modificación me gustaría mejorar el pylint hoy, ya que actualmente tengo un pylint de 6,4/10, me podrias ayudar a mejorar este? te dejo codigo actual de pygameUI para que veas y corrigas esto que te mencione sobre la barra y te dejo codigo de pylint_report.txt para que veas los errores y me ayudes a correguirlos.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Bien gracias, ahora podrias reenviarme los comandos que me habias dado para correguir el pylint, habia uno que sacaba el espaciado entre las lineas si no me equivoco o algo asi.
+
+BOT: (Me manda comando para corregir el pylint)
+
+YO:
+
+Bien aumento bastante, actualmente es de 8,84. Podria seguir aumentandolo de alguna manera para lograr un 10/10?
+
+BOT: (Me manda un script y me dice que divida las lineas muy largas, por lo que lo hago en Pygame y ejecuto el script) 
+
+YO:
+
+Sin querer ejecute dos veces el script, hay alguna forma de deshacer una de estas? porque ahora se ve repetido el docstrings inicial. 
+
+BOT: (Me manda el script para corregir el pylint)
+
+YO:
+
+Pero el script tambien agregaba newline al final, esto no afecta tambien al haberlo hecho dos veces quedando 2 newlines? 
+
+(Se me acaba el plan, hago commit y luego corrigo esto) 
