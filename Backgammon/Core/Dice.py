@@ -1,3 +1,4 @@
+"""Clase Dice para manejo de dados."""
 import random
 class Dice:
     """
@@ -57,13 +58,13 @@ class Dice:
 
         Returns:
             bool: True si ambos dados tienen el mismo valor, False en caso contrario.
-            
+
         Raises:
             ValueError: Si no se han tirado los dados todavía.
         """
         if self.__dado1__ is None or self.__dado2__ is None:
             raise ValueError("No se han tirado los dados todavía.")
-        
+
         return self.__dado1__ == self.__dado2__
 
     def han_sido_tirados(self) -> bool:
@@ -94,16 +95,18 @@ class Dice:
         """
         if not self.han_sido_tirados():
             return "Dados sin tirar"
-        
+
         resultado = f"Dados: {self.__dado1__}, {self.__dado2__}"
         if self.es_doble():
             resultado += " (¡Doble!)"
-        
+
         return resultado
-    
+
     def set_dados_para_test(self, dado1, dado2):
         """Setea valores de dados manualmente y marca como tirados (para tests)."""
         self.__dado1__ = dado1
         self.__dado2__ = dado2
         self.__tirados__ = True
+
+
 

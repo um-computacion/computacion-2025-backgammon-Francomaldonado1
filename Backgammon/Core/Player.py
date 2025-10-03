@@ -1,3 +1,4 @@
+"""Clase Player."""
 from Backgammon.Core.Checker import Checker
 from Backgammon.Core.Dice import Dice
 

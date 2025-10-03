@@ -228,12 +228,12 @@ class TestTablero(unittest.TestCase):
         """Debe mover con dados correctamente, incluyendo salida del tablero."""
         dados = Dice()
         dados.set_dados_para_test(3, 5)
-        
+
         # Primera parte: movimiento normal
         self.tablero.colocar_ficha(5, "negro", 1)
         self.assertTrue(self.tablero.realizar_movimiento_completo("negro", dados, 5, usar_dado1=True))
         self.assertEqual(self.tablero.obtener_estado_punto(8), ["negro", 1])
-        
+
         # Segunda parte: sacar ficha
         # Reset del tablero y colocar solo en zona final
         self.tablero = Board()
@@ -245,7 +245,7 @@ class TestTablero(unittest.TestCase):
         """Debe poder mover desde la barra usando un dado válido."""
         dados = Dice()
         dados.set_dados_para_test(4, 2)
-        
+
         self.tablero.enviar_a_barra("blanco")
         self.assertTrue(self.tablero.realizar_movimiento_completo("blanco", dados, 0, usar_dado2=True))
         self.assertEqual(self.tablero.obtener_estado_punto(23), ["blanco", 1])
@@ -254,11 +254,11 @@ class TestTablero(unittest.TestCase):
         """Debe devolver lista de puntos posibles para mover con dados."""
         dados = Dice()
         dados.set_dados_para_test(2, 3)
-        
+
         self.tablero.colocar_ficha(5, "negro", 1)
         movimientos = self.tablero.obtener_movimientos_posibles("negro", dados)
         self.assertIn(5, movimientos)
-        
+
         self.tablero.enviar_a_barra("negro")
         movimientos = self.tablero.obtener_movimientos_posibles("negro", dados)
         self.assertEqual(movimientos, [0])

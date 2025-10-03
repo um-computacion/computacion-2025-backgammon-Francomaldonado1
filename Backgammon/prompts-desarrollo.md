@@ -1679,5 +1679,43 @@ BOT: (Me pasa el codigo actualizado)
 
 YO: (Lo pruebo y funciona bien, hago commit)
 
+YO:
 
+Hola buen dia, lo ultimo que agregamos al backgammon fue la implementación de la barra y la logica de las capturas. Note un leve error al probar esto, cuando un jugador tenia una ficha en la barra, y le salia un dado por ejemplo 6, si justo en la posición 6 habia una sola ficha de el otro jugador, se cerraba el juego. Cosa que no deberia pasar, deberia mandar a la barra a esta ficha del otro jugador, osea hay que modificar la validación de movimientos desde la barra para que si cae en una posición donde hay una unica ficha del rival la mande a la barra. Ademas de esta simple modificación me gustaría mejorar el pylint hoy, ya que actualmente tengo un pylint de 6,4/10, me podrias ayudar a mejorar este? te dejo codigo actual de pygameUI para que veas y corrigas esto que te mencione sobre la barra y te dejo codigo de pylint_report.txt para que veas los errores y me ayudes a correguirlos
 
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Lo pruebo y sigue fallando en lo mismo)
+
+Se sigue cerrando el juego, el error es el siguiente; raise ValueError("No se pueden mezclar fichas de distinto color en el mismo punto.")
+ValueError: No se pueden mezclar fichas de distinto color en el mismo punto. Por favor corregui esto para que mande directamente la ficha del rival a la barra y solamente modifica los metodos que sean necesarios (no me mandes todo el archivo por que es muy largo y no llegas a terminarlo satisfactoriamente), gracias.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: 
+
+Esta mal el codigo, ahora directamente no me deja "capturar" una ficha del rival en la barra, se cierra pygame lanzando el siguiente error: self __board__.remover_ficha(destino, captured_color, 1) TypeError: Board.remover_ficha() takes from 2 to 3 positional arguments but 4 were given, por favor encargate de resolver esto enviandome solamente el codigo de los metodos actualizados (No todo el archivo) gracias. 
+
+(Se me acaba el plan, cambio de cuenta y lo contextualizo) 
+
+YO:
+
+Hola buenas noches, estaba trabajando en el backgammon lo recuerdas? lo ultimo que intente hacer fue hacerle una modificación a la "captura" de fichas del rival en barra cuando en una posicion hay una sola ficha del rival, si tengo un dado que me permite moverme a esta posición capturo la ficha del rival. Esto estaba funcionando bien, pero fallaba cuando intentaba sacar la ficha de la barra y caía en una casilla en donde el rival tenia una ficha, osea el fallo era cuando saliendo desde la barra trataba de mandar a la barra a una ficha rival. Ademas de esto estaba intentando mejorar la nota de pylint que es de 6.45/10 actualmente, te dejo codigo de pylint_report.txt y pygameUI actual para que actualices esto y veas los errores al correr pylint para que trates de reducirlos. Trata de enviarme solamente los metodos y funciones que son modificadas en el archivo, ya que si no es tan largo el archivo que no terminas de responderme nunca. Gracias.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: 
+
+El error completo es el siguiente, sin embargo me gustaria que lo corrigieras directamente en pygame ya que board tambien es utilizado para la interfaz de texto CLI, por lo que no quiero modificar board. 
+
+BOT: (Me pasa el codigo actualizado)    
+
+YO:
+
+Bien, ahora funciona correctamente, lo unico que esta raro es como se ve el mensaje cuando tenes dobles y se muestra cualquier mensaje largo arriba, se superponen los mensajes. Podrias ajustar esto cambiando el formato de como se ven los movimientos o los mensajes largos por algunos cortos y comodos para el usuario? 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Bien gracias, no me gusta mucho el fondo negro del mensaje, podrias dejarlo como antes?

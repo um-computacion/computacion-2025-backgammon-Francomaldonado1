@@ -1,3 +1,4 @@
+"""Clase Board para el tablero de Backgammon."""
 from Backgammon.Core.Dice import Dice
 
 
@@ -22,7 +23,7 @@ class Board:
     def inicializar_posiciones_estandar(self) -> None:
         """
         Coloca las fichas en sus posiciones iniciales estándar del Backgammon.
-        
+
         Posiciones iniciales:
         - Negro: 2 en punto 1, 5 en punto 12, 3 en punto 17, 5 en punto 19
         - Blanco: 2 en punto 24, 5 en punto 13, 3 en punto 8, 5 en punto 6
@@ -34,13 +35,13 @@ class Board:
         self.__puntos__ = [None] * 24
         self.__barra__ = {}
         self.__casa__ = {}
-        
+
         # Fichas negras
         self.colocar_ficha(1, "negro", 2)   # Posición inicial negro
         self.colocar_ficha(12, "negro", 5)
         self.colocar_ficha(17, "negro", 3)
         self.colocar_ficha(19, "negro", 5)
-        
+
         # Fichas blancas
         self.colocar_ficha(24, "blanco", 2)  # Posición inicial blanco
         self.colocar_ficha(13, "blanco", 5)
@@ -81,11 +82,11 @@ class Board:
         """
         if self.__puntos__[punto - 1] is None:
             raise ValueError("No hay fichas en este punto.")
-        
+
         color, cant_actual = self.__puntos__[punto - 1]
         if cant_actual < cantidad:
             raise ValueError("No hay suficientes fichas para quitar.")
-        
+
         self.__puntos__[punto - 1][1] -= cantidad
         if self.__puntos__[punto - 1][1] == 0:
             self.__puntos__[punto - 1] = None
@@ -117,15 +118,15 @@ class Board:
     def calcular_destino(self, origen: int, movimiento: int, color: str) -> int:
         """
         Calcula el punto de destino basado en el origen, movimiento y color del jugador.
-        
+
         Args:
             origen (int): Punto de origen (1 a 24, o 0 para barra).
             movimiento (int): Valor del dado (1 a 6).
             color (str): Color del jugador ('negro' o 'blanco').
-            
+
         Returns:
             int: Punto de destino (1 a 24, o 25/0 para casa).
-            
+
         Raises:
             ValueError: Si el movimiento resulta fuera del tablero.
         """
@@ -145,81 +146,81 @@ class Board:
     def mover_desde_barra(self, color: str, movimiento: int) -> bool:
         """
         Intenta mover una ficha desde la barra al tablero.
-        
+
         Args:
             color (str): Color de la ficha a mover.
             movimiento (int): Valor del dado para el movimiento.
-            
+
         Returns:
             bool: True si el movimiento fue exitoso, False si no es posible.
         """
         # Verificar si hay fichas en la barra
         if self.__barra__.get(color, 0) == 0:
             return False
-            
+
         # Calcular punto de entrada
         if color == "negro":
             destino = movimiento  # Negro entra desde punto 1
         else:  # blanco
             destino = 25 - movimiento  # Blanco entra desde punto 24
-            
+
         # Verificar si el movimiento es válido
         if not self.es_movimiento_valido_a_punto(destino, color):
             return False
-            
+
         # Realizar el movimiento
         self.__barra__[color] -= 1
         if self.__barra__[color] == 0:
             del self.__barra__[color]
-            
+
         # Si hay una ficha contraria, comerla
         estado_destino = self.obtener_estado_punto(destino)
         if estado_destino is not None and estado_destino[0] != color:
             self.remover_ficha(destino, 1)
             self.enviar_a_barra(estado_destino[0])
-            
+
         self.colocar_ficha(destino, color, 1)
         return True
 
     def es_movimiento_valido_a_punto(self, punto: int, color: str) -> bool:
         """
         Verifica si es válido mover a un punto específico.
-        
+
         Args:
             punto (int): Punto de destino (1 a 24).
             color (str): Color de la ficha que se mueve.
-            
+
         Returns:
             bool: True si el movimiento es válido, False si está bloqueado.
         """
         if punto < 1 or punto > 24:
             return False
-            
+
         estado = self.obtener_estado_punto(punto)
         if estado is None:
             return True  # Punto vacío
-            
+
         color_destino, cantidad = estado
         if color_destino == color:
             return True  # Mismo color, se puede apilar
-            
+
         # Ficha contraria: solo se puede si hay una sola
         return cantidad == 1
 
     def puede_sacar_fichas(self, color: str) -> bool:
         """
         Verifica si un jugador puede comenzar a sacar fichas (todas en el cuarto final).
-        
+
         Args:
             color (str): Color del jugador.
-            
+
         Returns:
             bool: True si puede sacar fichas, False en caso contrario.
         """
         # No puede sacar si tiene fichas en la barra
         if self.__barra__.get(color, 0) > 0:
             return False
-            
+
         if color == "negro":
             # Negro debe tener todas las fichas en puntos 19-24
             for i in range(1, 19):
@@ -232,16 +233,16 @@ class Board:
                 estado = self.obtener_estado_punto(i)
                 if estado is not None and estado[0] == color:
                     return False
-                    
+
         return True
 
     def debug_estado_jugador(self, color: str) -> str:
         """
         Devuelve información de debugging sobre el estado de un jugador.
-        
+
         Args:
             color (str): Color del jugador.
-            
+
         Returns:
             str: Información de debugging.
         """
@@ -250,67 +251,67 @@ class Board:
             estado = self.obtener_estado_punto(i)
             if estado is not None and estado[0] == color:
                 puntos_con_fichas.append(f"{i}: {estado[1]} fichas")
-                
+
         barra = self.__barra__.get(color, 0)
         casa = self.__casa__.get(color, 0)
         puede_sacar = self.puede_sacar_fichas(color)
-        
+
         return f"Color {color}: Puntos={puntos_con_fichas}, Barra={barra}, Casa={casa}, PuedeSacar={puede_sacar}"
 
     def realizar_movimiento_completo(self, color: str, dados: Dice, origen: int, usar_dado1: bool = True, usar_dado2: bool = False) -> bool:
         """
         Realiza un movimiento completo usando uno de los dados disponibles.
         Implementa las reglas correctas de bearing off.
-        
+
         Args:
             color (str): Color del jugador.
             dados (Dice): Objeto dados con la tirada actual.
             origen (int): Punto de origen (0 para barra, 1-24 para puntos del tablero).
             usar_dado1 (bool): True para usar dado1, False en caso contrario.
             usar_dado2 (bool): True para usar dado2, False en caso contrario.
-            
+
         Returns:
             bool: True si el movimiento fue exitoso, False en caso contrario.
         """
         if not dados.han_sido_tirados():
             return False
-        
+
         # Determinar qué dado usar
         if usar_dado2:
             movimiento = dados.obtener_dado2()
         else:
             movimiento = dados.obtener_dado1()
-        
+
         # Movimiento desde la barra
         if origen == 0:
             return self.mover_desde_barra(color, movimiento)
-            
+
         # Movimiento normal en el tablero
         estado_origen = self.obtener_estado_punto(origen)
         if estado_origen is None or estado_origen[0] != color:
             return False
-            
+
         destino = self.calcular_destino(origen, movimiento, color)
-        
+
         # BEARING OFF - Sacar fichas (destino fuera del tablero)
         if (destino <= 0 and color == "blanco") or (destino >= 25 and color == "negro"):
             # Verificar si puede sacar fichas
             if not self.puede_sacar_fichas(color):
                 return False
-            
+
             # NUEVA LÓGICA: Verificar reglas exactas de bearing off
             if not self._es_bearing_off_valido(color, origen, movimiento):
                 return False
-                
+
             # Realizar el bearing off
             self.remover_ficha(origen, 1)
             self.sacar_ficha(color)
             return True
-            
+
         # Movimiento normal dentro del tablero
         if not self.es_movimiento_valido_a_punto(destino, color):
             return False
-            
+
         return self._mover_ficha_bool(origen, destino, color)
 
 
@@ -322,7 +323,7 @@ class Board:
         1) Se puede sacar con el valor exacto del dado.
         2) EXCEPCIÓN: Si el dado es mayor, solo es válido si NO hay fichas en posiciones más lejanas al borne
         (es decir, más atrás dentro del cuadrante casa).
-        
+
         Convenciones del tablero usadas aquí (consistentes con el resto del código):
         - NEGRO avanza hacia 25 y su casa es 19..24 (sale en 25)
         - BLANCO avanza hacia 0 y su casa es 1..6   (sale en 0)
@@ -421,55 +422,55 @@ class Board:
     def realizar_movimiento_doble(self, color: str, dados: Dice, origen: int) -> bool:
             """
             Mueve una sola ficha usando ambos dados consecutivamente.
-            
+
             Realiza dos movimientos seguidos con la misma ficha:
             - Primer movimiento: origen → intermedio (usando dado1)
             - Segundo movimiento: intermedio → destino (usando dado2)
-            
+
             Args:
                 color (str): Color del jugador.
                 dados (Dice): Objeto dados con la tirada actual.
                 origen (int): Punto de origen (0 para barra, 1-24 para puntos del tablero).
-                
+
             Returns:
                 bool: True si ambos movimientos fueron exitosos, False en caso contrario.
             """
             if not dados.han_sido_tirados():
                 return False
-                
+
             dado1, dado2 = dados.obtener_valores()
-            
+
             # Movimiento desde la barra no se puede hacer doble
             if origen == 0:
                 return False
-                
+
             # Verificar que hay ficha del color correcto en origen
             estado_origen = self.obtener_estado_punto(origen)
             if estado_origen is None or estado_origen[0] != color:
                 return False
-            
+
             # Calcular posiciones intermedias y final
             intermedio = self.calcular_destino(origen, dado1, color)
             destino_final = self.calcular_destino(intermedio, dado2, color)
-            
+
             # Crear snapshot del estado actual para poder deshacer
             snapshot = self._crear_snapshot_tablero()
-            
+
             try:
                 # PRIMER MOVIMIENTO: origen → intermedio
                 exito_primero = self._realizar_movimiento_simple(origen, intermedio, color)
                 if not exito_primero:
                     return False
-                    
-                # SEGUNDO MOVIMIENTO: intermedio → destino_final  
+
+                # SEGUNDO MOVIMIENTO: intermedio → destino_final
                 exito_segundo = self._realizar_movimiento_simple(intermedio, destino_final, color)
                 if not exito_segundo:
                     # Deshacer el primer movimiento
                     self._restaurar_snapshot_tablero(snapshot)
                     return False
-                    
+
                 return True
-                
+
             except Exception:
                 # En caso de cualquier error, restaurar estado
                 self._restaurar_snapshot_tablero(snapshot)
@@ -478,12 +479,12 @@ class Board:
     def _realizar_movimiento_simple(self, origen: int, destino: int, color: str) -> bool:
         """
         Realiza un movimiento simple de un punto a otro, manejando casos especiales.
-        
+
         Args:
             origen (int): Punto de origen (1 a 24).
             destino (int): Punto de destino (puede ser fuera del tablero).
             color (str): Color de la ficha.
-            
+
         Returns:
             bool: True si el movimiento fue exitoso, False en caso contrario.
         """
@@ -491,7 +492,7 @@ class Board:
         estado_origen = self.obtener_estado_punto(origen)
         if estado_origen is None or estado_origen[0] != color:
             return False
-            
+
         # Caso 1: Sacar fichas (destino fuera del tablero)
         if (destino <= 0 and color == "blanco") or (destino >= 25 and color == "negro"):
             if not self.puede_sacar_fichas(color):
@@ -499,26 +500,26 @@ class Board:
             self.remover_ficha(origen, 1)
             self.sacar_ficha(color)
             return True
-            
+
         # Caso 2: Destino fuera de rango válido
         if destino < 1 or destino > 24:
             return False
-            
+
         # Caso 3: Movimiento normal dentro del tablero
         if not self.es_movimiento_valido_a_punto(destino, color):
             return False
-            
+
         return self._mover_ficha_bool(origen, destino, color)
 
     def _mover_ficha_bool(self, origen: int, destino: int, color: str) -> bool:
         """
         Versión de mover_ficha que retorna bool en lugar de lanzar excepciones.
-        
+
         Args:
             origen (int): Punto de origen (1 a 24).
             destino (int): Punto de destino (1 a 24).
             color (str): Color de la ficha que se mueve.
-            
+
         Returns:
             bool: True si el movimiento fue exitoso, False en caso contrario.
         """
@@ -551,7 +552,7 @@ class Board:
                     self.remover_ficha(destino, 1)
                     self.enviar_a_barra(color_destino)
                     self.colocar_ficha(destino, color, 1)
-                    
+
             return True
         except ValueError:
             return False
@@ -559,7 +560,7 @@ class Board:
     def _crear_snapshot_tablero(self) -> dict:
         """
         Crea una copia del estado actual del tablero para poder restaurarlo.
-        
+
         Returns:
             dict: Snapshot del estado del tablero.
         """
@@ -573,10 +574,10 @@ class Board:
     def _restaurar_snapshot_tablero(self, snapshot: dict) -> None:
         """
         Restaura el tablero a un estado anterior usando un snapshot.
-        
+
         Args:
             snapshot (dict): Snapshot del estado a restaurar.
-            
+
         Returns:
             None
         """
@@ -587,20 +588,20 @@ class Board:
     def obtener_movimientos_posibles(self, color: str, dados: Dice) -> list[int]:
         """
         Devuelve una lista de puntos desde los cuales el jugador puede mover.
-        
+
         Args:
             color (str): Color del jugador.
             dados (Dice): Objeto dados con la tirada actual.
-            
+
         Returns:
             list[int]: Lista de puntos válidos para mover (incluye 0 si puede mover desde barra).
         """
         if not dados.han_sido_tirados():
             return []
-            
+
         movimientos_posibles = []
         dado1, dado2 = dados.obtener_valores()
-        
+
         # Si hay fichas en la barra, solo puede mover desde ahí
         if self.__barra__.get(color, 0) > 0:
             if color == "negro":
@@ -609,49 +610,49 @@ class Board:
             else:  # blanco
                 destino1 = 25 - dado1
                 destino2 = 25 - dado2
-                
-            if (self.es_movimiento_valido_a_punto(destino1, color) or 
+
+            if (self.es_movimiento_valido_a_punto(destino1, color) or
                 self.es_movimiento_valido_a_punto(destino2, color)):
                 movimientos_posibles.append(0)
             return movimientos_posibles
-            
+
         # Verificar movimientos desde cada punto del tablero
         for punto in range(1, 25):
             estado = self.obtener_estado_punto(punto)
             if estado is not None and estado[0] == color:
                 destino1 = self.calcular_destino(punto, dado1, color)
                 destino2 = self.calcular_destino(punto, dado2, color)
-                
+
                 # Verificar si puede sacar fichas
                 puede_sacar = self.puede_sacar_fichas(color)
-                
+
                 movimiento_valido = False
-                
+
                 # Verificar dado1
                 if (destino1 <= 0 and color == "blanco" and puede_sacar) or \
                    (destino1 >= 25 and color == "negro" and puede_sacar) or \
                    (1 <= destino1 <= 24 and self.es_movimiento_valido_a_punto(destino1, color)):
                     movimiento_valido = True
-                    
+
                 # Verificar dado2
                 if not movimiento_valido:
                     if (destino2 <= 0 and color == "blanco" and puede_sacar) or \
                        (destino2 >= 25 and color == "negro" and puede_sacar) or \
                        (1 <= destino2 <= 24 and self.es_movimiento_valido_a_punto(destino2, color)):
                         movimiento_valido = True
-                        
+
                 if movimiento_valido:
                     movimientos_posibles.append(punto)
-                    
+
         return movimientos_posibles
 
     def tiene_fichas_en_barra(self, color: str) -> bool:
         """
         Verifica si un jugador tiene fichas en la barra.
-        
+
         Args:
             color (str): Color del jugador.
-            
+
         Returns:
             bool: True si tiene fichas en la barra, False en caso contrario.
         """
@@ -660,10 +661,10 @@ class Board:
     def ha_ganado(self, color: str) -> bool:
         """
         Verifica si un jugador ha ganado (todas sus fichas están en casa).
-        
+
         Args:
             color (str): Color del jugador.
-            
+
         Returns:
             bool: True si ha ganado, False en caso contrario.
         """
@@ -773,11 +774,11 @@ class Board:
             else:
                 color, cant = punto
                 estado.append(f"{i}: {cant} {color}")
-                
+
         # Agregar información de barra y casa
         if self.__barra__:
             estado.append(f"Barra: {self.__barra__}")
         if self.__casa__:
             estado.append(f"Casa: {self.__casa__}")
-            
+
         return "\n".join(estado)

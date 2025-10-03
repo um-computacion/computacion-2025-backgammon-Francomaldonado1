@@ -1,3 +1,4 @@
+"""Clase Checker del juego."""
 class Checker:
     """
     Ficha de Backgammon con color y posición.
@@ -76,4 +77,6 @@ class Checker:
             str: Descripción con color y posición.
         """
         return f"Ficha(color={self.__color__}, posicion={self.__posicion__})"
+
+
 

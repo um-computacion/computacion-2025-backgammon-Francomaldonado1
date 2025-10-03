@@ -208,3 +208,10 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 
 ## CHANGED
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para desarrollar la lógica de la barra central y la captura en pygameUI.
+
+### [0.0.26] 02/10/2025
+## CHANGED
+- Se actualiza el codigo de PygameUI.py corriguiendo logica de captura desde la barra. 
+- Se actualiza el codigo de todo el proyecto agregando docstrings iniciales para mejorar el pylint.
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para corregir los movimientos desde la barra y la captura en pygameUI.
+- Se actualiza prompts-documentación.md con los prompts y las indicaciones que se utilizaron para corregir el pylint.
