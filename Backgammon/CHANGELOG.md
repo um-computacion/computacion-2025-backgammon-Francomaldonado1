@@ -223,3 +223,10 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 
 ## CHANGED
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para agregar la validación de movimientos invalidos.
+
+### [0.0.28] 05/10/2025
+## ADDED
+- Se agregan clases TestMovementValidator, TestSkipTurnFunctionality y TestIntegrationSkipTurn a Test_PyGameUI para probar la logica de validación de movimientos y el cambio de turno.
+
+## CHANGED
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar la logica de validación de movimientos y el cambio de turno.

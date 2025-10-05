@@ -137,6 +137,7 @@ class MovementValidator:
         
         # Si no hay fichas en la barra, verificar movimientos desde el tablero
         return self._can_move_from_board(player, available_moves)
+    
 
     def _can_enter_from_bar(self, player: str, available_moves: list) -> bool:
         """Verifica si el jugador puede entrar desde la barra con alguno de los dados."""
