@@ -1116,7 +1116,9 @@ YO:
 
 Creo que estas olvidando que los atributos de las clases se acceden si o si con self por estar definidos con doble guion bajo antes y despues del atributo, por favor tene en cuenta esto al correguir los test.
 
-BOT:
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Pasan los tests, hago commit)
 
 
 
