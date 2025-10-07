@@ -72,3 +72,20 @@ YO:
 Pero el script tambien agregaba newline al final, esto no afecta tambien al haberlo hecho dos veces quedando 2 newlines? 
 
 (Se me acaba el plan, hago commit y luego corrigo esto) 
+
+### Utilizando claude.ai
+
+YO:
+
+Ya pasan todos los tests. Respecto a lo que hemos hecho en pygame sobre los principios solid, que agregamos clases particulares y archivos de tests particulares para los principios solid todo bien documentado y explicado en cada clase, ahora me gustaria hacer lo mismo para la interfaz de texto CLI y las clases creadas en Core que son board, checker, dice y player para asegurar una correcta aplicación de los principios SOLID. Esto puede ser con algunos docstrings sobre sus metodos dado que algunos si respentan los principios y corriguiendo y aclarando los que no lo hacen. Quiero que me ayudes a hacer esto teniendo en cuenta que necesito hacer tests luego de estos metodos para mantener la cobertura alta en todo el proyecto. Ademas hay un archivo justificación.md donde hay que aclarar las elecciones que hemos hecho durante el proyecto, algunas elecciones correspondientes a los principios solid, otras sobre la elección de metodos para cada clase, por ejemplo en este archivo hay que poner que en las clases player, dice y checker elegi un diseño minimalista (con pocos metodos y basicamente solo una representación de la clase (metodo str)) dado que en board hacemos la mayor parte de codigo que relaciona estas clases y luego trasladamos la logica de board a las interfaces y justificaciones asi. Podrias ayudarme con esta tarea? 
+
+BOT: (Me arma una explicación de los principios solid en el archivo justificacion.md, y me explica como podriamos mejorar las clases de core) 
+
+### Utilizando ChatGPT 5
+
+YO: 
+
+ Estuve trabajando en el archivo de justificación.md la cual tiene una justificación de la arquitectura del proyecto y la explicación del cumplimiento de los principios solid en las clases de Core (Checker, player y dice) ignorando la clase board porque es mas larga y haremos este paso en el proximo commit. El archivo de justificación.md que tengo es el siguiente, pero me gustaría que lo analices y lo dejes en formato markdown para subir a github correctamente, osea que tenga guiones medios cada linea para que se vean separadas, que tenga numerales (dos o tres) dependiendo de si es titulo o subtitulo y demas, gracias. 
+
+BOT: 
+

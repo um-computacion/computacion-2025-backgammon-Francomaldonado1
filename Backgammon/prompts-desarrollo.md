@@ -1767,3 +1767,15 @@ Esta mal, no hace falta que muestre un boton literalmente, simplemente que el me
 BOT: (Me pasa el codigo actualizado)
 
 Esta bien hago commit. 
+
+YO:
+
+Ya pasan todos los tests. Respecto a lo que hemos hecho en pygame sobre los principios solid, que agregamos clases particulares y archivos de tests particulares para los principios solid todo bien documentado y explicado en cada clase, ahora me gustaria hacer lo mismo para la interfaz de texto CLI y las clases creadas en Core que son board, checker, dice y player para asegurar una correcta aplicación de los principios SOLID. Esto puede ser con algunos docstrings sobre sus metodos dado que algunos si respentan los principios y corriguiendo y aclarando los que no lo hacen. Quiero que me ayudes a hacer esto teniendo en cuenta que necesito hacer tests luego de estos metodos para mantener la cobertura alta en todo el proyecto. Ademas hay un archivo justificación.md donde hay que aclarar las elecciones que hemos hecho durante el proyecto, algunas elecciones correspondientes a los principios solid, otras sobre la elección de metodos para cada clase, por ejemplo en este archivo hay que poner que en las clases player, dice y checker elegi un diseño minimalista (con pocos metodos y basicamente solo una representación de la clase (metodo str)) dado que en board hacemos la mayor parte de codigo que relaciona estas clases y luego trasladamos la logica de board a las interfaces y justificaciones asi. Podrias ayudarme con esta tarea? 
+
+BOT: (Me arma una explicación de los principios solid en el archivo justificación.md, y me explica como podriamos mejorar las clases de core)
+
+YO: 
+
+Bien, inicialmente me parece bien como estas implementando esto, pero en las clases de core estas poniendo docstrings muy largos, me parece mejor explicar todo en el archivo justificacion.md y en las clases simplemente mencionar alguno de los principios solid que estos metodos cumplen y por que, se entiende?, por ejemplo en el archivo de tests de pygameui tenemos clases de tests con unitest especificamente para probar los principios solid, podriamos hacer algo similar en las clases de core no?, a continuación te dejo las clases de playyer, dice, y checker que son las mas "simples" para que agregues esto. 
+
+BOT: (Me manda codigo de clases actualizadas con docstrings de los principios solid)

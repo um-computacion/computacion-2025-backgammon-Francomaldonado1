@@ -230,3 +230,11 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 
 ## CHANGED
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar la logica de validación de movimientos y el cambio de turno.
+
+## [0.0.29] 06/10/2025
+## ADDED 
+- Se agregan docstrings en las clases de Core explicando los principios SOLID que cumplen cada una.
+- Se agrega explicación de principios SOLID en archivo justificación.md.
+
+## CHANGED
+- Se actualiza prompts-desarrollo.md y prompts-documentación.md con los prompts y las indicaciones que se utilizaron para explicar los principios SOLID en cada clase de core.
