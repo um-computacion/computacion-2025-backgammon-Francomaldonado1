@@ -85,7 +85,9 @@ BOT: (Me arma una explicación de los principios solid en el archivo justificaci
 
 YO: 
 
- Estuve trabajando en el archivo de justificación.md la cual tiene una justificación de la arquitectura del proyecto y la explicación del cumplimiento de los principios solid en las clases de Core (Checker, player y dice) ignorando la clase board porque es mas larga y haremos este paso en el proximo commit. El archivo de justificación.md que tengo es el siguiente, pero me gustaría que lo analices y lo dejes en formato markdown para subir a github correctamente, osea que tenga guiones medios cada linea para que se vean separadas, que tenga numerales (dos o tres) dependiendo de si es titulo o subtitulo y demas, gracias. 
+Estuve trabajando en el archivo de justificación.md la cual tiene una justificación de la arquitectura del proyecto y la explicación del cumplimiento de los principios solid en las clases de Core (Checker, player y dice) ignorando la clase board porque es mas larga y haremos este paso en el proximo commit. El archivo de justificación.md que tengo es el siguiente, pero me gustaría que lo analices y lo dejes en formato markdown para subir a github correctamente, osea que tenga guiones medios cada linea para que se vean separadas, que tenga numerales (dos o tres) dependiendo de si es titulo o subtitulo y demas, gracias. 
 
-BOT: 
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Hago commit)
 
