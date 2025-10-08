@@ -91,3 +91,12 @@ BOT: (Me pasa el codigo actualizado)
 
 YO: (Hago commit)
 
+YO:
+
+Bien gracias, quedo excelente el archivo, ahora podrias hacer lo mismo para la clase de board que es la clase principal que vincula las demas clases de core? Te mando archivo de board para que veas los metodos que tiene esta clase y analices en cuales se cumplen los principios solid escribiendo una breve descripción de este con un docstrings en el mismo metodo (te dejo codigo de player, checker y dice para que veas como estan escritos los docstrings en estos) y luego justificandolo en el archivo de justificación.
+
+BOT: (Me pasa el codigo actualizado) 
+
+YO: 
+
+bien gracias, así quedo el archivo de justificación luego de agregarle la justificación de board. Te lo envio para que lo veas junto con las demás clases y archivos de tests para que justifiquemos también porque testeamos eso, etc. En los archivos de tests tambien hay algunas aclaraciones con docstrings explicando que principio solid cumple cada tests e incluso hay clases especificas en cada uno de los principios solid, asi que por favor agrega documentación de esto a partir de la siguiente consigna sobre justificación.md

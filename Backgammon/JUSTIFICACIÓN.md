@@ -147,3 +147,54 @@ Generar números aleatorios para simular tiradas de dados.
 - **DIP:** Completamente independiente, no depende de otras clases
 
 ---
+
+
+## Board (Tablero Principal)
+
+### Responsabilidad
+Centralizar la lógica del juego y coordinar las clases Core (`Checker`, `Player`, `Dice`), gestionando movimientos, validaciones, barra y casa.
+
+### Métodos principales
+
+- `inicializar_posiciones_estandar()`: Configura las posiciones iniciales del tablero  
+- `calcular_destino()`: Determina el punto de destino según el color y el valor del dado  
+- `mover_desde_barra()`: Reincorpora fichas desde la barra siguiendo las reglas  
+- `realizar_movimiento_completo()`: Aplica un movimiento con validaciones  
+- `realizar_movimiento_doble()`: Ejecuta movimientos encadenados con ambos dados  
+- `puede_sacar_fichas()`: Evalúa si un jugador puede comenzar a sacar fichas  
+- `ha_ganado()`: Determina si un jugador completó la partida  
+- `obtener_movimientos_posibles()`: Lista los puntos desde donde puede moverse
+
+---
+
+### Justificación del diseño minimalista
+
+- ✅ No gestiona interfaz ni turnos (separación de capas)  
+- ✅ No crea jugadores ni dados (inyección de dependencias)  
+- ✅ No maneja persistencia (solo estado temporal del juego)  
+- ✅ Encapsula toda la lógica del tablero sin exponer estructuras internas
+
+---
+
+### Principios SOLID
+
+- **SRP:** Gestiona la lógica del tablero, no entidades ni interfaz.  
+  Cada método tiene una única responsabilidad (ej. `calcular_destino` no modifica estado).  
+
+- **OCP:** Extensible para variantes del juego (por ejemplo, tableros de 12 puntos o movimientos alternativos).  
+  Nuevas reglas pueden implementarse mediante herencia sin modificar la clase base.  
+
+- **LSP:** Subclases que redefinan reglas de movimiento pueden sustituir `Board` manteniendo compatibilidad.  
+
+- **ISP:** Expone una interfaz clara y necesaria para operar el tablero (`mover_desde_barra`, `obtener_movimientos_posibles`, `ha_ganado`).  
+
+- **DIP:** Depende de abstracciones (`Dice`) en lugar de implementaciones; no instancia ni conoce detalles internos de `Checker` o `Player`.  
+
+---
+
+### Conclusión
+
+El diseño de `Board` cumple el rol de **coordinador del dominio**, siendo el núcleo del modelo de negocio.  
+Gracias a su diseño desacoplado, **permite testeo unitario**, extensión de reglas y reutilización del resto de clases Core sin generar dependencias circulares ni romper el principio de responsabilidad única.
+
+---
