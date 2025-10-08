@@ -1121,5 +1121,23 @@ BOT: (Me pasa el codigo actualizado)
 YO: (Pasan los tests, hago commit)
 
 
+### Utilizando Claude.ai
+
+YO:
+
+Hola buenas tardes, podrías ayudarme a agregar tests para las clases principales de core (player, dice, checker y board) tratando de cubrir la mayoría de casos para mantener una cobertura bien alta y ademas si es posible agregando clases de tests dedicadas única y exclusivamente a los principios SOLID y su correcto cumplimiento ya que es un requisito fundamental para el proyecto. Ademas en cada tests que ya existe y los nuevos, pone docstrings claros sobre cual es el  o los principio/s solid que respeta el método como lo hicimos en test_PygameUI, Gracias. 
+
+BOT: (Me pasa el codigo actualizado)
+
+Falla un tests de test_Dice.py, pero se me acabo el plan, procedo a usar gemini pro
+
+### Utilizando Gemini
+
+YO:
+
+Hola, podrias ayudarme a solucionar el siguiente error a partir del codigo del test especifico y su error? 
+
+BOT: (Me pasa el codigo actualizado)
+(Hago commit)
 
 

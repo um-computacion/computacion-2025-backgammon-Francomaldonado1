@@ -10,7 +10,7 @@ class Board:
     def __init__(self):
         """
         Inicializa un tablero vacío de Backgammon.
-
+        SRP: Crea estructuras de datos para puntos, barra y casa sin lógica de reglas.
         Attributes:
             __puntos__ (list): Lista de 24 puntos, cada uno con [color, cantidad] o None.
             __barra__ (dict): Diccionario {color: cantidad} de fichas enviadas a la barra.
@@ -23,7 +23,8 @@ class Board:
     def inicializar_posiciones_estandar(self) -> None:
         """
         Coloca las fichas en sus posiciones iniciales estándar del Backgammon.
-
+        SRP: Configura estado inicial del tablero sin aplicar lógica de juego.
+        OCP: Permite redefinir esta configuración en variantes personalizadas.
         Posiciones iniciales:
         - Negro: 2 en punto 1, 5 en punto 12, 3 en punto 17, 5 en punto 19
         - Blanco: 2 en punto 24, 5 en punto 13, 3 en punto 8, 5 en punto 6
@@ -51,7 +52,8 @@ class Board:
     def colocar_ficha(self, punto: int, color: str, cantidad: int = 1) -> None:
         """
         Coloca fichas en un punto específico del tablero.
-
+        SRP: Manipula el estado del tablero sin verificar reglas globales.
+        LSP: Método genérico compatible con subclases que amplíen reglas.
         Args:
             punto (int): Número del punto (1 a 24).
             color (str): Color de las fichas.
@@ -72,7 +74,7 @@ class Board:
     def remover_ficha(self, punto: int, cantidad: int = 1) -> None:
         """
         Quita fichas de un punto específico.
-
+        SRP: Responsabilidad limitada al manejo del estado interno.
         Args:
             punto (int): Número del punto (1 a 24).
             cantidad (int, optional): Número de fichas a quitar. Por defecto 1.
@@ -94,7 +96,7 @@ class Board:
     def obtener_estado_punto(self, punto: int):
         """
         Devuelve el estado de un punto.
-
+        
         Args:
             punto (int): Número del punto (1 a 24).
 
@@ -118,7 +120,8 @@ class Board:
     def calcular_destino(self, origen: int, movimiento: int, color: str) -> int:
         """
         Calcula el punto de destino basado en el origen, movimiento y color del jugador.
-
+        SRP: Cálculo puro sin efectos secundarios.
+        OCP: Permite redefinir sentido del movimiento en variantes.
         Args:
             origen (int): Punto de origen (1 a 24, o 0 para barra).
             movimiento (int): Valor del dado (1 a 6).
@@ -146,7 +149,8 @@ class Board:
     def mover_desde_barra(self, color: str, movimiento: int) -> bool:
         """
         Intenta mover una ficha desde la barra al tablero.
-
+        SRP: Gestiona reglas específicas de reincorporación.
+        OCP: Permite adaptar reglas en subclases (por ejemplo, doble dado).
         Args:
             color (str): Color de la ficha a mover.
             movimiento (int): Valor del dado para el movimiento.
@@ -185,7 +189,8 @@ class Board:
     def es_movimiento_valido_a_punto(self, punto: int, color: str) -> bool:
         """
         Verifica si es válido mover a un punto específico.
-
+        SRP: Evalúa accesibilidad sin modificar estado.
+        ISP: Parte de la interfaz pública del tablero.
         Args:
             punto (int): Punto de destino (1 a 24).
             color (str): Color de la ficha que se mueve.
@@ -210,7 +215,7 @@ class Board:
     def puede_sacar_fichas(self, color: str) -> bool:
         """
         Verifica si un jugador puede comenzar a sacar fichas (todas en el cuarto final).
-
+        SRP: Evalúa condición de fin de partida.
         Args:
             color (str): Color del jugador.
 
@@ -262,7 +267,8 @@ class Board:
         """
         Realiza un movimiento completo usando uno de los dados disponibles.
         Implementa las reglas correctas de bearing off.
-
+        SRP: Coordina submétodos sin manejar interfaz ni estado externo.
+        DIP: Usa `Dice` como abstracción (no genera tiradas directamente).
         Args:
             color (str): Color del jugador.
             dados (Dice): Objeto dados con la tirada actual.
@@ -422,10 +428,13 @@ class Board:
     def realizar_movimiento_doble(self, color: str, dados: Dice, origen: int) -> bool:
             """
             Mueve una sola ficha usando ambos dados consecutivamente.
-
+   
             Realiza dos movimientos seguidos con la misma ficha:
             - Primer movimiento: origen → intermedio (usando dado1)
             - Segundo movimiento: intermedio → destino (usando dado2)
+            
+            SRP: Ejecuta movimientos encadenados.
+            OCP: Permite redefinir reglas de movimiento múltiple.
 
             Args:
                 color (str): Color del jugador.
@@ -588,6 +597,9 @@ class Board:
     def obtener_movimientos_posibles(self, color: str, dados: Dice) -> list[int]:
         """
         Devuelve una lista de puntos desde los cuales el jugador puede mover.
+        
+        SRP: Consulta de estado sin modificar tablero.
+        ISP: Parte esencial de la interfaz pública.
 
         Args:
             color (str): Color del jugador.
@@ -661,6 +673,8 @@ class Board:
     def ha_ganado(self, color: str) -> bool:
         """
         Verifica si un jugador ha ganado (todas sus fichas están en casa).
+
+        SRP: Lógica pura de verificación.
 
         Args:
             color (str): Color del jugador.
@@ -764,6 +778,8 @@ class Board:
         """
         Devuelve una representación en texto del tablero.
 
+        ISP: Permite inspeccionar el estado para debugging o CLI.
+        
         Returns:
             str: Estado del tablero en formato legible.
         """
