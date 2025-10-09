@@ -246,3 +246,11 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 
 ### CHANGED
 - Se actualiza prompts-testing.md y prompts-documentación.md con los prompts y las indicaciones que se utilizaron para explicar y testear los principios SOLID en cada clase de Core.
+
+# [0.0.31] 08/10/2025
+### ADDED
+- Se agrega al archivo justificacion.md la justificación de los tests de todas las clases de Core.
+
+### CHANGED
+- Se actualiza prompts-documentación.md con los prompts y las indicaciones que se utilizaron para justificar los tests de todas las clases de Core.
+
