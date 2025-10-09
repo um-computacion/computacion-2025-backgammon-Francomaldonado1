@@ -99,4 +99,10 @@ BOT: (Me pasa el codigo actualizado)
 
 YO: 
 
-bien gracias, así quedo el archivo de justificación luego de agregarle la justificación de board. Te lo envio para que lo veas junto con las demás clases y archivos de tests para que justifiquemos también porque testeamos eso, etc. En los archivos de tests tambien hay algunas aclaraciones con docstrings explicando que principio solid cumple cada tests e incluso hay clases especificas en cada uno de los principios solid, asi que por favor agrega documentación de esto a partir de la siguiente consigna sobre justificación.md
+bien gracias, así quedo el archivo de justificación luego de agregarle la justificación de board. Te lo envio para que lo veas junto con las demás clases y archivos de tests para que justifiquemos también porque testeamos eso, etc. En los archivos de tests tambien hay algunas aclaraciones con docstrings explicando que principio solid cumple cada tests e incluso hay clases especificas en cada uno de los principios solid, asi que por favor agrega documentación de esto a partir de la siguiente consigna sobre justificación.md.
+
+Quiero que ignoremos lo de los diagramas UML y las excepciones y manejo de errores, esto lo haremos en un commit futuro agregando archivo excepciones.py con todos los errores posibles durante la ejecución del backgammon ya sea en pygame o en CLI, pero por ahora solo centrate en justificar los tests y la elección de clases y atributos (que mas o menos ya esta hecho), te dejo archivo de justificacion actual para que lo actualices y archivos de tests de todas las clases de Core. 
+
+BOT: (Me pasa el codigo actualizado)
+
+(Esta bastante bien, hago commit) 

@@ -61,9 +61,9 @@ Representar una ficha del juego con su color y posición.
 ### Principios SOLID
 
 - **SRP:** Una ficha solo se encarga de mantener su estado (color y posición)  
-- **ISP:** Interfaz mínima — solo expone lo que un cliente necesita de una ficha  
 - **OCP:** Se puede extender para crear `SpecialChecker` sin modificar la clase base  
 - **LSP:** Cualquier subclase de `Checker` puede usarse donde se espera `Checker`  
+- **ISP:** Interfaz mínima — solo expone lo que un cliente necesita de una ficha  
 - **DIP:** No depende de ninguna otra clase del proyecto
 
 ---
@@ -100,9 +100,9 @@ Esto permite:
 ### Principios SOLID
 
 - **SRP:** Solo representa identidad y recursos, no lógica de juego  
-- **ISP:** Interfaz simple de identificación y acceso a recursos  
 - **OCP:** Extensible para crear `AIPlayer`, `RemotePlayer` sin modificar la base  
 - **LSP:** Subclases pueden sustituir a `Player` manteniendo el contrato  
+- **ISP:** Interfaz simple de identificación y acceso a recursos  
 - **DIP:** Depende de abstracciones (`Checker`, `Dice`), no de implementaciones concretas
 
 ---
@@ -196,5 +196,89 @@ Centralizar la lógica del juego y coordinar las clases Core (`Checker`, `Player
 
 El diseño de `Board` cumple el rol de **coordinador del dominio**, siendo el núcleo del modelo de negocio.  
 Gracias a su diseño desacoplado, **permite testeo unitario**, extensión de reglas y reutilización del resto de clases Core sin generar dependencias circulares ni romper el principio de responsabilidad única.
+
+
+
+## Estrategias de Testing y Cobertura
+
+### Enfoque general
+
+El testing sigue una **estrategia de cobertura orientada a principios SOLID**.  
+Cada clase Core cuenta con un archivo de pruebas unitarias que:
+
+1. Verifica funcionalidad esperada (tests de comportamiento).  
+2. Evalúa cumplimiento explícito de principios SOLID (tests de arquitectura).  
+3. Asegura independencia y testabilidad sin dependencias externas.
+
+---
+
+### Test_Checker.py
+
+- Se verifican **constructor y setters/getters**, asegurando que el estado se maneja correctamente.  
+- Los tests están organizados en dos clases:
+  - `TestCheckerFunctionality`: prueba comportamiento concreto de `Checker`.  
+  - `TestCheckerSOLID`: valida que se cumplan SRP, ISP, OCP, LSP y DIP.
+- Se justifica cada test con un docstring que indica el principio evaluado.  
+- Ejemplo:
+  - `test_color_inmutable` verifica **SRP** (identidad inmutable).  
+  - `test_isp_minimal_interface` confirma **ISP** (interfaz mínima).  
+  - `test_ocp_extensible_sin_modificacion` demuestra **OCP** (extensión sin modificar la clase base).
+
+---
+
+### Test_Player.py
+
+- Comprueba que `Player` solo gestiona identidad y recursos (fichas y dados).  
+- Se testean independencia de fichas, composición sobre herencia (**DIP**) y extensibilidad (**OCP**) con subclases `AIPlayer` y `RemotePlayer`.  
+- Casos específicos:
+  - `test_dados_propios_jugador`: valida que cada jugador tenga dados independientes (**DIP**).  
+  - `test_ocp_extensible_for_ai_player`: verifica que se pueda extender sin modificar la clase (**OCP**).  
+  - `test_lsp_subtypes_maintain_contract`: comprueba que las subclases respeten el contrato (**LSP**).
+
+---
+
+### Test_Dice.py
+
+- Tests de **comportamiento**: valores aleatorios, reinicio, detección de dobles, representación textual.  
+- Tests de **arquitectura SOLID**: aseguran independencia de reglas del juego (**DIP**) y enfoque único (**SRP**).  
+- Casos destacados:
+  - `test_srp_only_generates_random_numbers`: demuestra que `Dice` solo genera números aleatorios.  
+  - `test_ocp_extensible_for_variants`: comprueba extensión mediante `LoadedDice`.  
+  - `test_dip_testable_without_mocks`: confirma independencia para testing mediante inyección controlada.
+
+---
+
+### Test_Board.py
+
+- Evalúa la integración de las clases Core sin romper el desacoplamiento.  
+- Se prueban:
+  - Inicialización estándar del tablero.  
+  - Cálculo de destinos y movimientos válidos.  
+  - Condiciones de victoria y reincorporación de fichas.  
+- Los docstrings explican qué principio SOLID se está verificando:
+  - **SRP:** Cada método tiene una única función (ej. `calcular_destino`).  
+  - **OCP:** El tablero permite variantes sin modificar la clase base.  
+  - **DIP:** `Board` interactúa con `Dice` sin conocer su implementación.
+
+---
+
+### Conclusión del testing
+
+- Todos los tests están documentados con el principio SOLID que justifican.  
+- El enfoque de testing no se limita a probar resultados, sino que garantiza **calidad estructural del diseño**.  
+- Gracias a la simplicidad de las clases Core y su bajo acoplamiento, el proyecto alcanza:
+  - **Alta cobertura lógica** (todas las rutas de ejecución principales).  
+  - **Alta cobertura conceptual SOLID** (cada principio validado en código y en pruebas).  
+
+---
+
+### Decisiones de diseño relevantes
+
+- **Separación de dominio y coordinación:**  
+  Las clases `Checker`, `Player`, y `Dice` son entidades puras del dominio, mientras `Board` actúa como coordinador.  
+- **Testing guiado por principios SOLID:**  
+  Cada test se escribe no solo para validar el “qué”, sino el “por qué” del diseño.  
+- **Composición sobre herencia:**  
+  Todas las clases evitan dependencias innecesarias y promueven extensibilidad segura.  
 
 ---
