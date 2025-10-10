@@ -254,3 +254,14 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 ### CHANGED
 - Se actualiza prompts-documentación.md con los prompts y las indicaciones que se utilizaron para justificar los tests de todas las clases de Core.
 
+# [0.0.32] 09/10/2025
+### ADDED
+- Se agrega al archivo justificacion.md la justificación de los metodos de la CLI y su funcionamiento, y los principios SOLID que cumple la interfaz.
+- Se agregan docstrings a la CLI explicando brevemente que principio solid respeta cada metodo.
+
+### CHANGED
+- Se cambia el nombre de la clase BackgammonCLI a CLI para que sea más descriptivo.
+- Se actualiza prompts-documentación.md con los prompts y las indicaciones que se utilizaron para justificar los metodos de la CLI y su funcionamiento.
+
+
+

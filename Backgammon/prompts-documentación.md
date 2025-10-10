@@ -106,3 +106,28 @@ Quiero que ignoremos lo de los diagramas UML y las excepciones y manejo de error
 BOT: (Me pasa el codigo actualizado)
 
 (Esta bastante bien, hago commit) 
+
+YO:
+
+Bien gracias, quedo perfecto el archivo, ahora podrias ayudarme a agregar docstrings a la interfaz de texto CLI similares a los de las clases de core explicando que principio solid respeta cada metodo brevemente y agregar su justificación de forma mas completa en el archivo justificación.md?
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Hiciste cualquier cosa en el archivo CLI, cambiaste mis metodos y borraste varios, por favor rehace los docstrings sin tocar los metodos que ya estan hechos y hacen que funcione a la perfección la interfaz, gracias.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Bien gracias, ahora si esta bastante bien pero podrias borrarle las "Notas para testing" ya que estos docstrings los haremos en su archivo correspondiente de tests.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Porfavor actualiza el archivo de justificación pero manteniendo todo lo que ya estaba, porque en esta nueva versión has eliminado varias cosas importantes como los metodos disponibles de cada clase de core y su explicación, cosa que es fundamental para este archivo, por lo que mantene todo tal cual y simplemente al final agrega la justificación de la interfaz de texto (CLI) siguiendo el formato de las demas clases. 
+
+BOT: (Me pasa el codigo actualizado)
+(Esta bastante bien, hago commit)

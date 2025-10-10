@@ -1,5 +1,4 @@
-# Justificación del Diseño de las Clases Core
-
+# JUSTIFICACIÓN DEL PROYECTO FINAL: BACKGAMMON
 ---
 
 ## Filosofía: Diseño Minimalista
@@ -282,3 +281,60 @@ Cada clase Core cuenta con un archivo de pruebas unitarias que:
   Todas las clases evitan dependencias innecesarias y promueven extensibilidad segura.  
 
 ---
+
+## Interfaz de texto (CLI)
+
+### Responsabilidad
+Gestionar la interacción textual entre el usuario y el dominio.  
+La `CLI` actúa como capa de presentación: formatea y muestra el tablero, solicita entradas al usuario, orquesta el flujo de turnos y delega la lógica de reglas y validaciones al `Board` y a las clases Core.
+
+---
+
+### Métodos disponibles
+
+- `iniciar_juego()`: Pide nombres de jugadores, inicializa el tablero y arranca el bucle principal.  
+- `determinar_primer_jugador()`: Determina interactivamente quién comienza mediante tiradas.  
+- `mostrar_tablero()`: Formatea y muestra el estado del tablero (puntos, barra y casa) por consola.  
+- `loop_principal()`: Bucle principal que verifica condiciones de victoria y alterna turnos.  
+- `turno_jugador()`: Gestiona el flujo de un turno (tirada, cálculo de movimientos posibles y delegación a los manejadores).  
+- `mostrar_movimientos_disponibles()`: Presenta los puntos desde los cuales se pueden hacer movimientos.  
+- `manejar_movimientos_normales()`: Orquesta el proceso de movimientos cuando no hay dobles.  
+- `manejar_dobles()`: Orquesta el proceso de movimientos cuando la tirada es doble.  
+- `realizar_movimiento_simple_con_dados(usar_dado1, usar_dado2)`: Solicita origen y ejecuta un intento de movimiento usando dados especificados.  
+- `realizar_movimiento_simple()`: Versión legacy/compatibilidad que llama al anterior con un dado por defecto.  
+- `realizar_movimiento_doble()`: Solicita origen/confirmación y ejecuta un movimiento doble.  
+- `main()`: Punto de entrada que inicializa la CLI y maneja excepciones de alto nivel.
+
+---
+
+### Justificación del diseño minimalista
+
+- ✅ **No contiene reglas de juego.** Toda la lógica de validación y movimiento reside en `Board`.  
+- ✅ **No gestiona persistencia ni almacenamientos externos.** Sólo mantiene referencias a `Board` y `Dice` para la sesión activa.  
+- ✅ **Encapsula presentación y orquestación.** Mantiene el código de I/O separado del dominio para facilitar sustitución por otras vistas.
+
+---
+
+### Principios SOLID
+
+- **SRP (Single Responsibility):**  
+  `CLI` se encarga únicamente de la interacción textual (I/O) y del flujo de la experiencia de usuario; no mezcla responsabilidades de dominio.
+
+- **OCP (Open/Closed):**  
+  La interfaz puede ampliarse (añadir opciones de menú, comandos adicionales o integración con plugins) sin modificar la lógica del dominio.
+
+- **LSP (Liskov Substitution):**  
+  Otra capa de presentación (por ejemplo, una clase GUI) que ofrezca el mismo contrato público puede sustituir la CLI sin afectar al núcleo del sistema.
+
+- **ISP (Interface Segregation):**  
+  La CLI expone solo las operaciones necesarias para interactuar con el juego (`iniciar_juego`, `mostrar_tablero`, `turno_jugador`, etc.), manteniendo métodos pequeños y focalizados.
+
+- **DIP (Dependency Inversion):**  
+  Depende de las abstracciones públicas del Core (`Board`, `Dice`) y no de sus implementaciones internas, lo que permite inyectar/falsificar componentes en pruebas o sustituir implementaciones.
+
+---
+
+### Conclusión (CLI)
+
+La `CLI` cumple el rol de capa de presentación desacoplada y ligera, respetando los mismos criterios de diseño minimalista aplicados al Core.  
+Al mantener las reglas dentro del dominio y la presentación en la interfaz, se facilita la mantenibilidad, la extensión (migración a GUI o Web) y la trazabilidad del comportamiento del sistema.
