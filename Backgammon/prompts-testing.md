@@ -1141,3 +1141,36 @@ BOT: (Me pasa el codigo actualizado)
 (Hago commit)
 
 
+YO:
+
+Hola buenas tardes, estoy trabajando en la documentación sobre los metodos y principios SOLID que cumple cada clase e interfaz, y solamente me falta hacer esto en los tests de la interfaz de texto CLI, podrias ayudarme a hacerlo? Hay que agregar docstrings a los tests ya existentes y agregar una clase de tests que testee unica y exclusivamente los principios solid, te dejo codigo de tests de Pygame para que veas las clases de tests creadas en esta y hagamos algo similar para la CLI ya que las dos son interfaces que funcionan a partir de board y tienen mas o menos las mismas funcionalidades. 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Borraste muchos tests y son muy pocos los tests que agregaste en la clase dedicada a los principios SOLID, por favor volve a mirar esta clase en pygame para guiarte sobre que podemos testear de la CLI ya que su comportamiento es similar, y de los tests que ya estan hechos no borres ninguno, simplemente agregale docstrings con los principios solid que respeta dicho tests, gracias.  
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Seguis borrando la mayoria de los tests, te dejo nuevamente el codigo de test_CLI y el de la propia CLI para complementar los tests relacionados a los principios SOLID, porfavor deja todos los tests actuales agregando docstrings de los principios y agrega la clase de tests TestCLISOLID similar a la de pygame pero basada en los metodos de CLI, gracias. 
+
+BOT: (Me pasa el codigo actualizado)
+(Sigue estando mal, procedo a usar claude.ai)
+
+### Utilizando Claude.ai
+
+YO:
+
+Hola buenas tardes, estoy trabajando en la documentación sobre los metodos y principios SOLID que cumple cada clase e interfaz, y solamente me falta hacer esto en los tests de la interfaz de texto CLI, podrias ayudarme a hacerlo? Hay que agregar docstrings a los tests ya existentes y agregar una clase de tests que testee unica y exclusivamente los principios solid, te dejo codigo de tests de Pygame para que veas las clases de tests creadas en esta y hagamos algo similar para la CLI ya que las dos son interfaces que funcionan a partir de board y tienen mas o menos las mismas funcionalidades. Tambien te dejo codigo de CLI para que veas especificamente que metodos podemos testear en la nueva clase dedicada a los principios SOLID y los importes correctamente.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Llegaste hasta test_realizar_movimiento_simple_con_dados_excepcion, podrias darme el codigo desde ahi para abajo (incluyendo este) porfavor
+
+BOT: (Me pasa el codigo actualizado)
+(Hago commit)
