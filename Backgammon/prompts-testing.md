@@ -1174,3 +1174,41 @@ Llegaste hasta test_realizar_movimiento_simple_con_dados_excepcion, podrias darm
 
 BOT: (Me pasa el codigo actualizado)
 (Hago commit)
+
+YO:
+
+Bien gracias, pasan todos los tests, igualmente no se porque me dice que se corrieron solamente 47 tests y antes eran 53, claramente agregamos muchos tests nuevos por lo que no entiendo por que aparece esto. Ademas de esto al hacer el coverage run and report para ver cuanto porcentaje de codigo esta cubierto por test este bajo de un 88% a un 73% y especificamente el archivo de CLI esta en un 52%, te dejo a continuacion el reporte. Podrias ayudarme a ajustar el archivo de test_CLI con el objetivo de subir el porcentaje de cobertura porfavor? 
+
+BOT: (Me pasa el codigo actualizado agregando una clase TestCLCoverageImprovement para mejorar el coverage)
+(Pruebo correr los tests y fallan dos pero se me acaba el plan de claude, proceso a usar gemini pro)
+
+### Utilizando Gemini
+
+YO:
+ 
+Agregue una clase de tests al final de test_CLI para mejorar el coverage, pero fallan dos tests, podrias ayudarme a corregirlos? Te dejo codigo de clase de tests y de error.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Fallan 4 tests, si queres rehace los tests pero intentando mejorar la cobertura ya que esta muy baja.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Siguen fallando 4 tests, igual hay una cosa que no entiendo, antes de agregar las clases de tests correspondientes a los principios SOLID al ejecutar los tests de CLI pasaban 53 tests y el codigo tenia alrededor de 600 lineas. Luego de agregar clases de tests para los principios SOLID el codigo paso a tener 3000 lineas (muchas mas) y al correrlo pasaban correctamente los tests pero se corrian unicamente 47 tests, cosa que esta mal porque agregamos aproximadamente 2500 lineas de tests. Por lo que capaz hay un error en los tests que hace que no se ejecuten bien, lo que baja la cobertura y hace que el codigo sea muy largo. Podrias revisar el archivo de test_CLI, enumerar la cantidad de tests y verificar si hay algun error no visible que no este dejando ejecutarlo correctamente? Ademas de esto, podriamos reducir los tests, en el archivo de test_pygame hay unicamente 1000 lineas y tambien tiene una clase dedicada a los principios solid y otras clases correspondientes a otras funcionalidades especificas de la interfaz y sin embargo tiene un 90% de cobertura. Por lo que capaz eliminar algunos tests de test_cli que no sean tan relevantes sea la solución para mantener la cobertura alta sin dejar de testear los principios solid de la interfaz, se entiende? 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Le deje el codigo tal cual de backgammonCLIEdgeCases, simplemente le borre las clases de los principios solid y la ultima correspondiente al coverage y le puse la clase que me enviaste de SOLID reduciendo el codigo a 2500 lineas y ahora si se ejecutan 92 tests pero fallan 4 tests.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Creo que habia pegado dos veces el codigo de tests, por eso fallaba y habian tantas lineas, ahi borre las clases de SOLID anteriores y aumento el coberage de CLI a un 80%, podrias agregarme tests sin modificar los tests actuales para mejorar el coverage?
+(Me actualiza el codigo pero no me gustan los cambios, mañana sigo utilizando claude.ai y mejorando la cobertura) 
