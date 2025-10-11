@@ -271,3 +271,10 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 
 ### CHANGED
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para justificar los tests de la CLI.
+
+# [0.0.34] 11/10/2025
+### ADDED
+- Se agrega justificación de la estrategia de testing y cobertura utilizadas en test_CLI.py a justificación.md.
+
+### CHANGED
+- Se actualiza el codigo de test_CLI.py borrando duplicados y mejorando la cobertura.

@@ -282,59 +282,138 @@ Cada clase Core cuenta con un archivo de pruebas unitarias que:
 
 ---
 
-## Interfaz de texto (CLI)
+## CLI (Interfaz de Texto)
 
 ### Responsabilidad
-Gestionar la interacción textual entre el usuario y el dominio.  
-La `CLI` actúa como capa de presentación: formatea y muestra el tablero, solicita entradas al usuario, orquesta el flujo de turnos y delega la lógica de reglas y validaciones al `Board` y a las clases Core.
+La clase `CLI` representa la **interfaz textual** del sistema Backgammon.  
+Su objetivo es permitir la interacción entre el usuario y las clases Core, mostrando información del tablero, solicitando entradas, y coordinando el flujo de la partida.  
+Actúa como capa de presentación, delegando toda la lógica de negocio al dominio (`Board`, `Dice`, `Player` y `Checker`).
 
 ---
 
 ### Métodos disponibles
 
-- `iniciar_juego()`: Pide nombres de jugadores, inicializa el tablero y arranca el bucle principal.  
-- `determinar_primer_jugador()`: Determina interactivamente quién comienza mediante tiradas.  
-- `mostrar_tablero()`: Formatea y muestra el estado del tablero (puntos, barra y casa) por consola.  
-- `loop_principal()`: Bucle principal que verifica condiciones de victoria y alterna turnos.  
-- `turno_jugador()`: Gestiona el flujo de un turno (tirada, cálculo de movimientos posibles y delegación a los manejadores).  
-- `mostrar_movimientos_disponibles()`: Presenta los puntos desde los cuales se pueden hacer movimientos.  
-- `manejar_movimientos_normales()`: Orquesta el proceso de movimientos cuando no hay dobles.  
-- `manejar_dobles()`: Orquesta el proceso de movimientos cuando la tirada es doble.  
-- `realizar_movimiento_simple_con_dados(usar_dado1, usar_dado2)`: Solicita origen y ejecuta un intento de movimiento usando dados especificados.  
-- `realizar_movimiento_simple()`: Versión legacy/compatibilidad que llama al anterior con un dado por defecto.  
-- `realizar_movimiento_doble()`: Solicita origen/confirmación y ejecuta un movimiento doble.  
-- `main()`: Punto de entrada que inicializa la CLI y maneja excepciones de alto nivel.
+- `iniciar_juego()`:  
+  Inicia el flujo principal del juego. Pide los nombres de los jugadores, inicializa el tablero y arranca el bucle principal de turnos.
+
+- `determinar_primer_jugador()`:  
+  Realiza tiradas iniciales con los dados para decidir qué jugador comienza la partida.  
+  No modifica el estado del dominio; solo interactúa con el usuario.
+
+- `mostrar_tablero()`:  
+  Presenta en consola el estado actual del tablero, incluyendo fichas, barra y casa.  
+  No altera datos, solo los formatea para visualización.
+
+- `loop_principal()`:  
+  Controla el ciclo de turnos hasta que uno de los jugadores gana.  
+  Su única responsabilidad es coordinar el flujo, sin intervenir en la lógica de victoria ni validaciones.
+
+- `turno_jugador()`:  
+  Gestiona el flujo de cada turno: tirada de dados, consulta de movimientos posibles y llamada a los manejadores (`manejar_movimientos_normales` o `manejar_dobles`).  
+  Delegación pura al dominio para ejecutar las reglas del juego.
+
+- `mostrar_movimientos_disponibles()`:  
+  Lista los puntos desde los cuales el jugador actual puede mover sus fichas.  
+  Cumple una función informativa, sin modificar el estado interno.
+
+- `manejar_movimientos_normales()`:  
+  Orquesta el flujo de jugadas cuando los dados son diferentes.  
+  Llama a `realizar_movimiento_simple_con_dados()` con los valores apropiados, sin aplicar reglas directamente.
+
+- `manejar_dobles()`:  
+  Coordina los movimientos cuando la tirada es doble (cuatro movimientos posibles).  
+  Encapsula el flujo específico sin afectar la lógica del tablero.
+
+- `realizar_movimiento_simple_con_dados(usar_dado1, usar_dado2)`:  
+  Ejecuta un movimiento con uno o ambos dados según las opciones ingresadas por el usuario.  
+  Usa los métodos públicos del `Board` para validar y aplicar los movimientos.
+
+- `realizar_movimiento_simple()`:  
+  Método simplificado de compatibilidad que delega en el anterior.  
+  Mantiene la consistencia del flujo en versiones anteriores de la CLI.
+
+- `realizar_movimiento_doble()`:  
+  Gestiona movimientos que combinan ambos valores de los dados.  
+  Llama a las funciones del tablero encargadas de realizar movimientos dobles.
+
+- `main()`:  
+  Punto de entrada que crea una instancia de `CLI` y ejecuta el juego, manejando excepciones globales.  
+  Encapsula el arranque de la aplicación y la finalización limpia del programa.
 
 ---
 
 ### Justificación del diseño minimalista
 
-- ✅ **No contiene reglas de juego.** Toda la lógica de validación y movimiento reside en `Board`.  
-- ✅ **No gestiona persistencia ni almacenamientos externos.** Sólo mantiene referencias a `Board` y `Dice` para la sesión activa.  
-- ✅ **Encapsula presentación y orquestación.** Mantiene el código de I/O separado del dominio para facilitar sustitución por otras vistas.
+- ✅ **Separación de capas:** la `CLI` no contiene lógica de juego ni reglas.  
+  Toda la lógica de dominio permanece en `Board`, `Dice` y `Player`.  
+
+- ✅ **Independencia del dominio:** el flujo de la interfaz no modifica estados del Core directamente; solo utiliza sus métodos públicos.  
+
+- ✅ **Extensibilidad:** se puede reemplazar la CLI por una interfaz gráfica (Pygame o WebApp) sin alterar el núcleo.  
+
+- ✅ **Bajo acoplamiento:** la `CLI` no crea ni mantiene dependencias internas del Core, solo lo coordina.  
 
 ---
 
 ### Principios SOLID
 
-- **SRP (Single Responsibility):**  
-  `CLI` se encarga únicamente de la interacción textual (I/O) y del flujo de la experiencia de usuario; no mezcla responsabilidades de dominio.
+- **SRP (Single Responsibility Principle):**  
+  La `CLI` se encarga únicamente de la interacción textual con el usuario.  
+  Cada método cumple una única tarea (mostrar, leer o coordinar flujo), evitando responsabilidades múltiples.
 
-- **OCP (Open/Closed):**  
-  La interfaz puede ampliarse (añadir opciones de menú, comandos adicionales o integración con plugins) sin modificar la lógica del dominio.
+- **OCP (Open/Closed Principle):**  
+  Se pueden agregar nuevos comandos o menús sin modificar los existentes.  
+  Por ejemplo, agregar una opción “Guardar partida” solo requiere un nuevo método, sin tocar la lógica central.
 
-- **LSP (Liskov Substitution):**  
-  Otra capa de presentación (por ejemplo, una clase GUI) que ofrezca el mismo contrato público puede sustituir la CLI sin afectar al núcleo del sistema.
+- **LSP (Liskov Substitution Principle):**  
+  La `CLI` puede sustituirse por otra clase (por ejemplo, `GUI` o `WebInterface`) que implemente los mismos métodos públicos.  
+  El resto del sistema seguiría funcionando sin cambios.
 
-- **ISP (Interface Segregation):**  
-  La CLI expone solo las operaciones necesarias para interactuar con el juego (`iniciar_juego`, `mostrar_tablero`, `turno_jugador`, etc.), manteniendo métodos pequeños y focalizados.
+- **ISP (Interface Segregation Principle):**  
+  Expone una interfaz mínima y coherente: mostrar información, leer datos y ejecutar turnos.  
+  No fuerza la implementación de métodos innecesarios.
 
-- **DIP (Dependency Inversion):**  
-  Depende de las abstracciones públicas del Core (`Board`, `Dice`) y no de sus implementaciones internas, lo que permite inyectar/falsificar componentes en pruebas o sustituir implementaciones.
+- **DIP (Dependency Inversion Principle):**  
+  Depende de las **abstracciones del Core**, no de sus detalles internos.  
+  Usa métodos públicos (`Board`, `Dice`) sin conocer su estructura interna ni manipular sus atributos.
 
 ---
 
-### Conclusión (CLI)
+### Estrategias de Testing y Cobertura (archivo `Test_CLI.py`)
 
-La `CLI` cumple el rol de capa de presentación desacoplada y ligera, respetando los mismos criterios de diseño minimalista aplicados al Core.  
-Al mantener las reglas dentro del dominio y la presentación en la interfaz, se facilita la mantenibilidad, la extensión (migración a GUI o Web) y la trazabilidad del comportamiento del sistema.
+El archivo `Test_CLI.py` valida que la interfaz cumpla los principios SOLID y mantenga bajo acoplamiento con el dominio.  
+A diferencia de las pruebas de las clases Core, aquí se verifica principalmente la **estructura**, **flujo** y **desacoplamiento** de la capa de presentación.
+
+#### Estrategias empleadas
+
+- **Simulación de entrada/salida:**  
+  Se usan `unittest.mock.patch` y `io.StringIO` para simular la entrada del usuario (`input`) y capturar la salida (`print`), evitando interacciones reales.
+
+- **Verificación de flujo de ejecución:**  
+  Se testean las rutas principales (`iniciar_juego()`, `mostrar_tablero()`, `turno_jugador()`, `loop_principal()`) asegurando que no se produzcan efectos secundarios en el dominio.
+
+- **Uso de mocks:**  
+  Se emplean mocks para `Board` y `Dice`, verificando que la CLI se comunique con ellos solo a través de sus métodos públicos (cumpliendo **DIP**).
+
+- **Cobertura de responsabilidades:**  
+  Cada test confirma que los métodos cumplen **SRP**, y que las operaciones de I/O no mezclan lógica interna del juego.
+
+- **Documentación interna:**  
+  Cada test cuenta con un docstring que explica qué principio SOLID está validando, reforzando la trazabilidad entre los objetivos de diseño y las pruebas implementadas.
+
+#### Principios SOLID validados mediante testing
+
+- **SRP:** los métodos de la CLI realizan una sola acción (mostrar, leer o coordinar).  
+- **OCP:** se comprueba que la interfaz pueda extenderse sin romper compatibilidad.  
+- **LSP:** los tests aseguran que otra interfaz puede reemplazar la CLI manteniendo el mismo contrato.  
+- **ISP:** la interfaz expone solo los métodos necesarios para la interacción.  
+- **DIP:** la CLI depende de las abstracciones del Core (simuladas con mocks) sin conocer sus detalles.
+
+---
+
+### Conclusión
+
+La `CLI` es una capa de presentación **simple, extensible y completamente desacoplada** del núcleo del juego.  
+Su diseño y las pruebas que la acompañan confirman que respeta los **principios SOLID**, mantiene alta cohesión y bajo acoplamiento, y puede evolucionar hacia interfaces más complejas (GUI, red o web) sin alterar la arquitectura central del proyecto.
+
+---

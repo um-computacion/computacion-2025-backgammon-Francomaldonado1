@@ -131,3 +131,16 @@ Porfavor actualiza el archivo de justificación pero manteniendo todo lo que ya 
 
 BOT: (Me pasa el codigo actualizado)
 (Esta bastante bien, hago commit)
+
+YO:
+
+Podrias ayudarme a agregar la justificación de llos principios SOLID y las estrategias de testing y cobertura utilizadas para testear la interfaz de texto CLI en el archivo test_CLI? 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Esta relativamente bien, faltan los metodos dispinibles con su explicación (como estan en las clases del Core) y tambien me gustaria que cambies el nombre de BackgammonCLI por CLI simplemente ya que este es un cambio que realice en la interfaz como en los tests, gracias. 
+
+BOT: (Me pasa el codigo actualizado)
+YO:(Hago commit)
