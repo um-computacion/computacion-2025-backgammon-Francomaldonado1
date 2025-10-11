@@ -264,4 +264,10 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 - Se actualiza prompts-documentación.md con los prompts y las indicaciones que se utilizaron para justificar los metodos de la CLI y su funcionamiento.
 
 
+# [0.0.33] 10/10/2025
+### ADDED 
+- Se agregan docstrings a los tests de la CLI explicando brevemente que principio solid respeta cada test.
+- Se agregan clases testCLISOLIDPrinciples y TestCLISOLIDComparison dedicadas a testear los principios SOLID en la CLI.
 
+### CHANGED
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para justificar los tests de la CLI.
