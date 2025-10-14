@@ -278,3 +278,10 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 
 ### CHANGED
 - Se actualiza el codigo de test_CLI.py borrando duplicados y mejorando la cobertura.
+
+# [0.0.35] 13/10/2025
+### ADDED
+- Se agrega logica de bearing off a la interfaz grafica PygameUI.py (No funcional todavia) 
+
+### CHANGED
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para agregar la lógica de bearing off a la interfaz grafica PygameUI.py.

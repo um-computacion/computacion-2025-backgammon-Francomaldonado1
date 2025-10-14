@@ -120,7 +120,28 @@ class MessageManager:
     def get_no_moves_available_message(player: str, reason: str) -> str:
         """Mensaje cuando no hay movimientos disponibles."""
         return f"¡{player.capitalize()} no puede mover! {reason} Presiona 'R' para continuar."
+    
+    @staticmethod
+    def get_bearing_off_available_message(player: str, home_count: int) -> str:
+        """Mensaje cuando puede hacer bearing off."""
+        return f"{player.capitalize()}: Puedes sacar fichas ({home_count}/15). Click fuera del tablero."
 
+    @staticmethod
+    def get_cannot_bear_off_message() -> str:
+        """Mensaje cuando intenta bearing off pero no puede."""
+        return "No puedes sacar. Tienes fichas fuera del cuadrante casa."
+
+    @staticmethod
+    def get_bearing_off_success_message(player: str, home_count: int, remaining_moves: int) -> str:
+        """Mensaje cuando saca una ficha exitosamente."""
+        if remaining_moves > 0:
+            return f"¡Ficha sacada! ({home_count}/15) Te quedan {remaining_moves} dados."
+        return f"Ficha sacada ({home_count}/15). Turno completado."
+
+    @staticmethod
+    def get_victory_message(player: str) -> str:
+        """Mensaje de victoria."""
+        return f"🎉 ¡{player.upper()} GANA EL JUEGO! 🎉"
 
 class MovementValidator:
     """Valida si un jugador tiene movimientos disponibles."""
@@ -277,8 +298,167 @@ class BarMovementRules:
         """Determina si el jugador debe mover desde la barra."""
         return bar_manager.has_pieces_on_bar(color)
     
+class BearingOffValidator:
+    """Valida y gestiona las reglas de bearing off (sacar fichas a casa)."""
 
-# pylint: disable=too-many-instance-attributes,too-few-public-methods
+    def __init__(self, board):
+        self.board = board
+
+    def can_bear_off(self, player: str) -> bool:
+        """
+        Verifica si un jugador puede empezar a sacar fichas.
+        Solo puede hacerlo si todas sus fichas están en su cuadrante casa.
+        
+        Args:
+            player: Color del jugador ("negro" o "blanco")
+            
+        Returns:
+            bool: True si puede sacar fichas
+        """
+        if player == "negro":
+            home_quadrant = range(1, 7)  # Puntos 1-6
+            other_points = range(7, 25)  # Puntos 7-24
+        else:  # blanco
+            home_quadrant = range(19, 25)  # Puntos 19-24
+            other_points = list(range(1, 19))  # Puntos 1-18
+
+        # Verificar que no haya fichas fuera del cuadrante casa
+        for point in other_points:
+            state = self.board.obtener_estado_punto(point)
+            if state and state[0] == player:
+                return False
+
+        return True
+
+    def is_bearing_off_move(self, player: str, origin: int, destination: int) -> bool:
+        """
+        Determina si un movimiento es un intento de bearing off.
+        
+        Args:
+            player: Color del jugador
+            origin: Punto de origen
+            destination: Punto de destino
+            
+        Returns:
+            bool: True si es intento de bearing off
+        """
+        if player == "negro":
+            return destination > 24
+        else:  # blanco
+            return destination < 1
+
+    def validate_bearing_off_move(self, player: str, origin: int, 
+                                  dice_value: int) -> tuple[bool, str]:
+        """
+        Valida un movimiento de bearing off según las reglas.
+        
+        Reglas:
+        1. El jugador debe tener todas sus fichas en el cuadrante casa
+        2. El dado debe coincidir exactamente con la posición de la ficha
+        3. Si el dado es mayor y no hay fichas en posiciones superiores, es válido
+        
+        Args:
+            player: Color del jugador
+            origin: Punto desde donde se saca la ficha
+            dice_value: Valor del dado usado
+            
+        Returns:
+            tuple: (es_valido, mensaje_error)
+        """
+        # 1. Verificar que puede hacer bearing off
+        if not self.can_bear_off(player):
+            return False, "No puedes sacar fichas. Tienes fichas fuera del cuadrante casa."
+
+        # 2. Verificar que la ficha está en el cuadrante casa
+        if player == "negro":
+            home_quadrant = range(1, 7)
+            position = origin  # Para negro, la posición relativa es igual al punto
+        else:
+            home_quadrant = range(19, 25)
+            position = 25 - origin  # Para blanco, invertir
+
+        if origin not in home_quadrant:
+            return False, "La ficha no está en tu cuadrante casa."
+
+        # 3. Verificar reglas del dado
+        if dice_value == position:
+            # Dado exacto - siempre válido
+            return True, ""
+        elif dice_value > position:
+            # Dado mayor - solo válido si no hay fichas en posiciones superiores
+            if not self._has_pieces_in_higher_positions(player, origin):
+                return True, ""
+            else:
+                return False, f"Necesitas dado {position} o mover fichas superiores primero."
+        else:
+            # Dado menor - nunca válido para bearing off
+            return False, f"Necesitas al menos dado {position} para sacar esta ficha."
+
+    def _has_pieces_in_higher_positions(self, player: str, origin: int) -> bool:
+        """
+        Verifica si hay fichas en posiciones más altas que el origen.
+        
+        Args:
+            player: Color del jugador
+            origin: Punto de referencia
+            
+        Returns:
+            bool: True si hay fichas en posiciones superiores
+        """
+        if player == "negro":
+            # Para negro, posiciones superiores son números mayores (2,3,4,5,6)
+            higher_points = range(origin + 1, 7)
+        else:
+            # Para blanco, posiciones superiores son números menores (19,20,21,22,23)
+            higher_points = range(19, origin)
+
+        for point in higher_points:
+            state = self.board.obtener_estado_punto(point)
+            if state and state[0] == player:
+                return True
+
+        return False
+
+    def get_bearing_off_destination(self, player: str) -> int:
+        """
+        Obtiene el punto de destino ficticio para bearing off.
+        Usado para calcular movimientos fuera del tablero.
+        
+        Args:
+            player: Color del jugador
+            
+        Returns:
+            int: Punto de destino (25 para negro, 0 para blanco)
+        """
+        return 25 if player == "negro" else 0
+
+
+class HomeManager:
+    """Gestiona las fichas que han salido del tablero (en casa)."""
+
+    def __init__(self):
+        self.__home_pieces__ = {"negro": 0, "blanco": 0}
+
+    def add_piece_to_home(self, color: str) -> None:
+        """Agrega una ficha a casa."""
+        if color in self.__home_pieces__:
+            self.__home_pieces__[color] += 1
+        else:
+            raise ValueError(f"Color inválido: {color}")
+
+    def get_pieces_count(self, color: str) -> int:
+        """Obtiene el número de fichas en casa."""
+        return self.__home_pieces__.get(color, 0)
+
+    def get_home_state(self) -> dict:
+        """Obtiene el estado completo de casa."""
+        return self.__home_pieces__.copy()
+
+    def has_won(self, color: str) -> bool:
+        """Verifica si un jugador ha ganado (15 fichas en casa)."""
+        return self.__home_pieces__.get(color, 0) == 15
+
+    
 class PygameUI:
     """Interfaz gráfica principal del juego de Backgammon."""
 
@@ -305,6 +485,8 @@ class PygameUI:
         self.__board__.inicializar_posiciones_estandar()
         self.__movement_validator__ = MovementValidator(self.__board__, self.__bar_manager__)
         self.__selected_point__: Optional[int] = None
+        self.__bearing_off_validator__ = BearingOffValidator(self.__board__)
+        self.__home_manager__ = HomeManager()
         self.__white__ = (255, 255, 255)
         self.__black__ = (0, 0, 0)
         self.__brown_light__ = (222, 184, 135)
@@ -367,7 +549,7 @@ class PygameUI:
         if self.__selected_point__ is None:
             self.__attempt_piece_selection(clicked_point)
         else:
-            self.__attempt_move(self.__selected_point__, clicked_point)
+            self.__execute_move(self.__selected_point__, clicked_point)
             self.__selected_point__ = None
 
     def __attempt_piece_selection(self, point: int) -> None:
@@ -394,79 +576,238 @@ class PygameUI:
             self.__message__ = self.__message_manager__.get_invalid_piece_message(point)
 
     def __attempt_move(self, origen: int, destino: int) -> None:
-        """Intenta realizar un movimiento."""
-        if self.__validate_and_report_move(origen, destino):
+        """Intenta realizar un movimiento - REEMPLAZAR MÉTODO COMPLETO."""
+        try:
+            # Verificar si es bearing off
+            if hasattr(self, '__bearing_off_validator__') and \
+            self.__bearing_off_validator__.is_bearing_off_move(
+                    self.__current_player__, origen, destino):
+                self.__attempt_bearing_off(origen, destino)
+                return
+            
+            # Movimiento normal - validar primero
+            if not self.__validate_and_report_move(origen, destino):
+                # Ya hay mensaje de error en __validate_and_report_move
+                return
+            
+            # Si la validación pasó, ejecutar movimiento
             self.__execute_move(origen, destino)
+            
+        except Exception as e:
+            # Capturar CUALQUIER error y mostrar mensaje amigable
+            error_str = str(e).lower()
+            if "not in list" in error_str:
+                self.__message__ = "Dado no disponible para este movimiento."
+            elif "bloqueado" in error_str:
+                self.__message__ = "Punto bloqueado por el rival."
+            else:
+                self.__message__ = "Movimiento inválido. Intenta de nuevo."
+
+
+    def __attempt_bearing_off(self, origen: int, destino: int) -> None:
+        """Intenta realizar un bearing off."""
+        try:
+            # Calcular dado necesario
+            dice_needed = self.__calculate_bearing_off_dice(origen)
+            
+            # Verificar que el dado esté disponible
+            if dice_needed not in self.__available_moves__:
+                available_str = ', '.join(map(str, self.__available_moves__))
+                self.__message__ = f"Necesitas dado {dice_needed}. Tienes: {available_str}"
+                return
+            
+            # Validar el bearing off
+            is_valid, error_msg = self.__bearing_off_validator__.validate_bearing_off_move(
+                self.__current_player__, origen, dice_needed)
+            
+            if not is_valid:
+                self.__message__ = error_msg
+                return
+            
+            # Ejecutar el bearing off
+            self.__execute_bearing_off(origen, dice_needed)
+            
+        except Exception as e:
+            self.__message__ = "No puedes sacar esta ficha."
+
+
+    def __calculate_bearing_off_dice(self, origen: int) -> int:
+        """Calcula qué dado se necesita para bearing off."""
+        if self.__current_player__ == "negro":
+            return origen
         else:
-            self.__message__ = self.__message_manager__.get_invalid_move_message()
-            # Verificar si aún hay movimientos válidos después del error
-            if len(self.__available_moves__) > 0:
-                if not self.__movement_validator__.has_any_valid_move(
-                        self.__current_player__, self.__available_moves__):
-                    if self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
-                        self.__message__ = "No puedes entrar desde la barra. Presiona 'R' para saltar turno."
-                    else:
-                        self.__message__ = "No puedes usar los dados restantes. Presiona 'R' para saltar turno."
+            return 25 - origen
+
+
+    def __execute_bearing_off(self, origen: int, dice_used: int) -> None:
+        """Ejecuta un bearing off válido."""
+        try:
+            # Remover la ficha del tablero
+            self.__board__.remover_ficha(origen, 1)
+            
+            # Agregar a casa
+            self.__home_manager__.add_piece_to_home(self.__current_player__)
+            
+            # Remover el dado usado
+            self.__available_moves__.remove(dice_used)
+            
+            # Verificar victoria
+            if self.__home_manager__.has_won(self.__current_player__):
+                self.__message__ = f"¡{self.__current_player__.upper()} GANA!"
+                self.__game_state_manager__.change_state('GAME_OVER')
+                return
+            
+            remaining_moves = len(self.__available_moves__)
+            home_count = self.__home_manager__.get_pieces_count(self.__current_player__)
+            
+            if remaining_moves == 0:
+                self.__message__ = f"Ficha sacada ({home_count}/15). Turno terminado."
+                self.__end_turn()
+            else:
+                # Verificar movimientos válidos
+                has_moves = (self.__movement_validator__.has_any_valid_move(
+                    self.__current_player__, self.__available_moves__) or
+                    self.__has_valid_bearing_off_moves())
+                
+                if not has_moves:
+                    self.__message__ = "Sin movimientos válidos. Presiona 'R'."
                     self.__game_state_manager__.change_state('AWAITING_SKIP_CONFIRMATION')
+                else:
+                    dice_str = ', '.join(map(str, self.__available_moves__))
+                    self.__message__ = f"¡Sacaste 1! ({home_count}/15) Dados: [{dice_str}]"
+                    
+        except Exception as e:
+            self.__message__ = "Error al sacar ficha. Intenta de nuevo."
+
+
+    def __has_valid_bearing_off_moves(self) -> bool:
+        """Verifica si el jugador tiene movimientos válidos de bearing off."""
+        if not self.__bearing_off_validator__.can_bear_off(self.__current_player__):
+            return False
+        
+        if self.__current_player__ == "negro":
+            home_quadrant = range(1, 7)
+        else:
+            home_quadrant = range(19, 25)
+        
+        for point in home_quadrant:
+            state = self.__board__.obtener_estado_punto(point)
+            if state and state[0] == self.__current_player__:
+                for dice_value in set(self.__available_moves__):
+                    is_valid, _ = self.__bearing_off_validator__.validate_bearing_off_move(
+                        self.__current_player__, point, dice_value)
+                    if is_valid:
+                        return True
+        
+        return False
 
 
     # 5. __execute_move - Mensajes más cortos
     def __execute_move(self, origen: int, destino: int) -> None:
-        """Ejecuta un movimiento válido y actualiza el estado del juego."""
-        destination_state = self.__board__.obtener_estado_punto(destino)
-        capture_occurred = False
-
-        # PRIMERO: Verificar si hay captura
-        if (destination_state is not None and 
-            self.__capture_validator__.can_capture_piece(destination_state,
-                                                        self.__current_player__)):
-            captured_color = destination_state[0]
-            capture_occurred = True
+        """Ejecuta un movimiento - REEMPLAZAR MÉTODO COMPLETO."""
+        try:
+            # Calcular dado necesario ANTES de hacer nada
+            dado_usado = self.__calculate_dice_needed(origen, destino)
             
-            # Limpiar el punto destino completamente
-            try:
-                self.__board__.remover_ficha(destino)
-            except TypeError:
-                self.__board__.remover_ficha(destino, captured_color)
+            # VALIDAR que el dado esté disponible ANTES de mover
+            if dado_usado not in self.__available_moves__:
+                self.__message__ = f"No tienes dado {dado_usado}. Disponibles: {self.__available_moves__}"
+                return
             
-            # Agregar la ficha capturada a la barra
-            self.__bar_manager__.add_piece_to_bar(captured_color)
+            destination_state = self.__board__.obtener_estado_punto(destino)
+            capture_occurred = False
+            captured_color = None
 
-        # SEGUNDO: Realizar el movimiento
-        if origen == 0:  # Desde la barra
-            self.__bar_manager__.remove_piece_from_bar(self.__current_player__)
-            self.__board__.colocar_ficha(destino, self.__current_player__, 1)
-        else:  # Movimiento normal desde un punto
-            self.__board__.mover_ficha(origen, destino, self.__current_player__)
+            # Verificar si hay captura
+            if (destination_state is not None and 
+                self.__capture_validator__.can_capture_piece(destination_state,
+                                                            self.__current_player__)):
+                captured_color = destination_state[0]
+                capture_occurred = True
+                
+                # Limpiar el punto destino
+                try:
+                    self.__board__.remover_ficha(destino, 1)
+                except TypeError:
+                    self.__board__.remover_ficha(destino)
+                
+                # Agregar la ficha capturada a la barra
+                self.__bar_manager__.add_piece_to_bar(captured_color)
 
-        # TERCERO: Remover el dado usado
-        dado_usado = self.__calculate_dice_needed(origen, destino)
-        self.__available_moves__.remove(dado_usado)
+            # Realizar el movimiento según el origen
+            movimiento_exitoso = False
+            
+            if origen == 0:  # Desde la barra
+                # Verificar que tiene fichas en barra
+                if not self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
+                    if capture_occurred:
+                        # Restaurar captura
+                        self.__bar_manager__.remove_piece_from_bar(captured_color)
+                        self.__board__.colocar_ficha(destino, captured_color, 1)
+                    self.__message__ = "No tienes fichas en la barra."
+                    return
+                
+                try:
+                    # Primero colocar la ficha
+                    self.__board__.colocar_ficha(destino, self.__current_player__, 1)
+                    # Solo si tuvo éxito, remover de barra
+                    self.__bar_manager__.remove_piece_from_bar(self.__current_player__)
+                    movimiento_exitoso = True
+                except Exception as e:
+                    # Si falla, restaurar captura
+                    if capture_occurred:
+                        self.__bar_manager__.remove_piece_from_bar(captured_color)
+                        self.__board__.colocar_ficha(destino, captured_color, 1)
+                    self.__message__ = f"No puedes mover a punto {destino}."
+                    return
+                    
+            else:  # Movimiento normal desde un punto
+                try:
+                    self.__board__.mover_ficha(origen, destino, self.__current_player__)
+                    movimiento_exitoso = True
+                except Exception as e:
+                    # Si falla, restaurar captura
+                    if capture_occurred:
+                        self.__bar_manager__.remove_piece_from_bar(captured_color)
+                        self.__board__.colocar_ficha(destino, captured_color, 1)
+                    self.__message__ = f"No puedes mover de {origen} a {destino}."
+                    return
 
-        # CUARTO: Actualizar mensaje y estado
-        remaining_moves = len(self.__available_moves__)
+            # Si llegamos aquí, el movimiento fue exitoso
+            if movimiento_exitoso:
+                # Remover el dado usado
+                self.__available_moves__.remove(dado_usado)
+                
+                remaining_moves = len(self.__available_moves__)
 
-        if remaining_moves == 0:
-            self.__end_turn()
-        else:
-            # Verificar si quedan movimientos válidos
-            if not self.__movement_validator__.has_any_valid_move(
-                    self.__current_player__, self.__available_moves__):
-                if self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
-                    self.__message__ = "No puedes entrar desde la barra. Presiona 'R' para saltar turno."
+                if remaining_moves == 0:
+                    self.__end_turn()
                 else:
-                    self.__message__ = "No puedes usar los dados restantes. Presiona 'R' para saltar turno."
-                self.__game_state_manager__.change_state('AWAITING_SKIP_CONFIRMATION')
-            elif capture_occurred:
-                dice_str = ', '.join(map(str, self.__available_moves__))
-                self.__message__ = f"¡Captura! Te quedan {remaining_moves} dados: [{dice_str}]. Elige ficha."
+                    # Verificar si quedan movimientos válidos
+                    has_valid_moves = self.__movement_validator__.has_any_valid_move(
+                        self.__current_player__, self.__available_moves__)
+                    
+                    # También verificar bearing off si aplica
+                    if hasattr(self, '__bearing_off_validator__'):
+                        has_valid_moves = has_valid_moves or self.__has_valid_bearing_off_moves()
+                    
+                    if not has_valid_moves:
+                        self.__message__ = "Sin movimientos válidos. Presiona 'R'."
+                        self.__game_state_manager__.change_state('AWAITING_SKIP_CONFIRMATION')
+                    elif capture_occurred:
+                        dice_str = ', '.join(map(str, self.__available_moves__))
+                        self.__message__ = f"¡Captura! Dados: [{dice_str}]. Elige ficha."
+                    else:
+                        self.__message__ = self.__message_manager__.get_move_completed_message(
+                            remaining_moves, self.__available_moves__)
+        
+        except Exception as e:
+            # Último recurso - capturar cualquier error no manejado
+            error_str = str(e).lower()
+            if "not in list" in error_str:
+                self.__message__ = "Error con los dados. Intenta de nuevo."
             else:
-                self.__message__ = (
-                    self.__message_manager__.get_move_completed_message(
-                        remaining_moves, self.__available_moves__
-                    )
-                )
-
+                self.__message__ = "Error al ejecutar movimiento. Intenta de nuevo."
 
     # 6. __end_turn - Limpiar selección
     def __end_turn(self) -> None:
@@ -612,6 +953,22 @@ class PygameUI:
                 point_idx = (self.__board_margin__ + self.__board_width__ - mx) // point_width
                 if 0 <= point_idx < 6:
                     return 24 - point_idx
+                
+        if self.__bearing_off_validator__.can_bear_off(self.__current_player__):
+        # Zona bearing off para negro (parte superior derecha, fuera del tablero)
+         if (self.__current_player__ == "negro" and 
+            mx > self.__board_margin__ + self.__board_width__ and
+            my < self.__board_margin__ + self.__board_height__ // 2):
+            # Retornar 25 para indicar bearing off negro
+            return 25
+        
+        # Zona bearing off para blanco (parte inferior derecha, fuera del tablero)
+        if (self.__current_player__ == "blanco" and 
+            mx > self.__board_margin__ + self.__board_width__ and
+            my > self.__board_margin__ + self.__board_height__ // 2):
+            # Retornar 0 para indicar bearing off blanco
+            return 0
+    
         return None
 
     def __update(self) -> None:
@@ -650,6 +1007,33 @@ class PygameUI:
                 count_text = font_small.render(str(blanco_count), True, self.__black__)
                 text_rect = count_text.get_rect(center=(bar_center_x, start_y - 200))
                 self.__screen__.blit(count_text, text_rect)
+
+    def __draw_home_pieces(self) -> None:
+        """
+        Dibuja las fichas que han salido del tablero (en casa).
+        Añadir esta llamada en el método __draw().
+        """
+        font_small = pygame.font.Font(None, 30)
+        
+        # Fichas negras en casa (lado derecho superior)
+        negro_count = self.__home_manager__.get_pieces_count("negro")
+        if negro_count > 0:
+            text = f"Casa Negro: {negro_count}/15"
+            color = self.__white__ if negro_count < 15 else (0, 255, 0)
+            text_surface = font_small.render(text, True, color)
+            x = self.__screen__.get_width() - 200
+            y = self.__board_margin__ + 50
+            self.__screen__.blit(text_surface, (x, y))
+        
+        # Fichas blancas en casa (lado derecho inferior)
+        blanco_count = self.__home_manager__.get_pieces_count("blanco")
+        if blanco_count > 0:
+            text = f"Casa Blanco: {blanco_count}/15"
+            color = self.__white__ if blanco_count < 15 else (0, 255, 0)
+            text_surface = font_small.render(text, True, color)
+            x = self.__screen__.get_width() - 200
+            y = self.__board_margin__ + self.__board_height__ - 70
+            self.__screen__.blit(text_surface, (x, y))
 
     def __draw(self) -> None:
         """Dibuja todos los elementos."""
@@ -701,6 +1085,7 @@ class PygameUI:
         text_rect = text_surface.get_rect(center=(self.__screen__.get_width() // 2, 30))
         self.__screen__.blit(text_surface, text_rect)
 
+            
     def __draw_dice(self) -> None:
         """Dibuja los dos dados."""
         dice_size = 80
