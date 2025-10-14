@@ -1779,3 +1779,23 @@ YO:
 Bien, inicialmente me parece bien como estas implementando esto, pero en las clases de core estas poniendo docstrings muy largos, me parece mejor explicar todo en el archivo justificacion.md y en las clases simplemente mencionar alguno de los principios solid que estos metodos cumplen y por que, se entiende?, por ejemplo en el archivo de tests de pygameui tenemos clases de tests con unitest especificamente para probar los principios solid, podriamos hacer algo similar en las clases de core no?, a continuación te dejo las clases de playyer, dice, y checker que son las mas "simples" para que agregues esto. 
 
 BOT: (Me manda codigo de clases actualizadas con docstrings de los principios solid)
+
+YO: 
+
+Hola buenas tardes, me gustaria seguir trabajando en la interfaz grafica de pygame, podriamos implementar hoy la validación de movimientos de salida hacia "casa" que solamente son posibles cuando el jugador tiene todas las fichas en su ultimo cuadrante. Podrias ayudarme a implementar esto teniendo en cuenta que los mensajes no sean tan largos para que entren correctamente arriba del tablero y que todo lo que hagamos debemos poder testearlo para mantener la cobertura del 90% del proyecto?
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+bien gracias, tengo una duda sobre los nuevos mensajes de la clase MessageManager, todos los mensajes anteriores empezaban con @staticmethod pero estos nuevos mensajes no, deberia agregar esto o no?
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Le corrigo un error de atributeError sobre un metodo) 
+
+Encontre dos errores, primero al intentar sacar la ficha desde barra y ubicarla en una posicion donde habian fichas del rival, aparecia bien el mensaje de error pero la ficha desaparece, y el jugador queda con 14 fichas. Y lo otro es el mensaje al intentar mover una ficha a una posicion invalida; 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: El codigo sigue fallando, pero hago commit y mañana lo corrigo
