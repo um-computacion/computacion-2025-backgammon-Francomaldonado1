@@ -144,3 +144,35 @@ Esta relativamente bien, faltan los metodos dispinibles con su explicación (com
 
 BOT: (Me pasa el codigo actualizado)
 YO:(Hago commit)
+
+YO:
+
+Necesito que me ayudes a aplicarle los docstrings justificando brevemente los principios solid que cumple cada metodo de pygame en el archivo de pygame y luego su explicación un poco mas detallada en el archivo de justificación.md, podrias ayudarme?
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Hazlo en todas las clases del archivo por favor, en vez de utilizar "Cumple con ...." hacelo asi "SRP: ......" que me gusta mas, gracias.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (No me gusta como lo hizo y ademas alcanzo el limite del plan) 
+
+### Utilizando Gemini
+
+YO:
+
+Necesito que me ayudes a aplicarle los docstrings justificando brevemente los principios solid que cumple cada metodo de pygame en el archivo de pygame y luego su explicación un poco mas detallada en el archivo de justificación.md, podrias ayudarme? te dejo codigo de pygame y de CLI para que veas el formato que tienen los docstings y te guies en base a estos, gracias. 
+
+BOT: (Me pasa el codigo actualizado)
+(Esta mal paso a usar claude)
+
+
+### Utilizando claude.ai 
+
+YO:
+
+Necesito que me ayudes a aplicarle los docstrings justificando brevemente los principios solid que cumple cada metodo de pygame en el archivo de pygame y luego su explicación un poco mas detallada en el archivo de justificación.md, podrias ayudarme? te dejo codigo de pygame y de CLI para que veas el formato que tienen los docstings y te guies en base a estos, gracias. 
+
+
