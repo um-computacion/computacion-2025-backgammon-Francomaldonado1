@@ -294,3 +294,9 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 - Se actualiza prompts-documentación.md con los prompts y las indicaciones que se utilizaron para explicar los principios SOLID en la interfaz grafica PygameUI.py
 - Se actualizan metodos en pygameUI.py dedicados a la lógica de bearing off, todavia no funcionan pero estoy mas cerca. 
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para seguir trabajando con la logica del bearing off.
+
+# [0.0.37] 19/10/2025
+### CHANGED
+- Se actualizan metodos en pygameUI.py dedicados a la lógica de bearing off, quedando correctamente funcionales y permitiendo ganar a un jugador.
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para seguir trabajando con la logica del bearing off y victoria.
+

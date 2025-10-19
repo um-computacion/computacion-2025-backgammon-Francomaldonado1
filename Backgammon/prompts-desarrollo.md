@@ -1847,3 +1847,29 @@ YO:
 
 por que me aparece esto en el metodo get point from mouse pos si si esta cerrado el parentesis correctamente ? tambien intente poner todo en la misma linea y aparece lo mismo.
 (sigue fallando, hago commit y luego lo sigo trabajando) 
+
+YO: (En una charla nueva) 
+
+Podrias ayudarme a aplicar correctamente la logica del bearing off en pygame?  Estaba pensando en lo siguiente, podriamos dibujar la "casa" de cada uno horizontalmente con un color oscuro (marron oscuro por ejemplo) en el cuadrante de las posiciones del 13 al 18 para el negro y del 7 al 12 para el blanco y que cuando el jugador ya tenga todas las fichas en su ultimo cuadrante toque directamente la ficha que quiere mover, se muestre un mensaje como "Esta ficha puede salir a casa!" y el jugador haga click directamente en estos cuadrantes que ya no tienen fichas (ya que es condicion para poder sacar fichas) se entiende? Hagamoslo asi pero de alguna otra manera que no hayamos probado aun, por que las que ya hemos hecho fallan todas. Mi idea principal y basica es modificar los metodos ya existentes relacionados al bearing off para que se evalue si el jugador tiene todas sus fichas en su ultimo cuadrante, lo que podria ser un estado de bearing off, en ese momento a ese jugador le aparece dibujado en el tablero su "casa" en el cuadrante de la izquierda de donde tiene sus fichas, y cuando selecciona la ficha para realizar movimiento aparece el mensaje mencionado anteriormete de "Esta ficha puede salir a casa". Estuve revisando los metodos relacionados al bearing off y encontre uno el cual tiene esto;  
+  if self.__current_player__ == "negro":
+            home_quadrant = range(1, 7)
+        else:
+            home_quadrant = range(19, 25)
+puede ser que esto sea el problema? ya que el jugador negro su home_quadrant es del 19 al 24 y para el blanco es del 1 al 7 (al reves), capaz por esto nunca se dibuja la "casa" de los jugadores llegado a este punto y por eso no funcionaba ninguna de las modificaciones en draw_bearing_off_zones. 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Esta bastante mejor, llegue a tener todas las fichas en mi ultimo cuadrante, pero hay varios errores por correguir, primero que nada el mensaje que se muestra es muy largo, mas largo que la pantalla por lo que no se ve bien, segundo es el mismo mensaje para todos los movimientos, osea no depende de si el jugador realmente puede sacar ficha o no, ya una vez que esta en estado de bearing off se muestra el mismo mensaje, cosa que esta mal. Deberia ser por ejemplo si el jugador negro tiene 7 fichas en la posicion 19 y 8 en la posicion 20, le salen dados 2 y 3 no tiene fichas que pueda sacar a casa por lo que el mensaje debe ser el mismo que antes, "Ficha en el punto .. seleccionada, seleccione destino:" algo asi, y solamente si tuviera un dado 6 y selecione de origen la ficha en la posicion 19 solamente ahora mostrar "Puede sacar la ficha! Toque su casa: " o algo asi, se entiende?. Lo tercero a correguir es que la casa de cada jugador no se dibuja, yo cuando tenia el valor del dado para poder sacar la ficha me di cuenta que podia sacar la ficha presionando en la posición(triangulo) 13 siendo el negro y 12 siendo el blanco que seria el primero de cada fila, pero no se ve ningun boton ni ninguna casa dibujada ahi. Cuarto error, al tocar esta posicion y enviar la ficha a casa correctamente, el contador de Casa Negro 1/15 se ve arriba en el cuadrante de "casa" del jugador blanco y el de blanco se ve abajo en el cuadrante "casa" del jugador negro, cuando se deberia poner el contador al lado del boton o en la barra marron de abajo que es donde se muestra el mensaje de "Dados disponibles: " durante toda la partida pero mas a la izquierda (abajo del boton/casa de negro) y arriba para el jugador blanco (arriba del boton/casa de blanco) en la misma linea donde se muestran los mensajes pero mas a la izquierda, asi quedaria mas prolijo y limpio el juego y el tablero. Quinto error, me di cuenta que durante TODA la partida, cuando el jugador debe seleccionar la ficha que quiere mover aparece "Ficha en punto n seleccionada. Dados disponibles: [m, s]. Elige destino." aunque no tenga ninguna ficha en esa posición o hayan fichas rivales, cosa que esta mal, deberia devolver: "No tienes fichas en esta posicion, elija una posicion valida: " o algo asi. Sexto y ultimo error, estuve tocando al azar por el tablero viendo este mensaje mencionado en el error anterior y se me cerro el juego devolviendo el siguiente error por terminal; 
+
+Francomaldonado1/Backgammon/Core/Board.py", line 106, in obtener_estado_punto
+    return self.__puntos__[punto - 1]
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^
+IndexError: list index out of range
+
+corriguiendo estos 6 errores en orden y sin tocar la logica ni las correcciones que hicimos sobre los metodos de bearing off, creo que podria quedar bastante bien la interfaz.
+
+BOT: (Me pasa el codigo actualizado)
+(Funciona excelente, hago commit)
+

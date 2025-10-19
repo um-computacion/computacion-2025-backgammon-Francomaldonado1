@@ -609,18 +609,16 @@ class BearingOffValidator:
             - ISP: Método específico que retorna booleano.
         """
         if player == "negro":
-            home_quadrant = range(1, 7)  # Puntos 1-6
-            other_points = range(7, 25)  # Puntos 7-24
+            home_quadrant = range(19, 25)  # 19-24 (último cuadrante)
+            other_points = range(1, 19)
         else:  # blanco
-            home_quadrant = range(19, 25)  # Puntos 19-24
-            other_points = list(range(1, 19))  # Puntos 1-18
+            home_quadrant = range(1, 7)  # 1-6 (último cuadrante)
+            other_points = range(7, 25)
 
-        # Verificar que no haya fichas fuera del cuadrante casa
         for point in other_points:
             state = self.board.obtener_estado_punto(point)
             if state and state[0] == player:
                 return False
-
         return True
 
     def is_bearing_off_move(self, player: str, origin: int, destination: int) -> bool:
@@ -657,11 +655,11 @@ class BearingOffValidator:
 
         # 2. Verificar que la ficha está en el cuadrante casa
         if player == "negro":
-            home_quadrant = range(1, 7)
-            position = origin  # Para negro, la posición relativa es igual al punto
-        else:
             home_quadrant = range(19, 25)
-            position = 25 - origin  # Para blanco, invertir
+            position = 25 - origin  # Distancia a la salida
+        else:
+            home_quadrant = range(1, 7)
+            position = origin  # Distancia a la salida
 
         if origin not in home_quadrant:
             return False, "La ficha no está en tu cuadrante casa."
@@ -689,11 +687,11 @@ class BearingOffValidator:
             - ISP: Método privado enfocado.
         """
         if player == "negro":
-            # Para negro, posiciones superiores son números mayores (2,3,4,5,6)
-            higher_points = range(origin + 1, 7)
-        else:
-            # Para blanco, posiciones superiores son números menores (19,20,21,22,23)
+            # Negro (19-24): más alejado = menor número
             higher_points = range(19, origin)
+        else:
+            # Blanco (1-6): más alejado = mayor número
+            higher_points = range(origin + 1, 7)
 
         for point in higher_points:
             state = self.board.obtener_estado_punto(point)
@@ -950,31 +948,35 @@ class PygameUI:
         if estado_punto and estado_punto[0] == self.__current_player__:
             self.__selected_point__ = point
             
-            # MENSAJE ESPECIAL si puede hacer bearing off desde este punto
+            # Verificar si REALMENTE puede sacar esta ficha específica
+            can_bear_off_this_piece = False
             if self.__bearing_off_validator__.can_bear_off(self.__current_player__):
-                # Verificar si esta ficha específica puede salir
-                home_count = self.__home_manager__.get_pieces_count(self.__current_player__)
-                
-                # Determinar si está en el cuadrante casa
+                # Verificar si está en home quadrant
                 if self.__current_player__ == "negro":
-                    in_home = 1 <= point <= 6
-                    casa_zone = "cuadrante inferior izquierdo"
-                else:
                     in_home = 19 <= point <= 24
-                    casa_zone = "cuadrante superior izquierdo"
+                else:
+                    in_home = 1 <= point <= 6
                 
                 if in_home:
-                    self.__message__ = (f"✨ Ficha en punto {point} seleccionada. "
-                                    f"¡Puede salir a CASA! ({home_count}/15) "
-                                    f"Click en {casa_zone} o mueve normal.")
-                else:
-                    self.__message__ = self.__message_manager__.get_piece_selected_message(
-                        point, self.__available_moves__)
+                    # Verificar si tiene algún dado válido para sacar ESTA ficha
+                    dice_needed = self.__calculate_bearing_off_dice(point)
+                    for dice_value in self.__available_moves__:
+                        is_valid, _ = self.__bearing_off_validator__.validate_bearing_off_move(
+                            self.__current_player__, point, dice_value)
+                        if is_valid:
+                            can_bear_off_this_piece = True
+                            break
+            
+            # Mensaje apropiado
+            if can_bear_off_this_piece:
+                home_count = self.__home_manager__.get_pieces_count(self.__current_player__)
+                casa_name = "CASA NEGRO" if self.__current_player__ == "negro" else "CASA BLANCO"
+                self.__message__ = f"¡Puede sacar! ({home_count}/15) Click en {casa_name}"
             else:
-                self.__message__ = self.__message_manager__.get_piece_selected_message(
-                    point, self.__available_moves__)
+                dice_str = ', '.join(map(str, self.__available_moves__))
+                self.__message__ = f"Punto {point} seleccionado. Dados: [{dice_str}]. Elige destino."
         else:
-            self.__message__ = self.__message_manager__.get_invalid_piece_message(point)
+            self.__message__ = "No tienes fichas en esta posición. Elige una válida."
 
     def __attempt_move(self, origen: int, destino: int) -> None:
         """
@@ -1069,9 +1071,9 @@ class PygameUI:
             - ISP: Método mínimo enfocado en una operación.
         """
         if self.__current_player__ == "negro":
-            return origen
-        else:
             return 25 - origen
+        else:
+            return origen
 
 
 
@@ -1134,9 +1136,9 @@ class PygameUI:
             return False
         
         if self.__current_player__ == "negro":
-            home_quadrant = range(1, 7)
-        else:
             home_quadrant = range(19, 25)
+        else:
+            home_quadrant = range(1, 7)
         
         for point in home_quadrant:
             state = self.__board__.obtener_estado_punto(point)
@@ -1407,9 +1409,13 @@ class PygameUI:
         bar_x_start = self.__board_margin__ + side_width
         bar_x_end = bar_x_start + self.__bar_width__
         
+        # Verificar que el click esté dentro del área del tablero
+        if not (self.__board_margin__ <= mx <= self.__board_margin__ + self.__board_width__ and
+                self.__board_margin__ <= my <= self.__board_margin__ + self.__board_height__):
+            return None
+        
         # Click en la barra
-        if (bar_x_start <= mx <= bar_x_end and self.__board_margin__ <= my <=
-                self.__board_margin__ + self.__board_height__):
+        if (bar_x_start <= mx <= bar_x_end):
             return 0
         
         # Mitad superior del tablero
@@ -1422,37 +1428,30 @@ class PygameUI:
                     return point_idx + 1
             
             # Cuadrante superior izquierdo (puntos 7-12)
-            # IMPORTANTE: Detectar clicks en zona de CASA BLANCO
             start_x_top_left = self.__board_margin__
             if start_x_top_left < mx < self.__board_margin__ + side_width:
-                # Si el jugador blanco puede hacer bearing off y clickea aquí
+                # Detectar bearing off blanco
                 if (self.__current_player__ == "blanco" and 
                     self.__bearing_off_validator__.can_bear_off(self.__current_player__) and
                     self.__game_state_manager__.get_current_state() == 'AWAITING_PIECE_SELECTION'):
-                    # Retornar punto especial 0 para bearing off blanco
-                    return 0  # Usamos 0 como destino para bearing off de blanco
+                    return 0  # Bearing off blanco
                 
-                # Si no, es un click normal en puntos 7-12
                 point_idx = (mx - start_x_top_left) // point_width
                 if 0 <= point_idx < 6:
                     return 12 - point_idx
         
         # Mitad inferior del tablero
-        elif (self.__board_margin__ + self.__board_height__ // 2 < my <
-            self.__board_margin__ + self.__board_height__):
+        elif (self.__board_margin__ + self.__board_height__ // 2 < my, self.__board_margin__ + self.__board_height__): 
             
             # Cuadrante inferior izquierdo (puntos 13-18)
-            # IMPORTANTE: Detectar clicks en zona de CASA NEGRO
             start_x_bottom_left = self.__board_margin__
             if start_x_bottom_left < mx < self.__board_margin__ + side_width:
-                # Si el jugador negro puede hacer bearing off y clickea aquí
+                # Detectar bearing off negro
                 if (self.__current_player__ == "negro" and 
                     self.__bearing_off_validator__.can_bear_off(self.__current_player__) and
                     self.__game_state_manager__.get_current_state() == 'AWAITING_PIECE_SELECTION'):
-                    # Retornar punto especial 25 para bearing off negro
-                    return 25  # Usamos 25 como destino para bearing off de negro
+                    return 25  # Bearing off negro
                 
-                # Si no, es un click normal en puntos 13-18
                 point_idx = (mx - start_x_bottom_left) // point_width
                 if 0 <= point_idx < 6:
                     return 13 + point_idx
@@ -1525,27 +1524,27 @@ class PygameUI:
             - DIP: Usa HomeManager sin conocer detalles internos.
         """
         font_small = pygame.font.Font(None, 30)
-        
-        # Fichas negras en casa (lado derecho superior)
+    
+        # Fichas negras en casa (ABAJO a la izquierda, cerca de su zona de bearing off)
         negro_count = self.__home_manager__.get_pieces_count("negro")
         if negro_count > 0:
             text = f"Casa Negro: {negro_count}/15"
             color = self.__white__ if negro_count < 15 else (0, 255, 0)
             text_surface = font_small.render(text, True, color)
-            x = self.__screen__.get_width() - 200
-            y = self.__board_margin__ + 50
+            x = 50  # Esquina izquierda
+            y = self.__screen__.get_height() - 80  # Abajo
             self.__screen__.blit(text_surface, (x, y))
         
-        # Fichas blancas en casa (lado derecho inferior)
+        # Fichas blancas en casa (ARRIBA a la izquierda, cerca de su zona de bearing off)
         blanco_count = self.__home_manager__.get_pieces_count("blanco")
         if blanco_count > 0:
             text = f"Casa Blanco: {blanco_count}/15"
             color = self.__white__ if blanco_count < 15 else (0, 255, 0)
             text_surface = font_small.render(text, True, color)
-            x = self.__screen__.get_width() - 200
-            y = self.__board_margin__ + self.__board_height__ - 70
+            x = 50  # Esquina izquierda
+            y = 30  # Arriba
             self.__screen__.blit(text_surface, (x, y))
-    
+        
     def __draw_bearing_off_zones(self) -> None:
         """
         Dibuja las zonas visuales de bearing off cuando están activas.
@@ -1661,11 +1660,13 @@ class PygameUI:
         """
         self.__screen__.fill((139, 69, 19))
         
-        # Dibujar bearing off zones ANTES del tablero para que queden debajo
+            # Primero dibujar tablero
+        self.__draw_backgammon_board()
+        
+        # DESPUÉS dibujar bearing off zones (para que queden ENCIMA)
         self.__draw_bearing_off_zones()
         
-        # Luego dibujar el resto
-        self.__draw_backgammon_board()
+        # Luego el resto
         self.__draw_checkers()
         self.__draw_bar_pieces()
         self.__draw_home_pieces()  
