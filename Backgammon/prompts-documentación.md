@@ -176,3 +176,8 @@ YO:
 Necesito que me ayudes a aplicarle los docstrings justificando brevemente los principios solid que cumple cada metodo de pygame en el archivo de pygame y luego su explicación un poco mas detallada en el archivo de justificación.md, podrias ayudarme? te dejo codigo de pygame y de CLI para que veas el formato que tienen los docstings y te guies en base a estos, gracias. 
 
 
+BOT: (Me pasa el codigo actualizado)
+(Hago commit)
+
+YO:
+
