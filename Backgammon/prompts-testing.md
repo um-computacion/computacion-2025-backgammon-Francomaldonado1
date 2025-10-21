@@ -1212,3 +1212,83 @@ YO:
 
 Creo que habia pegado dos veces el codigo de tests, por eso fallaba y habian tantas lineas, ahi borre las clases de SOLID anteriores y aumento el coberage de CLI a un 80%, podrias agregarme tests sin modificar los tests actuales para mejorar el coverage?
 (Me actualiza el codigo pero no me gustan los cambios, mañana sigo utilizando claude.ai y mejorando la cobertura) 
+
+### Utilizando Claude.ai
+
+YO:
+
+Bien gracias, ahora si funciona correctamente, podrias ayudarme ahora a testear estos nuevos metodos y clases dedicadas al bearing off agregando una nueva clase de tests en test_pygame?
+
+BOT: (Me pasa el codigo actualizado)
+(veo que fallan 29 tests pero la mayoria (28) son de atributeError por la definicion del setUp de la clase de tests, por lo que modifico estos y sigo)
+
+YO: 
+
+Fallan varios tests, la mayoria son de AttributeError con los siguientes mensajes;  AttributeError: 'method' object has no attribute '_Board__puntos__', AttributeError: 'GameStateManager' object has no attribute 'add_piece_to_home' y AttributeError: 'GameStateManager' object has no attribute 'get_pieces_count', podrias correguir estos atributos? Te envio archivo de pygame para que veas los nombres correctos de estos metodos para correguir estos errores. Ya corregui algunos como los de self.ui__PygameUI_game_state_manager__ o similares que era necesario borrar el "PygameUI" pero faltan correguir los anteriores. Tambien hay 2 AssertionError, uno de esta clase de testbearingoff y el otro de la clase TestDoublesValidation que te dejo su codigo de error completo al final, por favor reenviame la clase de testBearingOffFunctionality correguida y el test que falla de TestDoublesValidation ignorando el resto de tests y clases para disminuir el tamaño de la respuesta, gracias. 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Seguis utilizando mal los atributos de pygame, como en este caso, AttributeError: 'PygameUI' object has no attribute '_PygameUI__bearing_off_validator__'. Did you mean: '__bearing_off_validator__'? En el setup de la clase, estamos accediendo al atributo con un self, por lo que no es necesario poner pygameUI al principio.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Seguis utilizando mal los atributos de pygame, como en este caso, AttributeError: 'PygameUI' object has no attribute '_PygameUI__bearing_off_validator__'. Did you mean: '__bearing_off_validator__'? En el setup de la clase, estamos accediendo al atributo con un self, por lo que no es necesario poner pygameUI al principio. Otros de los errores son los siguientes; AttributeError: 'PygameUI' object has no attribute '_PygameUI__message__'. Did you mean: '_PygameUI__draw_message'?,  AttributeError: 'PygameUI' object has no attribute '_PygameUI__board__'. Did you mean: '_PygameUI__draw'? que los tres estan mal hechos en el setUp de la clase de tests, asi que corregilos para la proxima entrega porfavor. Yo ya los corregui para probarlos utilizando lo que decia luego del did you mean que se supone que es lo correcto y  al correr los tests nuevamente me empezo a tirar los errores que te mencione antes, osea que no los correguiste bien, errores como; AttributeError: 'method' object has no attribute '_Board__puntos__', AttributeError: 'GameStateManager' object has no attribute 'get_pieces_count' y AttributeError: 'GameStateManager' object has no attribute 'add_piece_to_home' que son los que te mencione en el mensaje anterior. Por favor encargate de correguirlos y de hacer todos los tests posibles respecto al bearing off para mantener la cobertura de codigo alta, gracias. 
+
+BOT: (Me pasa el codigo actualizado)
+(Estaba mal un self del setUp asi que lo corrijo)
+
+YO:
+
+Muy bien, ahora solo fallan 8 tests, fue necesario en el setUp reemplazar self.home_manager = self.ui__home_manager__ por ... = self.ui__game_state_manager__ que es la forma correcta. El resto de errores son los siguientes; 
+
+BOT: (Me pasa el codigo actualizado)
+(Sigo corriguiendo errores de atributos utilizando un cursor multiple para el _board__puntos__ y le agrego el self.bar_manager a el setUp de la clase de tests)
+(Corrijo el setUp asociando bien otras clases y se solucionan 5 errores)  
+(Se me acaba el plan, procedo a usar gemini pro)
+
+### Utilizando Gemini
+
+YO: 
+
+Hola, podrias ayudarme a solucionar los siguientes AssertionError de los tests de pygame especificamente en la clase TestBearingOffFunctionality que es la clase para testear el bearing off a partir de el archivo de test_pygame y el de su interfaz correspondiente?
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Siguen habiendo errores y en los 3 tests es el siguiente;  AttributeError: <class 'Backgammon.Interfaces.PygameUI.BearingOffValidator'> does not have the attribute 'is_valid_bearing_off_move', Estuve revisando la clase bearing off validator pero no encontre este metodo, habras querido usar validate_bearing_off_move?
+
+BOT: (Me pasa el codigo actualizado)
+(Le corrijo un atributeError)
+
+YO:
+
+Ahora solo hay errores de TypeError, podrias correguirlos y enviarme solamente el codigo de los tests correguidos?
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+En los tres metodos correguidos esta el mismo error en el @patch, AttributeError: <class 'Backgammon.Interfaces.PygameUI.PygameUI'> does not have the attribute '_PygameUI__find_matching_dice_roll_for_bearing_off', podrias correguir esto sin modificar pygame porque funciona correctamente, correguilo en los tests directamente y enviame unicamente el codigo de los 3 tests correguidos (No de toda la clase), gracias
+
+BOT: (Me pasa el codigo actualizado)
+(Sigue fallando, vuelvo a claude.ai)
+
+### Utilizando Claude.ai
+
+YO:
+
+Podrias ayudarme a correguir los metodos que fallan de la clase de TestBearingOffFunctionality? Solo enviame los metodos actualizados, test_attempt_bearing_off_success, test_attempt_bearing_off_victory y test_bearing_off_with_remaining_moves, gracias.     
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Me devuelve el mismo AtributeError; AttributeError: 'Board' object has no attribute '_Board__puntos__'
+
+BOT: (Me pasa el codigo actualizado)
+(pasan todos los tests, hago commit)

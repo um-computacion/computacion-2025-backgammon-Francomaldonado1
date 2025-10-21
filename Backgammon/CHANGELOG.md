@@ -300,3 +300,10 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 - Se actualizan metodos en pygameUI.py dedicados a la lógica de bearing off, quedando correctamente funcionales y permitiendo ganar a un jugador.
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para seguir trabajando con la logica del bearing off y victoria.
 
+# [0.0.38] 20/10/2025
+### ADDED
+- Se agrega clase de tests TestBearingOffFunctionality para probar la lógica de bearing off.
+
+### CHANGED 
+- Se corrige test que fallaba de clase TestDoublesValidation.
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar la lógica de bearing off.
