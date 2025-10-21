@@ -504,6 +504,447 @@ class TestPygameUILogic(unittest.TestCase):
         self.assertTrue(result)
 
 
+# --- TESTS PARA BEARING OFF ---
+class TestBearingOffFunctionality(unittest.TestCase):
+    """
+    Suite de tests completa para verificar la funcionalidad de bearing off.
+    Cubre BearingOffValidator, HomeManager y la integración con PygameUI.
+    """
+    
+    def setUp(self):
+        """Configura el entorno sin interfaz gráfica."""
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
+        pygame.init()
+        with patch('pygame.display.set_mode', return_value=pygame.Surface((1600, 900))), \
+             patch('pygame.font.Font'):
+            self.ui = PygameUI()
+            # CORREGIDO: Sin el prefijo             self.bearing_off_validator = self.ui.__bearing_off_validator__
+            self.home_manager = self.ui.__home_manager__
+            self.bearing_off_validator = self.ui.__bearing_off_validator__
+            self.game_state_manager = self.ui.__game_state_manager__
+            self.bar_manager = self.ui.__bar_manager__
+            self.board = self.ui.__board__
+            self.home_manager.__home_pieces__ = {"negro": 0, "blanco": 0}
+
+    # --- Tests para BearingOffValidator.can_bear_off() ---
+    
+    def test_can_bear_off_negro_all_pieces_in_home(self):
+        """Negro debe poder hacer bearing off cuando todas sus fichas están en 19-24."""
+        # Limpiar tablero primero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+        
+        # Colocar fichas solo en home
+        self.board.__puntos__[18] = ("negro", 5)  # punto 19
+        self.board.__puntos__[19] = ("negro", 5)  # punto 20
+        self.board.__puntos__[20] = ("negro", 5)  # punto 21
+        
+        result = self.bearing_off_validator.can_bear_off("negro")
+        self.assertTrue(result)
+    
+    def test_can_bear_off_negro_pieces_outside_home(self):
+        """Negro NO debe poder hacer bearing off si tiene fichas fuera de 19-24."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[18] = ("negro", 10)  # punto 19
+        self.board.__puntos__[12] = ("negro", 5)   # punto 13 (fuera de home)
+        
+        result = self.bearing_off_validator.can_bear_off("negro")
+        self.assertFalse(result)
+    
+    def test_can_bear_off_blanco_all_pieces_in_home(self):
+        """Blanco debe poder hacer bearing off cuando todas sus fichas están en 1-6."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[0] = ("blanco", 5)  # punto 1
+        self.board.__puntos__[1] = ("blanco", 5)  # punto 2
+        self.board.__puntos__[2] = ("blanco", 5)  # punto 3
+        
+        result = self.bearing_off_validator.can_bear_off("blanco")
+        self.assertTrue(result)
+    
+    def test_can_bear_off_blanco_pieces_outside_home(self):
+        """Blanco NO debe poder hacer bearing off si tiene fichas fuera de 1-6."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[0] = ("blanco", 10)  # punto 1
+        self.board.__puntos__[10] = ("blanco", 5)  # punto 11 (fuera de home)
+        
+        result = self.bearing_off_validator.can_bear_off("blanco")
+        self.assertFalse(result)
+
+    # --- Tests para validate_bearing_off_move() ---
+    
+    def test_validate_bearing_off_negro_exact_dice(self):
+        """Negro debe poder sacar con dado exacto (ej: ficha en 23, dado 2)."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[22] = ("negro", 1)  # punto 23
+        
+        is_valid, msg = self.bearing_off_validator.validate_bearing_off_move("negro", 23, 2)
+        self.assertTrue(is_valid)
+        self.assertEqual(msg, "")
+    
+    def test_validate_bearing_off_negro_higher_dice_no_pieces_further(self):
+        """Negro debe poder sacar con dado mayor si no hay fichas más alejadas."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[22] = ("negro", 1)  # punto 23 (distancia 2)
+        
+        is_valid, msg = self.bearing_off_validator.validate_bearing_off_move("negro", 23, 5)
+        self.assertTrue(is_valid)
+    
+    def test_validate_bearing_off_negro_higher_dice_pieces_further(self):
+        """Negro NO debe poder sacar con dado mayor si hay fichas más alejadas."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[22] = ("negro", 1)  # punto 23 (distancia 2)
+        self.board.__puntos__[20] = ("negro", 1)  # punto 21 (más alejado)
+        
+        is_valid, msg = self.bearing_off_validator.validate_bearing_off_move("negro", 23, 5)
+        self.assertFalse(is_valid)
+        self.assertIn("fichas superiores", msg)
+    
+    def test_validate_bearing_off_blanco_exact_dice(self):
+        """Blanco debe poder sacar con dado exacto (ej: ficha en 3, dado 3)."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[2] = ("blanco", 1)  # punto 3
+        
+        is_valid, msg = self.bearing_off_validator.validate_bearing_off_move("blanco", 3, 3)
+        self.assertTrue(is_valid)
+        self.assertEqual(msg, "")
+    
+    def test_validate_bearing_off_blanco_higher_dice_no_pieces_further(self):
+        """Blanco debe poder sacar con dado mayor si no hay fichas más alejadas."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[2] = ("blanco", 1)  # punto 3 (distancia 3)
+        
+        is_valid, msg = self.bearing_off_validator.validate_bearing_off_move("blanco", 3, 6)
+        self.assertTrue(is_valid)
+    
+    def test_validate_bearing_off_piece_not_in_home(self):
+        """No debe permitir bearing off si la ficha no está en home."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[12] = ("negro", 1)  # punto 13 (no home)
+        
+        is_valid, msg = self.bearing_off_validator.validate_bearing_off_move("negro", 13, 2)
+        self.assertFalse(is_valid)
+        self.assertIn("cuadrante casa", msg)
+    
+    def test_validate_bearing_off_insufficient_dice(self):
+        """No debe permitir bearing off con dado menor al necesario."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[18] = ("negro", 1)  # punto 19 (distancia 6)
+        
+        is_valid, msg = self.bearing_off_validator.validate_bearing_off_move("negro", 19, 3)
+        self.assertFalse(is_valid)
+        self.assertIn("al menos dado 6", msg)
+
+    # --- Tests para _has_pieces_in_higher_positions() ---
+    
+    def test_has_pieces_in_higher_positions_negro_true(self):
+        """Verifica detección correcta de fichas más alejadas para negro."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[22] = ("negro", 1)  # punto 23
+        self.board.__puntos__[19] = ("negro", 1)  # punto 20 (más alejado)
+        
+        result = self.bearing_off_validator._has_pieces_in_higher_positions("negro", 23)
+        self.assertTrue(result)
+    
+    def test_has_pieces_in_higher_positions_negro_false(self):
+        """Negro sin fichas más alejadas."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[18] = ("negro", 1)  # punto 19 (la más alejada)
+        
+        result = self.bearing_off_validator._has_pieces_in_higher_positions("negro", 19)
+        self.assertFalse(result)
+    
+    def test_has_pieces_in_higher_positions_blanco_true(self):
+        """Verifica detección correcta de fichas más alejadas para blanco."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[2] = ("blanco", 1)  # punto 3
+        self.board.__puntos__[4] = ("blanco", 1)  # punto 5 (más alejado)
+        
+        result = self.bearing_off_validator._has_pieces_in_higher_positions("blanco", 3)
+        self.assertTrue(result)
+    
+    def test_has_pieces_in_higher_positions_blanco_false(self):
+        """Blanco sin fichas más alejadas."""
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+            
+        self.board.__puntos__[5] = ("blanco", 1)  # punto 6 (la más alejada)
+        
+        result = self.bearing_off_validator._has_pieces_in_higher_positions("blanco", 6)
+        self.assertFalse(result)
+
+    # --- Tests para HomeManager ---
+    
+    def test_home_manager_initial_state(self):
+        """Verifica estado inicial del HomeManager."""
+        self.assertEqual(self.home_manager.get_pieces_count("negro"), 0)
+        self.assertEqual(self.home_manager.get_pieces_count("blanco"), 0)
+    
+    def test_home_manager_add_piece(self):
+        """Verifica que se puedan agregar fichas a casa."""
+        self.home_manager.add_piece_to_home("negro")
+        self.assertEqual(self.home_manager.get_pieces_count("negro"), 1)
+        
+        self.home_manager.add_piece_to_home("blanco")
+        self.home_manager.add_piece_to_home("blanco")
+        self.assertEqual(self.home_manager.get_pieces_count("blanco"), 2)
+    
+    def test_home_manager_has_won_false(self):
+        """Verifica que no se detecte victoria prematura."""
+        for _ in range(14):
+            self.home_manager.add_piece_to_home("negro")
+        
+        self.assertFalse(self.home_manager.has_won("negro"))
+    
+    def test_home_manager_has_won_true(self):
+        """Verifica detección correcta de victoria."""
+        for _ in range(15):
+            self.home_manager.add_piece_to_home("negro")
+        
+        self.assertTrue(self.home_manager.has_won("negro"))
+    
+    def test_home_manager_get_state(self):
+        """Verifica que se pueda obtener el estado completo."""
+        self.home_manager.add_piece_to_home("negro")
+        self.home_manager.add_piece_to_home("blanco")
+        self.home_manager.add_piece_to_home("blanco")
+        
+        state = self.home_manager.get_home_state()
+        self.assertEqual(state, {"negro": 1, "blanco": 2})
+    
+    def test_home_manager_invalid_color_raises_error(self):
+        """Verifica que color inválido genere error."""
+        with self.assertRaises(ValueError):
+            self.home_manager.add_piece_to_home("rojo")
+
+    # --- Tests de integración para bearing off en PygameUI ---
+    
+    def test_calculate_bearing_off_dice_negro(self):
+        """Verifica cálculo correcto de dado necesario para negro."""
+        self.ui.__current_player__ = "negro"
+        
+        self.assertEqual(self.ui._PygameUI__calculate_bearing_off_dice(19), 6)
+        self.assertEqual(self.ui._PygameUI__calculate_bearing_off_dice(23), 2)
+        self.assertEqual(self.ui._PygameUI__calculate_bearing_off_dice(24), 1)
+    
+    def test_calculate_bearing_off_dice_blanco(self):
+        """Verifica cálculo correcto de dado necesario para blanco."""
+        self.ui.__current_player__ = "blanco"
+        
+        self.assertEqual(self.ui._PygameUI__calculate_bearing_off_dice(6), 6)
+        self.assertEqual(self.ui._PygameUI__calculate_bearing_off_dice(3), 3)
+        self.assertEqual(self.ui._PygameUI__calculate_bearing_off_dice(1), 1)
+    
+    def test_has_valid_bearing_off_moves_true(self):
+        """Verifica detección de movimientos válidos de bearing off."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [2, 5]
+        
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+        self.board.__puntos__[22] = ("negro", 1)  # punto 23
+        
+        result = self.ui._PygameUI__has_valid_bearing_off_moves()
+        self.assertTrue(result)
+    
+    def test_has_valid_bearing_off_moves_false(self):
+        """Verifica cuando no hay movimientos válidos de bearing off."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [1, 2]
+        
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+        self.board.__puntos__[18] = ("negro", 1)  # punto 19 (necesita dado 6)
+        
+        result = self.ui._PygameUI__has_valid_bearing_off_moves()
+        self.assertFalse(result)
+
+    def test_attempt_bearing_off_success(self):
+        """Verifica ejecución exitosa de bearing off."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [2]
+        self.ui.__selected_point__ = 23
+        
+        # Limpiar tablero - remover todas las fichas existentes
+        for i in range(1, 25):
+            estado = self.board.obtener_estado_punto(i)
+            if estado:
+                color, cantidad = estado
+                try:
+                    self.board.remover_ficha(i, cantidad)
+                except:
+                    pass
+        
+        # Colocar ficha en punto 23
+        self.board.colocar_ficha(23, "negro", 1)
+        
+        # Ejecutar
+        self.ui._PygameUI__attempt_bearing_off(23, 25)
+        
+        # Verificar
+        self.assertEqual(self.home_manager.get_pieces_count("negro"), 1)
+        self.assertEqual(len(self.ui.__available_moves__), 0)
+
+    def test_attempt_bearing_off_victory(self):
+        """Verifica detección de victoria al completar bearing off."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [1]
+        
+        # 14 fichas ya en casa
+        for _ in range(14):
+            self.home_manager.add_piece_to_home("negro")
+        
+        # Limpiar tablero - remover todas las fichas existentes
+        for i in range(1, 25):
+            estado = self.board.obtener_estado_punto(i)
+            if estado:
+                color, cantidad = estado
+                try:
+                    self.board.remover_ficha(i, cantidad)
+                except:
+                    pass
+        
+        # Colocar última ficha en punto 24
+        self.board.colocar_ficha(24, "negro", 1)
+        
+        # Ejecutar bearing off
+        self.ui._PygameUI__attempt_bearing_off(24, 25)
+        
+        # Verificar victoria
+        self.assertTrue(self.home_manager.has_won("negro"))
+        self.assertIn("GANA", self.ui.__message__)
+        
+    def test_attempt_bearing_off_wrong_dice(self):
+        """Verifica rechazo cuando no tiene el dado correcto."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [3, 5]
+        
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+        self.board.__puntos__[22] = ("negro", 1)  # punto 23 (necesita dado 2)
+        
+        self.ui._PygameUI__attempt_bearing_off(23, 25)
+        
+        self.assertIn("Necesitas dado", self.ui.__message__)
+    
+    def test_attempt_bearing_off_pieces_outside_home(self):
+        """Verifica rechazo cuando tiene fichas fuera de home."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [2]
+        
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+        self.board.__puntos__[22] = ("negro", 1)  # punto 23
+        self.board.__puntos__[12] = ("negro", 1)  # punto 13 (fuera)
+        
+        self.ui._PygameUI__attempt_bearing_off(23, 25)
+        
+        self.assertIn("fuera del cuadrante casa", self.ui.__message__)
+
+    # --- Tests de mensajes ---
+    
+    def test_attempt_piece_selection_bearing_off_message(self):
+        """Verifica mensaje cuando puede sacar ficha."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [2]
+        self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
+        
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+        self.board.__puntos__[22] = ("negro", 1)  # punto 23
+        
+        self.ui._PygameUI__attempt_piece_selection(23)
+        
+        self.assertIn("sacar", self.ui.__message__.lower())
+        self.assertIn("CASA", self.ui.__message__)
+    
+    def test_attempt_piece_selection_no_bearing_off_message(self):
+        """Verifica mensaje normal cuando no puede sacar."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [1]
+        self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
+        
+        # Limpiar tablero
+        for i in range(24):
+            self.board.__puntos__[i] = (None, 0)
+        self.board.__puntos__[18] = ("negro", 1)  # punto 19
+        
+        self.ui._PygameUI__attempt_piece_selection(19)
+        
+        self.assertIn("seleccionado", self.ui.__message__.lower())
+        self.assertNotIn("sacar", self.ui.__message__.lower())
+    
+    def test_bearing_off_with_remaining_moves(self):
+        """Verifica que después de sacar una ficha, el turno continúa si quedan dados."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [2, 5]
+        
+        # Limpiar tablero - remover todas las fichas existentes
+        for i in range(1, 25):
+            estado = self.board.obtener_estado_punto(i)
+            if estado:
+                color, cantidad = estado
+                try:
+                    self.board.remover_ficha(i, cantidad)
+                except:
+                    pass
+        
+        # Colocar 2 fichas en punto 23
+        self.board.colocar_ficha(23, "negro", 2)
+        
+        # Ejecutar bearing off (usará el dado 2)
+        self.ui._PygameUI__attempt_bearing_off(23, 25)
+        
+        # Verificar: debe quedar 1 dado (el 5)
+        self.assertEqual(len(self.ui.__available_moves__), 1)
+        self.assertEqual(self.ui.__available_moves__[0], 5)
+        self.assertIn("sacada", self.ui.__message__.lower())
+
+
 # --- TESTS PARA VALIDACIÓN DE DOBLES ---
 class TestDoublesValidation(unittest.TestCase):
     """
@@ -577,7 +1018,7 @@ class TestDoublesValidation(unittest.TestCase):
         self.ui.__available_moves__ = [3, 3, 3, 3]
         result = self.ui._PygameUI__validate_and_report_move(1, 6)
         self.assertFalse(result)
-        self.assertIn("No tienes el dado 5 disponible", self.ui.__message__)
+        self.assertIn("No tienes dado 5", self.ui.__message__)
 
 
 
