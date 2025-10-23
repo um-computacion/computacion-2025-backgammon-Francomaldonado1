@@ -179,5 +179,12 @@ Necesito que me ayudes a aplicarle los docstrings justificando brevemente los pr
 BOT: (Me pasa el codigo actualizado)
 (Hago commit)
 
+
+### Utilizando Gemini PRO
+
 YO:
 
+Buenas noches, necesito que me ayudes a agregarle docstrings breves de los principios solid que cumple cada metodo de el archivo Test_PygameUI.py, te dejo el archivo de test_CLI.py para que compares los docstrings que le hemos aplicado a este. Todo esto tenes que hacerlo sin modificar los metodos o la logica, simplemente agregando docstrings para mantener los tests funcionando y la cobertura del codigo alta, gracias. 
+
+BOT: (Me pasa el codigo actualizado)
+(Esta bien, hago commit)

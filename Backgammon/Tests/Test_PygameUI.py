@@ -15,7 +15,11 @@ from Backgammon.Core.Board import Board
 class PygameUITestBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        """Se ejecuta una vez por clase para preparar el entorno de Pygame sin pantalla."""
+        """Se ejecuta una vez por clase para preparar el entorno de Pygame sin pantalla.
+        
+        Principio SRP: Centraliza la configuración de Pygame (dummy driver)
+        para todas las suites de tests que hereden de ella.
+        """
         os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init()
 
@@ -24,6 +28,9 @@ class PygameUITestBase(unittest.TestCase):
         Se ejecuta antes de cada test. Crea una instancia de PygameUI segura,
         'parcheando' las funciones de Pygame para que el constructor se ejecute
         por completo pero sin crear una ventana real.
+        
+        Principio SRP: Aísla la creación de la instancia 'ui' para cada test,
+        evitando efectos secundarios entre pruebas y separando la configuración.
         """
         with patch('pygame.display.set_mode', return_value=pygame.Surface((1600, 900))), \
              patch('pygame.font.Font'):
@@ -33,9 +40,26 @@ class PygameUITestBase(unittest.TestCase):
 # --- CLASE BASE PARA TESTS DE PYGAMEUI ---
 # Se utiliza para centralizar la configuración y evitar código repetido.
 class TestPygameUI(unittest.TestCase):
+    """
+    Pruebas unitarias para los métodos de dibujo y cálculo de PygameUI.
+    
+    Verifica:
+        - Creación correcta de la instancia.
+        - Existencia de métodos clave (públicos y privados).
+        - Cálculos de posición de puntos en pantalla.
+        - Llamadas a funciones de dibujo (mockeadas).
+    
+    Principios SOLID verificados:
+        - SRP: Métodos de dibujo específicos (draw_checkers, draw_points).
+        - LSP: Comportamiento consistente de dibujo (puntos 1-24, stacks).
+        - DIP: La UI depende de abstracciones (Board) para obtener datos.
+    """
     @classmethod
     def setUpClass(cls):
-        """Se ejecuta una vez para preparar el entorno de Pygame sin pantalla."""
+        """Se ejecuta una vez para preparar el entorno de Pygame sin pantalla.
+        
+        Principio SRP: Centraliza la configuración de Pygame para esta suite de tests.
+        """
         os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init() # Es necesario para crear superficies
 
@@ -43,76 +67,140 @@ class TestPygameUI(unittest.TestCase):
         """
         Se ejecuta antes de cada test. Crea una instancia real de PygameUI
         con una superficie en memoria para poder probar las funciones de dibujado.
+        
+        Principio SRP: Configuración de test (crear 'ui' con superficie)
+        separada del test mismo.
         """
         self.ui = PygameUI()
         # Se asigna una superficie real para que los métodos de dibujo no fallen
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
 
     def test_draw_backgammon_board_dibuja_elementos(self):
-        """Debe poder llamar a las funciones de dibujo sin errores."""
+        """Debe poder llamar a las funciones de dibujo sin errores.
+        
+        Principio SRP: Verifica la responsabilidad única de __draw_backgammon_board
+        de orquestar el dibujo del tablero (sin fallar).
+        """
         try:
             self.ui._PygameUI__draw_backgammon_board()
         except Exception as e:
             self.fail(f"__draw_backgammon_board() falló con el error: {e}")
 
     def test_creacion_objeto(self):
-        """Debe crear correctamente una instancia de PygameUI."""
+        """Debe crear correctamente una instancia de PygameUI.
+        
+        Principio DIP: La inicialización de PygameUI crea sus dependencias
+        (Board, Dice, Managers), demostrando la composición de abstracciones.
+        """
         self.assertIsNotNone(self.ui)
         self.assertIsInstance(self.ui, PygameUI)
 
     def test_metodo_run_existe(self):
-        """Debe tener el método run."""
+        """Debe tener el método run.
+        
+        Principio ISP: Confirma la existencia de un método clave en la
+        interfaz pública de la clase.
+        """
         self.assertTrue(hasattr(self.ui, 'run'))
         self.assertTrue(callable(self.ui.run))
 
     def test_metodo_handle_events_existe(self):
-        """Debe tener el método privado __handle_events."""
+        """Debe tener el método privado __handle_events.
+        
+        Principio ISP: Confirma la existencia de un método en la
+        interfaz interna de la clase.
+        """
         self.assertTrue(hasattr(self.ui, '_PygameUI__handle_events'))
 
     def test_metodo_update_existe(self):
-        """Debe tener el método privado __update."""
+        """Debe tener el método privado __update.
+        
+        Principio ISP: Confirma la existencia de un método en la
+        interfaz interna de la clase.
+        """
         self.assertTrue(hasattr(self.ui, '_PygameUI__update'))
 
     def test_metodo_draw_existe(self):
-        """Debe tener el método privado __draw."""
+        """Debe tener el método privado __draw.
+        
+        Principio ISP: Confirma la existencia de un método en la
+        interfaz interna de la clase.
+        """
         self.assertTrue(hasattr(self.ui, '_PygameUI__draw'))
 
     def test_metodo_draw_backgammon_board_existe(self):
-        """Debe tener el método privado __draw_backgammon_board."""
+        """Debe tener el método privado __draw_backgammon_board.
+        
+        Principio ISP: Confirma la existencia de un método en la
+        interfaz interna de la clase.
+        """
         self.assertTrue(hasattr(self.ui, '_PygameUI__draw_backgammon_board'))
 
     def test_metodo_draw_points_existe(self):
-        """Debe tener el método privado __draw_points."""
+        """Debe tener el método privado __draw_points.
+        
+        Principio ISP: Confirma la existencia de un método en la
+        interfaz interna de la clase.
+        """
         self.assertTrue(hasattr(self.ui, '_PygameUI__draw_points'))
 
     def test_metodo_draw_triangle_point_existe(self):
-        """Debe tener el método privado __draw_triangle_point."""
+        """Debe tener el método privado __draw_triangle_point.
+        
+        Principio ISP: Confirma la existencia de un método en la
+        interfaz interna de la clase.
+        """
         self.assertTrue(hasattr(self.ui, '_PygameUI__draw_triangle_point'))
 
     def test_metodo_draw_checkers_existe(self):
-        """Debe tener el método privado __draw_checkers."""
+        """Debe tener el método privado __draw_checkers.
+        
+        Principio ISP: Confirma la existencia de un método en la
+        interfaz interna de la clase.
+        """
         self.assertTrue(hasattr(self.ui, '_PygameUI__draw_checkers'))
 
     def test_metodo_get_point_screen_position_existe(self):
-        """Debe tener el método privado __get_point_screen_position."""
+        """Debe tener el método privado __get_point_screen_position.
+        
+        Principio ISP: Confirma la existencia de un método en la
+        interfaz interna de la clase.
+        """
         self.assertTrue(hasattr(self.ui, '_PygameUI__get_point_screen_position'))
 
     def test_metodo_draw_checker_stack_existe(self):
-        """Debe tener el método privado __draw_checker_stack."""
+        """Debe tener el método privado __draw_checker_stack.
+        
+        Principio ISP: Confirma la existencia de un método en la
+        interfaz interna de la clase.
+        """
         self.assertTrue(hasattr(self.ui, '_PygameUI__draw_checker_stack'))
 
     def test_inicializacion_con_dimensiones_default(self):
-        """Debe inicializarse con dimensiones por defecto."""
+        """Debe inicializarse con dimensiones por defecto.
+        
+        Principio LSP: El constructor se comporta correctamente (no falla)
+        cuando se le llama sin parámetros opcionales.
+        """
         ui_default = PygameUI()
         self.assertIsNotNone(ui_default)
 
     def test_inicializacion_con_dimensiones_custom(self):
-        """Debe inicializarse con dimensiones personalizadas."""
+        """Debe inicializarse con dimensiones personalizadas.
+        
+        Principio LSP: El constructor se comporta correctamente (no falla)
+        cuando se le proporcionan parámetros opcionales.
+        """
         ui_custom = PygameUI(board_width=1920, board_height=1080)
         self.assertIsNotNone(ui_custom)
 
     def test_posicion_punto_1_en_rango_valido(self):
-        """El punto 1 debe tener una posición válida."""
+        """El punto 1 debe tener una posición válida.
+        
+        Principio LSP: Verifica que el cálculo de posición
+        (__get_point_screen_position) produce un resultado válido y
+        consistente para un punto específico.
+        """
         x, y = self.ui._PygameUI__get_point_screen_position(1)
         self.assertIsInstance(x, int)
         self.assertIsInstance(y, int)
@@ -122,7 +210,11 @@ class TestPygameUI(unittest.TestCase):
         self.assertLess(y, 900)
 
     def test_posicion_punto_24_en_rango_valido(self):
-        """El punto 24 debe tener una posición válida."""
+        """El punto 24 debe tener una posición válida.
+        
+        Principio LSP: Verifica la consistencia del cálculo de posición
+        para un caso límite (punto 24).
+        """
         x, y = self.ui._PygameUI__get_point_screen_position(24)
         self.assertIsInstance(x, int)
         self.assertIsInstance(y, int)
@@ -132,7 +224,11 @@ class TestPygameUI(unittest.TestCase):
         self.assertLess(y, 900)
 
     def test_todas_las_posiciones_puntos_validas(self):
-        """Todos los puntos 1-24 deben tener posiciones válidas."""
+        """Todos los puntos 1-24 deben tener posiciones válidas.
+        
+        Principio LSP: Verifica la consistencia del cálculo de posición
+        para todo el rango de entradas válidas (1-24).
+        """
         for punto in range(1, 25):
             x, y = self.ui._PygameUI__get_point_screen_position(punto)
             self.assertIsInstance(x, int, f"X del punto {punto} no es entero")
@@ -143,7 +239,11 @@ class TestPygameUI(unittest.TestCase):
             self.assertLess(y, 900, f"Y del punto {punto} fuera de pantalla: {y}")
 
     def test_cuadrantes_puntos_correctos(self):
-        """Los puntos deben estar en sus cuadrantes correctos."""
+        """Los puntos deben estar en sus cuadrantes correctos.
+        
+        Principio LSP: Verifica la consistencia del cálculo de posiciones
+        para todos los cuadrantes del tablero.
+        """
         # Puntos 1-6: cuadrante superior derecho
         for punto in range(1, 7):
             x, y = self.ui._PygameUI__get_point_screen_position(punto)
@@ -170,7 +270,11 @@ class TestPygameUI(unittest.TestCase):
 
     @patch("pygame.draw.polygon")
     def test_draw_triangle_point_hacia_abajo(self, mock_polygon):
-        """Debe dibujar triángulos apuntando hacia abajo."""
+        """Debe dibujar triángulos apuntando hacia abajo.
+        
+        Principio SRP: Verifica la responsabilidad única de __draw_triangle_point
+        de dibujar un triángulo en una dirección específica.
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
         self.ui._PygameUI__draw_triangle_point(100, 100, 50, 100, (255, 0, 0), pointing_down=True)
         self.assertTrue(mock_polygon.called)
@@ -178,7 +282,11 @@ class TestPygameUI(unittest.TestCase):
 
     @patch("pygame.draw.polygon")
     def test_draw_triangle_point_hacia_arriba(self, mock_polygon):
-        """Debe dibujar triángulos apuntando hacia arriba."""
+        """Debe dibujar triángulos apuntando hacia arriba.
+        
+        Principio SRP: Verifica la responsabilidad única de __draw_triangle_point
+        de dibujar un triángulo en la dirección opuesta.
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
         self.ui._PygameUI__draw_triangle_point(100, 100, 50, 100, (0, 255, 0), pointing_down=False)
         self.assertTrue(mock_polygon.called)
@@ -186,7 +294,11 @@ class TestPygameUI(unittest.TestCase):
 
     @patch("pygame.draw.circle")
     def test_draw_checker_stack_fichas_blancas(self, mock_circle):
-        """Debe dibujar stack de fichas blancas."""
+        """Debe dibujar stack de fichas blancas.
+        
+        Principio LSP: El método __draw_checker_stack se comporta
+        consistentemente para diferentes colores (blanco).
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
         self.ui._PygameUI__draw_checker_stack(400, 300, "blanco", 3, 6, 25)
         # 3 fichas + 3 bordes = 6 llamadas
@@ -194,7 +306,11 @@ class TestPygameUI(unittest.TestCase):
 
     @patch("pygame.draw.circle")
     def test_draw_checker_stack_fichas_negras(self, mock_circle):
-        """Debe dibujar stack de fichas negras."""
+        """Debe dibujar stack de fichas negras.
+        
+        Principio LSP: El método __draw_checker_stack se comporta
+        consistentemente para diferentes colores (negro).
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
         self.ui._PygameUI__draw_checker_stack(400, 300, "negro", 2, 19, 25)
         # 2 fichas + 2 bordes = 4 llamadas
@@ -202,7 +318,11 @@ class TestPygameUI(unittest.TestCase):
 
     @patch("pygame.draw.circle")
     def test_draw_checker_stack_limite_fichas_visibles(self, mock_circle):
-        """No debe dibujar más de 10 fichas visibles."""
+        """No debe dibujar más de 10 fichas visibles.
+        
+        Principio LSP: El método __draw_checker_stack maneja
+        consistentemente un caso límite (más de 10 fichas).
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
         self.ui._PygameUI__draw_checker_stack(400, 300, "blanco", 15, 13, 25)
         # Máximo 10 fichas + 10 bordes = 20 llamadas
@@ -210,7 +330,11 @@ class TestPygameUI(unittest.TestCase):
 
     @patch("pygame.draw.rect")
     def test_draw_backgammon_board_dibuja_elementos(self, mock_rect):
-        """Debe dibujar el fondo del tablero y la barra."""
+        """Debe dibujar el fondo del tablero y la barra.
+        
+        Principio SRP: Verifica que el método __draw_backgammon_board cumple
+        su responsabilidad de dibujar los componentes base.
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
         self.ui._PygameUI__draw_backgammon_board()
         # Al menos 2 rectángulos: fondo del tablero + barra
@@ -218,14 +342,22 @@ class TestPygameUI(unittest.TestCase):
 
     @patch("pygame.draw.polygon")
     def test_draw_points_dibuja_24_triangulos(self, mock_polygon):
-        """Debe dibujar los 24 triángulos del tablero."""
+        """Debe dibujar los 24 triángulos del tablero.
+        
+        Principio SRP: Verifica la responsabilidad única de __draw_points de
+        dibujar todos los triángulos.
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
         self.ui._PygameUI__draw_points()
         # 24 triángulos × 2 (relleno + borde) = 48 llamadas
         self.assertEqual(mock_polygon.call_count, 48)
 
     def test_draw_checkers_no_falla_con_board_real(self):
-        """El método draw_checkers debe funcionar con el board real."""
+        """El método draw_checkers debe funcionar con el board real.
+        
+        Principio DIP: El método __draw_checkers opera correctamente sobre
+        la abstracción del Board, leyendo su estado para dibujar.
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
         try:
             self.ui._PygameUI__draw_checkers()
@@ -234,20 +366,32 @@ class TestPygameUI(unittest.TestCase):
 
     @patch("pygame.display.flip")
     def test_draw_llama_display_flip(self, mock_flip):
-        """El método draw debe llamar a pygame.display.flip."""
+        """El método draw debe llamar a pygame.display.flip.
+        
+        Principio SRP: Confirma que la responsabilidad final de __draw es
+        actualizar la pantalla (llamar a flip).
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
         self.ui._PygameUI__draw()
         mock_flip.assert_called_once()
 
     def test_update_metodo_ejecutable(self):
-        """El método __update debe ser ejecutable sin errores."""
+        """El método __update debe ser ejecutable sin errores.
+        
+        Principio LSP: El método se comporta de forma estable (no falla)
+        en un estado base o vacío.
+        """
         try:
             self.ui._PygameUI__update()
         except Exception as e:
             self.fail(f"Método __update falló: {e}")
 
     def test_handle_events_sin_eventos(self):
-        """Handle events debe funcionar sin eventos."""
+        """Handle events debe funcionar sin eventos.
+        
+        Principio LSP: El método se comporta de forma estable (no falla)
+        cuando la lista de eventos está vacía.
+        """
         with patch("pygame.event.get", return_value=[]):
             try:
                 self.ui._PygameUI__handle_events()
@@ -255,7 +399,11 @@ class TestPygameUI(unittest.TestCase):
                 self.fail(f"__handle_events falló sin eventos: {e}")
 
     def test_draw_metodo_completo_ejecutable(self):
-        """El método __draw completo debe ser ejecutable."""
+        """El método __draw completo debe ser ejecutable.
+        
+        Principio SRP: Verifica que el método principal de orquestación
+        de dibujo (__draw) puede ejecutar todas sus sub-responsabilidades.
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
         try:
             self.ui._PygameUI__draw()
@@ -263,7 +411,11 @@ class TestPygameUI(unittest.TestCase):
             self.fail(f"Método __draw completo falló: {e}")
 
     def test_puntos_extremos_posicionamiento_correcto(self):
-        """Los puntos en las esquinas deben estar correctamente posicionados."""
+        """Los puntos en las esquinas deben estar correctamente posicionados.
+        
+        Principio LSP: Verifica la consistencia del cálculo de posiciones
+        en los casos extremos (esquinas).
+        """
         # Punto 1: esquina superior derecha
         x1, y1 = self.ui._PygameUI__get_point_screen_position(1)
 
@@ -283,7 +435,11 @@ class TestPygameUI(unittest.TestCase):
         self.assertLess(y12, y13, "Punto 12 debe estar más arriba que punto 13")
 
     def test_draw_triangle_parametros_validos(self):
-        """Los parámetros del triángulo deben ser manejados correctamente."""
+        """Los parámetros del triángulo deben ser manejados correctamente.
+        
+        Principio LSP: El método de dibujo es robusto y se comporta
+        consistentemente con diferentes parámetros de entrada válidos.
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
 
         # Test con diferentes parámetros válidos
@@ -300,7 +456,11 @@ class TestPygameUI(unittest.TestCase):
                 self.fail(f"Error con parámetros ({x}, {y}, {width}, {height}, {color}, {pointing_down}): {e}")
 
     def test_direccion_apilamiento_fichas(self):
-        """Las fichas deben apilarse en la dirección correcta según el punto."""
+        """Las fichas deben apilarse en la dirección correcta según el punto.
+        
+        Principio LSP: Verifica que __draw_checker_stack se comporta
+        correctamente (apila hacia arriba/abajo) según la posición.
+        """
         self.ui._PygameUI__screen__ = pygame.Surface((1600, 900))
 
         # Test para puntos que van hacia abajo (1-12)
@@ -316,7 +476,11 @@ class TestPygameUI(unittest.TestCase):
             self.fail(f"Error apilando hacia arriba: {e}")
 
     def test_board_instancia_es_board(self):
-        """La instancia interna debe ser de tipo Board."""
+        """La instancia interna debe ser de tipo Board.
+        
+        Principio DIP: Confirma que la UI mantiene una referencia a una abstracción
+        de tipo Board (o una clase que hereda de ella).
+        """
         # Acceder al board de manera más indirecta
         board_attr_names = [attr for attr in dir(self.ui) if 'board' in attr.lower()]
         self.assertGreater(len(board_attr_names), 0, "Debe tener al menos un atributo relacionado con board")
@@ -326,19 +490,36 @@ class TestPygameUI(unittest.TestCase):
 class TestPygameUIClickDetection(unittest.TestCase):
     """
     Suite de pruebas dedicada a verificar la correcta detección de clics en el tablero.
+    
+    Principios SOLID verificados:
+        - SRP: El método __get_point_from_mouse_pos tiene la única
+          responsabilidad de traducir coordenadas (x,y) a un número de punto.
+        - LSP: El método se comporta de forma predecible y consistente
+          en todos los cuadrantes y casos límite (barra, fuera del tablero).
     """
     @classmethod
     def setUpClass(cls):
+        """Evita que pygame intente abrir una ventana durante los tests.
+        
+        Principio SRP: Centraliza la configuración del entorno para esta suite.
+        """
         # Evita que pygame intente abrir una ventana durante los tests
         os.environ["SDL_VIDEODRIVER"] = "dummy"
 
     def setUp(self):
-        """Crea una instancia de PygameUI para cada test."""
+        """Crea una instancia de PygameUI para cada test.
+        
+        Principio SRP: Aísla la configuración de cada test.
+        """
         with patch('pygame.init'), patch('pygame.display.set_mode'), patch('pygame.font.Font'):
          self.ui = PygameUI(board_width=1600, board_height=900)
 
     def test_get_point_from_mouse_pos_top_right_quadrant(self):
-        """Prueba clics en cuadrante superior derecho (puntos 1-6)."""
+        """Prueba clics en cuadrante superior derecho (puntos 1-6).
+        
+        Principio LSP: Verifica el comportamiento consistente y correcto de
+        __get_point_from_mouse_pos en un cuadrante específico.
+        """
         # Punto 1 (más a la derecha)
         self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((1500, 100)), 1)
         # Punto 3
@@ -347,7 +528,11 @@ class TestPygameUIClickDetection(unittest.TestCase):
         self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((850, 100)), 6)
 
     def test_get_point_from_mouse_pos_top_left_quadrant(self):
-        """Prueba clics en cuadrante superior izquierdo (puntos 7-12)."""
+        """Prueba clics en cuadrante superior izquierdo (puntos 7-12).
+        
+        Principio LSP: Verifica el comportamiento consistente y correcto de
+        __get_point_from_mouse_pos en un cuadrante específico.
+        """
         # Punto 7 (más cercano a la barra)
         self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((750, 100)), 7)
         # Punto 10
@@ -356,7 +541,11 @@ class TestPygameUIClickDetection(unittest.TestCase):
         self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((100, 100)), 12)
 
     def test_get_point_from_mouse_pos_bottom_left_quadrant(self):
-        """Prueba clics en cuadrante inferior izquierdo (puntos 13-18)."""
+        """Prueba clics en cuadrante inferior izquierdo (puntos 13-18).
+        
+        Principio LSP: Verifica el comportamiento consistente y correcto de
+        __get_point_from_mouse_pos en un cuadrante específico.
+        """
         # Punto 13 (más a la izquierda)
         self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((100, 800)), 13)
         # Punto 15
@@ -365,7 +554,11 @@ class TestPygameUIClickDetection(unittest.TestCase):
         self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((700, 800)), 18)
 
     def test_get_point_from_mouse_pos_bottom_right_quadrant(self):
-        """Prueba clics en cuadrante inferior derecho (puntos 19-24)."""
+        """Prueba clics en cuadrante inferior derecho (puntos 19-24).
+        
+        Principio LSP: Verifica el comportamiento consistente y correcto de
+        __get_point_from_mouse_pos en un cuadrante específico.
+        """
         # Punto 19 (más cercano a la barra)
         self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((850, 800)), 19)
         # Punto 21
@@ -374,7 +567,11 @@ class TestPygameUIClickDetection(unittest.TestCase):
         self.assertEqual(self.ui._PygameUI__get_point_from_mouse_pos((1500, 800)), 24)
 
     def test_get_point_from_mouse_pos_invalid_clicks(self):
-        """Prueba que los clics fuera de las áreas de los puntos devuelven None."""
+        """Prueba que los clics fuera de las áreas de los puntos devuelven None o 0 (barra).
+        
+        Principio LSP: Verifica el comportamiento consistente del método en
+        casos límite (fuera del tablero, barra).
+        """
         # Click en el margen izquierdo
         self.assertIsNone(self.ui._PygameUI__get_point_from_mouse_pos((25, 450)))
         # Click en el margen superior
@@ -390,10 +587,18 @@ class TestPygameUILogic(unittest.TestCase):
     """
     Suite de pruebas para la lógica del juego (tiradas, selección, validación),
     sin depender de la renderización en pantalla.
+    
+    Principios SOLID verificados:
+        - DIP: La UI (alto nivel) delega la validación y ejecución
+          de movimientos a las abstracciones del Core (Board, Dice).
+        - SRP: Cada test verifica una responsabilidad lógica
+          específica (tirar dados, seleccionar, validar).
     """
     def setUp(self):
         """
         Se ejecuta antes de cada test. Inicializa PygameUI de forma segura.
+        
+        Principio SRP: Aísla la configuración (instancia de UI) para cada test.
         """
         with patch('pygame.init'), \
              patch('pygame.display.set_mode'), \
@@ -402,7 +607,11 @@ class TestPygameUILogic(unittest.TestCase):
 
     # --- Helper Method ---
     def _simulate_click_on_point(self, point_number: int):
-        """Helper para simular un evento de clic del ratón."""
+        """Helper para simular un evento de clic del ratón.
+        
+        Principio SRP: Encapsula la lógica de simulación de clics,
+        reduciendo duplicación en los tests (principio DRY).
+        """
         self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
         self.ui.__current_player__ = "negro"
         with patch.object(self.ui, '_PygameUI__get_point_from_mouse_pos', return_value=point_number):
@@ -416,7 +625,11 @@ class TestPygameUILogic(unittest.TestCase):
     @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
     def test_roll_to_start_negro_wins(self, mock_dado2, mock_dado1, mock_tirar):
-        """Verifica que 'negro' gana la tirada inicial con un dado más alto."""
+        """Verifica que 'negro' gana la tirada inicial con un dado más alto.
+        
+        Principio DIP: La UI coordina la tirada, pero la lógica de 'tirar'
+        y 'obtener_dado' reside en la abstracción (Mock) de Dice.
+        """
         mock_dado1.return_value = 5
         mock_dado2.return_value = 3
         self.ui._PygameUI__roll_to_start()
@@ -426,7 +639,11 @@ class TestPygameUILogic(unittest.TestCase):
     @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
     def test_roll_to_start_blanco_wins(self, mock_dado2, mock_dado1, mock_tirar):
-        """Verifica que 'blanco' gana la tirada inicial con un dado más alto."""
+        """Verifica que 'blanco' gana la tirada inicial con un dado más alto.
+        
+        Principio DIP: La UI coordina la tirada, pero la lógica de 'tirar'
+        y 'obtener_dado' reside en la abstracción (Mock) de Dice.
+        """
         mock_dado1.return_value = 2
         mock_dado2.return_value = 6
         self.ui._PygameUI__roll_to_start()
@@ -436,7 +653,11 @@ class TestPygameUILogic(unittest.TestCase):
     @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
     def test_roll_to_start_handles_tie(self, mock_dado2, mock_dado1, mock_tirar):
-        """Verifica que el método vuelve a tirar los dados si ocurre un empate."""
+        """Verifica que el método vuelve a tirar los dados si ocurre un empate.
+        
+        Principio LSP: El método __roll_to_start maneja consistentemente
+        el caso de un empate (un estado de entrada diferente).
+        """
         mock_dado1.side_effect = [4, 6]
         mock_dado2.side_effect = [4, 1]
         self.ui._PygameUI__roll_to_start()
@@ -445,13 +666,21 @@ class TestPygameUILogic(unittest.TestCase):
 
     # --- Tests para Selección y Validación de Movimientos ---
     def test_select_valid_piece(self):
-        """Verifica que se puede seleccionar un punto con fichas propias."""
+        """Verifica que se puede seleccionar un punto con fichas propias.
+        
+        Principio DIP: La UI interactúa con la abstracción del Board
+        para validar la propiedad de la ficha antes de seleccionarla.
+        """
         self.ui.__board__.colocar_ficha(1, "negro", 1)
         self._simulate_click_on_point(1)
         self.assertEqual(self.ui.__selected_point__, 1)
 
     def test_validate_move_valid(self):
-        """Verifica que la UI reporta correctamente un movimiento válido."""
+        """Verifica que la UI reporta correctamente un movimiento válido.
+        
+        Principio DIP: La UI delega la validación del movimiento
+        (__validate_and_report_move) a las reglas del Board y managers.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [4]
         self.ui.__board__.colocar_ficha(19, "negro", 1)
@@ -461,7 +690,11 @@ class TestPygameUILogic(unittest.TestCase):
         self.assertTrue(result)
 
     def test_validate_move_invalid_blocked(self):
-        """Verifica que la UI reporta correctamente un movimiento a un punto bloqueado."""
+        """Verifica que la UI reporta correctamente un movimiento a un punto bloqueado.
+        
+        Principio DIP: La UI delega la validación de bloqueo
+        a los componentes del Core (Board, CaptureValidator).
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [4]
         self.ui.__board__.colocar_ficha(19, "negro", 1)
@@ -470,7 +703,11 @@ class TestPygameUILogic(unittest.TestCase):
         self.assertFalse(result)
 
     def test_move_direction_negro_valid(self):
-        """Verifica que el jugador negro PUEDE mover hacia números mayores."""
+        """Verifica que el jugador negro PUEDE mover hacia números mayores.
+        
+        Principio LSP: Confirma que la lógica de validación de dirección
+        es consistente para el jugador 'negro'.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [2]
         self.ui.__board__.colocar_ficha(1, "negro", 1)
@@ -478,7 +715,11 @@ class TestPygameUILogic(unittest.TestCase):
         self.assertTrue(result)
 
     def test_move_direction_blanco_valid(self):
-        """Verifica que el jugador blanco PUEDE mover hacia números menores."""
+        """Verifica que el jugador blanco PUEDE mover hacia números menores.
+        
+        Principio LSP: Confirma que la lógica de validación de dirección
+        es consistente para el jugador 'blanco'.
+        """
         self.ui.__current_player__ = "blanco"
         self.ui.__available_moves__ = [2]
         self.ui.__board__.colocar_ficha(24, "blanco", 1)
@@ -486,7 +727,11 @@ class TestPygameUILogic(unittest.TestCase):
         self.assertTrue(result)
 
     def test_move_direction_negro_edge_cases(self):
-        """Tests adicionales para casos límite del jugador negro."""
+        """Tests adicionales para casos límite del jugador negro.
+        
+        Principio LSP: Verifica la consistencia de la validación
+        en un caso límite (cruce de cuadrante) para 'negro'.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [6]
         self.ui.__board__.colocar_ficha(1, "negro", 1)
@@ -494,7 +739,11 @@ class TestPygameUILogic(unittest.TestCase):
         self.assertTrue(result)
 
     def test_move_direction_blanco_edge_cases(self):
-        """Tests adicionales para casos límite del jugador blanco."""
+        """Tests adicionales para casos límite del jugador blanco.
+        
+        Principio LSP: Verifica la consistencia de la validación
+        en un caso límite (cruce de cuadrante) para 'blanco'.
+        """
         self.ui.__current_player__ = "blanco"
         self.ui.__available_moves__ = [6]
         self.ui.__board__.colocar_ficha(24, "blanco", 1)
@@ -509,10 +758,20 @@ class TestBearingOffFunctionality(unittest.TestCase):
     """
     Suite de tests completa para verificar la funcionalidad de bearing off.
     Cubre BearingOffValidator, HomeManager y la integración con PygameUI.
+    
+    Principios SOLID verificados:
+        - SRP: Cada clase (BearingOffValidator, HomeManager) tiene una
+          única responsabilidad. Este test las verifica por separado.
+        - DIP: PygameUI depende de las abstracciones de estos
+          managers, no implementa la lógica de 'bearing off' en sí misma.
     """
     
     def setUp(self):
-        """Configura el entorno sin interfaz gráfica."""
+        """Configura el entorno sin interfaz gráfica.
+        
+        Principio SRP: Centraliza la configuración e inicialización de los
+        componentes bajo prueba (UI, managers, board).
+        """
         os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init()
         with patch('pygame.display.set_mode', return_value=pygame.Surface((1600, 900))), \
@@ -529,7 +788,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
     # --- Tests para BearingOffValidator.can_bear_off() ---
     
     def test_can_bear_off_negro_all_pieces_in_home(self):
-        """Negro debe poder hacer bearing off cuando todas sus fichas están en 19-24."""
+        """Negro debe poder hacer bearing off cuando todas sus fichas están en 19-24.
+        
+        Principio SRP: Verifica la responsabilidad única de BearingOffValidator
+        de determinar si el 'bearing off' está permitido (caso 'negro' válido).
+        """
         # Limpiar tablero primero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -543,7 +806,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertTrue(result)
     
     def test_can_bear_off_negro_pieces_outside_home(self):
-        """Negro NO debe poder hacer bearing off si tiene fichas fuera de 19-24."""
+        """Negro NO debe poder hacer bearing off si tiene fichas fuera de 19-24.
+        
+        Principio SRP: Verifica la responsabilidad única de BearingOffValidator
+        (caso 'negro' inválido).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -555,7 +822,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertFalse(result)
     
     def test_can_bear_off_blanco_all_pieces_in_home(self):
-        """Blanco debe poder hacer bearing off cuando todas sus fichas están en 1-6."""
+        """Blanco debe poder hacer bearing off cuando todas sus fichas están en 1-6.
+        
+        Principio SRP: Verifica la responsabilidad única de BearingOffValidator
+        (caso 'blanco' válido).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -568,7 +839,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertTrue(result)
     
     def test_can_bear_off_blanco_pieces_outside_home(self):
-        """Blanco NO debe poder hacer bearing off si tiene fichas fuera de 1-6."""
+        """Blanco NO debe poder hacer bearing off si tiene fichas fuera de 1-6.
+        
+        Principio SRP: Verifica la responsabilidad única de BearingOffValidator
+        (caso 'blanco' inválido).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -582,7 +857,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
     # --- Tests para validate_bearing_off_move() ---
     
     def test_validate_bearing_off_negro_exact_dice(self):
-        """Negro debe poder sacar con dado exacto (ej: ficha en 23, dado 2)."""
+        """Negro debe poder sacar con dado exacto (ej: ficha en 23, dado 2).
+        
+        Principio SRP: Verifica la responsabilidad de BearingOffValidator
+        de validar un intento de 'bearing off' (caso dado exacto).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -594,7 +873,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertEqual(msg, "")
     
     def test_validate_bearing_off_negro_higher_dice_no_pieces_further(self):
-        """Negro debe poder sacar con dado mayor si no hay fichas más alejadas."""
+        """Negro debe poder sacar con dado mayor si no hay fichas más alejadas.
+        
+        Principio SRP: Verifica la lógica de 'bearing off'
+        (caso dado mayor, sin fichas más lejanas).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -605,7 +888,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertTrue(is_valid)
     
     def test_validate_bearing_off_negro_higher_dice_pieces_further(self):
-        """Negro NO debe poder sacar con dado mayor si hay fichas más alejadas."""
+        """Negro NO debe poder sacar con dado mayor si hay fichas más alejadas.
+        
+        Principio SRP: Verifica la lógica de 'bearing off'
+        (caso dado mayor, CON fichas más lejanas).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -618,7 +905,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertIn("fichas superiores", msg)
     
     def test_validate_bearing_off_blanco_exact_dice(self):
-        """Blanco debe poder sacar con dado exacto (ej: ficha en 3, dado 3)."""
+        """Blanco debe poder sacar con dado exacto (ej: ficha en 3, dado 3).
+        
+        Principio SRP: Verifica la lógica de 'bearing off'
+        (caso 'blanco', dado exacto).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -630,7 +921,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertEqual(msg, "")
     
     def test_validate_bearing_off_blanco_higher_dice_no_pieces_further(self):
-        """Blanco debe poder sacar con dado mayor si no hay fichas más alejadas."""
+        """Blanco debe poder sacar con dado mayor si no hay fichas más alejadas.
+        
+        Principio SRP: Verifica la lógica de 'bearing off'
+        (caso 'blanco', dado mayor, sin fichas lejanas).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -641,7 +936,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertTrue(is_valid)
     
     def test_validate_bearing_off_piece_not_in_home(self):
-        """No debe permitir bearing off si la ficha no está en home."""
+        """No debe permitir bearing off si la ficha no está en home.
+        
+        Principio SRP: Verifica la validación de 'bearing off'
+        (caso ficha fuera de 'home').
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -653,7 +952,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertIn("cuadrante casa", msg)
     
     def test_validate_bearing_off_insufficient_dice(self):
-        """No debe permitir bearing off con dado menor al necesario."""
+        """No debe permitir bearing off con dado menor al necesario.
+        
+        Principio SRP: Verifica la validación de 'bearing off'
+        (caso dado insuficiente).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -667,7 +970,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
     # --- Tests para _has_pieces_in_higher_positions() ---
     
     def test_has_pieces_in_higher_positions_negro_true(self):
-        """Verifica detección correcta de fichas más alejadas para negro."""
+        """Verifica detección correcta de fichas más alejadas para negro.
+        
+        Principio SRP: Prueba una sub-responsabilidad (método helper)
+        de BearingOffValidator, asegurando su lógica interna.
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -679,7 +986,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertTrue(result)
     
     def test_has_pieces_in_higher_positions_negro_false(self):
-        """Negro sin fichas más alejadas."""
+        """Negro sin fichas más alejadas.
+        
+        Principio SRP: Prueba un método helper de BearingOffValidator
+        (caso negativo).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -690,7 +1001,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertFalse(result)
     
     def test_has_pieces_in_higher_positions_blanco_true(self):
-        """Verifica detección correcta de fichas más alejadas para blanco."""
+        """Verifica detección correcta de fichas más alejadas para blanco.
+        
+        Principio SRP: Prueba un método helper de BearingOffValidator
+        (caso 'blanco', positivo).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -702,7 +1017,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertTrue(result)
     
     def test_has_pieces_in_higher_positions_blanco_false(self):
-        """Blanco sin fichas más alejadas."""
+        """Blanco sin fichas más alejadas.
+        
+        Principio SRP: Prueba un método helper de BearingOffValidator
+        (caso 'blanco', negativo).
+        """
         # Limpiar tablero
         for i in range(24):
             self.board.__puntos__[i] = (None, 0)
@@ -715,12 +1034,20 @@ class TestBearingOffFunctionality(unittest.TestCase):
     # --- Tests para HomeManager ---
     
     def test_home_manager_initial_state(self):
-        """Verifica estado inicial del HomeManager."""
+        """Verifica estado inicial del HomeManager.
+        
+        Principio SRP: Verifica la responsabilidad única de HomeManager
+        de rastrear el estado de 'casa' (estado inicial).
+        """
         self.assertEqual(self.home_manager.get_pieces_count("negro"), 0)
         self.assertEqual(self.home_manager.get_pieces_count("blanco"), 0)
     
     def test_home_manager_add_piece(self):
-        """Verifica que se puedan agregar fichas a casa."""
+        """Verifica que se puedan agregar fichas a casa.
+        
+        Principio SRP: Verifica la responsabilidad de HomeManager
+        de agregar fichas a 'casa'.
+        """
         self.home_manager.add_piece_to_home("negro")
         self.assertEqual(self.home_manager.get_pieces_count("negro"), 1)
         
@@ -729,21 +1056,33 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertEqual(self.home_manager.get_pieces_count("blanco"), 2)
     
     def test_home_manager_has_won_false(self):
-        """Verifica que no se detecte victoria prematura."""
+        """Verifica que no se detecte victoria prematura.
+        
+        Principio SRP: Verifica la responsabilidad de HomeManager
+        de determinar la victoria (caso negativo).
+        """
         for _ in range(14):
             self.home_manager.add_piece_to_home("negro")
         
         self.assertFalse(self.home_manager.has_won("negro"))
     
     def test_home_manager_has_won_true(self):
-        """Verifica detección correcta de victoria."""
+        """Verifica detección correcta de victoria.
+        
+        Principio SRP: Verifica la responsabilidad de HomeManager
+        de determinar la victoria (caso positivo).
+        """
         for _ in range(15):
             self.home_manager.add_piece_to_home("negro")
         
         self.assertTrue(self.home_manager.has_won("negro"))
     
     def test_home_manager_get_state(self):
-        """Verifica que se pueda obtener el estado completo."""
+        """Verifica que se pueda obtener el estado completo.
+        
+        Principio SRP: Verifica la responsabilidad de HomeManager
+        de reportar su estado.
+        """
         self.home_manager.add_piece_to_home("negro")
         self.home_manager.add_piece_to_home("blanco")
         self.home_manager.add_piece_to_home("blanco")
@@ -752,14 +1091,22 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertEqual(state, {"negro": 1, "blanco": 2})
     
     def test_home_manager_invalid_color_raises_error(self):
-        """Verifica que color inválido genere error."""
+        """Verifica que color inválido genere error.
+        
+        Principio LSP: El HomeManager maneja correctamente
+        entradas inválidas (lanzando excepción).
+        """
         with self.assertRaises(ValueError):
             self.home_manager.add_piece_to_home("rojo")
 
     # --- Tests de integración para bearing off en PygameUI ---
     
     def test_calculate_bearing_off_dice_negro(self):
-        """Verifica cálculo correcto de dado necesario para negro."""
+        """Verifica cálculo correcto de dado necesario para negro.
+        
+        Principio SRP: Prueba la responsabilidad de PygameUI de *calcular*
+        el dado necesario para un movimiento de 'bearing off'.
+        """
         self.ui.__current_player__ = "negro"
         
         self.assertEqual(self.ui._PygameUI__calculate_bearing_off_dice(19), 6)
@@ -767,7 +1114,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertEqual(self.ui._PygameUI__calculate_bearing_off_dice(24), 1)
     
     def test_calculate_bearing_off_dice_blanco(self):
-        """Verifica cálculo correcto de dado necesario para blanco."""
+        """Verifica cálculo correcto de dado necesario para blanco.
+        
+        Principio SRP: Prueba la responsabilidad de PygameUI de *calcular*
+        el dado necesario (caso 'blanco').
+        """
         self.ui.__current_player__ = "blanco"
         
         self.assertEqual(self.ui._PygameUI__calculate_bearing_off_dice(6), 6)
@@ -775,7 +1126,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertEqual(self.ui._PygameUI__calculate_bearing_off_dice(1), 1)
     
     def test_has_valid_bearing_off_moves_true(self):
-        """Verifica detección de movimientos válidos de bearing off."""
+        """Verifica detección de movimientos válidos de bearing off.
+        
+        Principio DIP: La UI coordina, preguntando a la abstracción
+        BearingOffValidator si existen movimientos válidos.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [2, 5]
         
@@ -788,7 +1143,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertTrue(result)
     
     def test_has_valid_bearing_off_moves_false(self):
-        """Verifica cuando no hay movimientos válidos de bearing off."""
+        """Verifica cuando no hay movimientos válidos de bearing off.
+        
+        Principio DIP: La UI coordina, preguntando al Validator
+        (caso negativo).
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [1, 2]
         
@@ -801,7 +1160,12 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertFalse(result)
 
     def test_attempt_bearing_off_success(self):
-        """Verifica ejecución exitosa de bearing off."""
+        """Verifica ejecución exitosa de bearing off.
+        
+        Principio DIP: La UI (alto nivel) orquesta el 'bearing off',
+        dependiendo de las abstracciones (Board, HomeManager, Validator)
+        para ejecutar y validar el estado.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [2]
         self.ui.__selected_point__ = 23
@@ -827,7 +1191,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertEqual(len(self.ui.__available_moves__), 0)
 
     def test_attempt_bearing_off_victory(self):
-        """Verifica detección de victoria al completar bearing off."""
+        """Verifica detección de victoria al completar bearing off.
+        
+        Principio DIP: La UI orquesta el movimiento y depende de
+        HomeManager para detectar la condición de victoria.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [1]
         
@@ -856,7 +1224,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertIn("GANA", self.ui.__message__)
         
     def test_attempt_bearing_off_wrong_dice(self):
-        """Verifica rechazo cuando no tiene el dado correcto."""
+        """Verifica rechazo cuando no tiene el dado correcto.
+        
+        Principio DIP: La UI delega la validación de dados
+        al BearingOffValidator.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [3, 5]
         
@@ -870,7 +1242,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertIn("Necesitas dado", self.ui.__message__)
     
     def test_attempt_bearing_off_pieces_outside_home(self):
-        """Verifica rechazo cuando tiene fichas fuera de home."""
+        """Verifica rechazo cuando tiene fichas fuera de home.
+        
+        Principio DIP: La UI delega la validación de "todas las
+        fichas en casa" al BearingOffValidator.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [2]
         
@@ -887,7 +1263,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
     # --- Tests de mensajes ---
     
     def test_attempt_piece_selection_bearing_off_message(self):
-        """Verifica mensaje cuando puede sacar ficha."""
+        """Verifica mensaje cuando puede sacar ficha.
+        
+        Principio SRP: Verifica la responsabilidad de la UI de mostrar
+        el mensaje correcto al usuario según el estado (puede sacar ficha).
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [2]
         self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
@@ -903,7 +1283,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertIn("CASA", self.ui.__message__)
     
     def test_attempt_piece_selection_no_bearing_off_message(self):
-        """Verifica mensaje normal cuando no puede sacar."""
+        """Verifica mensaje normal cuando no puede sacar.
+        
+        Principio SRP: Verifica la responsabilidad de la UI de mostrar
+        el mensaje correcto al usuario (movimiento normal).
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [1]
         self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
@@ -919,7 +1303,11 @@ class TestBearingOffFunctionality(unittest.TestCase):
         self.assertNotIn("sacar", self.ui.__message__.lower())
     
     def test_bearing_off_with_remaining_moves(self):
-        """Verifica que después de sacar una ficha, el turno continúa si quedan dados."""
+        """Verifica que después de sacar una ficha, el turno continúa si quedan dados.
+        
+        Principio LSP: El estado de la UI (dados disponibles) se actualiza
+        correctamente y de forma consistente tras un movimiento de 'bearing off'.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [2, 5]
         
@@ -949,9 +1337,19 @@ class TestBearingOffFunctionality(unittest.TestCase):
 class TestDoublesValidation(unittest.TestCase):
     """
     Suite de tests específica para validar la lógica de dobles en el Backgammon.
+    
+    Principios SOLID verificados:
+        - LSP: El sistema maneja de forma consistente un estado
+          especial (dobles) vs. un estado normal, alterando
+          correctamente el número de movimientos.
+        - DIP: La UI depende de DiceMovesCalculator (o Dice)
+          para determinar si es un doble y cuántos movimientos generar.
     """
     def setUp(self):
-        """Configura el entorno de test sin interfaz gráfica."""
+        """Configura el entorno de test sin interfaz gráfica.
+        
+        Principio SRP: Aísla la configuración del test.
+        """
         with patch('pygame.init'), \
              patch('pygame.display.set_mode'), \
              patch('pygame.font.Font'):
@@ -961,7 +1359,11 @@ class TestDoublesValidation(unittest.TestCase):
     @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
     def test_roll_doubles_generates_four_moves(self, mock_dado2, mock_dado1, mock_tirar):
-        """Verifica que al sacar dobles se generen 4 movimientos del mismo valor."""
+        """Verifica que al sacar dobles se generen 4 movimientos del mismo valor.
+        
+        Principio LSP: El método __roll_player_dice se comporta
+        correctamente (genera 4 movimientos) bajo la condición de 'dobles'.
+        """
         mock_dado1.return_value = 3
         mock_dado2.return_value = 3
         self.ui.__current_player__ = "negro"
@@ -973,7 +1375,11 @@ class TestDoublesValidation(unittest.TestCase):
     @patch('Backgammon.Core.Dice.Dice.obtener_dado1')
     @patch('Backgammon.Core.Dice.Dice.obtener_dado2')
     def test_roll_normal_generates_two_moves(self, mock_dado2, mock_dado1, mock_tirar):
-        """Verifica que al sacar dados normales se generen 2 movimientos."""
+        """Verifica que al sacar dados normales se generen 2 movimientos.
+        
+        Principio LSP: El método __roll_player_dice se comporta
+        correctamente (genera 2 movimientos) bajo una tirada normal.
+        """
         mock_dado1.return_value = 2
         mock_dado2.return_value = 5
         self.ui.__current_player__ = "negro"
@@ -982,7 +1388,11 @@ class TestDoublesValidation(unittest.TestCase):
         self.assertFalse(self.ui.__is_doubles_roll__)
 
     def test_execute_move_removes_one_die_from_doubles(self):
-        """Verifica que al ejecutar un movimiento con dobles se remueva solo un dado."""
+        """Verifica que al ejecutar un movimiento con dobles se remueva solo un dado.
+        
+        Principio LSP: El método __execute_move actualiza el estado de
+        los dados disponibles de forma consistente con las reglas de 'dobles'.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [4, 4, 4, 4]
         self.ui.__is_doubles_roll__ = True
@@ -991,7 +1401,11 @@ class TestDoublesValidation(unittest.TestCase):
         self.assertEqual(self.ui.__available_moves__, [4, 4, 4])
 
     def test_complete_all_doubles_moves_ends_turn(self):
-        """Verifica que usar todos los movimientos de dobles termine el turno."""
+        """Verifica que usar todos los movimientos de dobles termine el turno.
+        
+        Principio LSP: El sistema maneja correctamente la transición de estado
+        (fin de turno) al consumir el último movimiento de 'dobles'.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [6]
         self.ui.__is_doubles_roll__ = True
@@ -1002,7 +1416,11 @@ class TestDoublesValidation(unittest.TestCase):
         self.assertEqual(self.ui.__game_state_manager__.get_current_state(), "AWAITING_ROLL")
 
     def test_validate_doubles_move_with_available_die(self):
-        """Verifica que se pueda validar un movimiento cuando el dado está disponible en dobles."""
+        """Verifica que se pueda validar un movimiento cuando el dado está disponible en dobles.
+        
+        Principio LSP: El método de validación (__validate_and_report_move)
+        funciona consistentemente con una lista de dados de 'dobles'.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [5, 5, 5, 5]
         # Colocamos una ficha en el punto 2 (que está vacío por defecto)
@@ -1013,7 +1431,11 @@ class TestDoublesValidation(unittest.TestCase):
         self.assertTrue(result)
 
     def test_validate_doubles_move_without_available_die(self):
-        """Verifica que se rechace un movimiento cuando el dado no está disponible en dobles."""
+        """Verifica que se rechace un movimiento cuando el dado no está disponible en dobles.
+        
+        Principio LSP: El método de validación (__validate_and_report_move)
+        falla correctamente cuando el dado no está en la lista de 'dobles'.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [3, 3, 3, 3]
         result = self.ui._PygameUI__validate_and_report_move(1, 6)
@@ -1024,12 +1446,22 @@ class TestDoublesValidation(unittest.TestCase):
 
 # --- TESTS PARA VALIDACIÓN DE MOVIMIENTOS ---
 class TestMovementValidator(unittest.TestCase):
-    """Pruebas para la clase MovementValidator."""
+    """Pruebas para la clase MovementValidator.
+    
+    Principios SOLID verificados:
+        - SRP: Verifica la responsabilidad única de MovementValidator
+          de determinar si existen movimientos válidos.
+        - DIP: La UI depende de esta abstracción para saber si
+          debe saltar un turno, en lugar de calcularlo ella misma.
+    """
 
     def setUp(self):
         """
         Prepara el entorno para cada test, accediendo correctamente a los
         atributos internos del tablero.
+        
+        Principio SRP: Aísla la configuración del test, incluyendo la
+        manipulación directa del estado del board para la prueba.
         """
         os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init()
@@ -1047,7 +1479,11 @@ class TestMovementValidator(unittest.TestCase):
         self.bar_manager.bar = {"blanco": 0, "negro": 0}
 
     def test_has_no_valid_move_all_blocked(self):
-        """Verifica que detecta cuando no hay movimientos válidos en un tablero controlado."""
+        """Verifica que detecta cuando no hay movimientos válidos en un tablero controlado.
+        
+        Principio SRP: Prueba la lógica central de MovementValidator en un
+        escenario donde no hay movimientos posibles.
+        """
         # Colocamos las fichas directamente en la lista interna __puntos__.
         self.board.__puntos__[0] = ("negro", 1)
         self.board.__puntos__[3] = ("blanco", 2)
@@ -1060,10 +1496,20 @@ class TestMovementValidator(unittest.TestCase):
 
 # --- CLASE DE TESTS PARA LA FUNCIONALIDAD DE SALTAR TURNO ---
 class TestSkipTurnFunctionality(unittest.TestCase):
-    """Pruebas dedicadas a la lógica de saltar el turno."""
+    """Pruebas dedicadas a la lógica de saltar el turno.
+    
+    Principios SOLID verificados:
+        - SRP: Verifica la responsabilidad de la UI de orquestar
+          el flujo de "saltar turno" (cambiar estado, esperar confirmación).
+        - DIP: La UI depende de MovementValidator (Mockeado) para
+          tomar la decisión de iniciar el flujo de "saltar turno".
+    """
 
     def setUp(self):
-        """Configuración para cada test de esta clase."""
+        """Configuración para cada test de esta clase.
+        
+        Principio SRP: Aísla la configuración del test.
+        """
         os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init()
         with patch('pygame.display.set_mode', return_value=pygame.Surface((1600, 900))), \
@@ -1073,7 +1519,11 @@ class TestSkipTurnFunctionality(unittest.TestCase):
     @patch('Backgammon.Interfaces.PygameUI.MovementValidator.has_any_valid_move', return_value=False)
     @patch('Backgammon.Interfaces.PygameUI.Dice')
     def test_skip_turn_when_no_moves_available(self, MockDice, mock_has_move):
-        """Verifica que el estado cambia a confirmación si no hay movimientos después de tirar."""
+        """Verifica que el estado cambia a confirmación si no hay movimientos después de tirar.
+        
+        Principio DIP: La UI (__handle_roll_request) depende de
+        MovementValidator (Mockeado) para decidir el siguiente estado.
+        """
         mock_dice_instance = MockDice.return_value
         mock_dice_instance.obtener_dado1.return_value = 1
         mock_dice_instance.obtener_dado2.return_value = 2
@@ -1087,7 +1537,11 @@ class TestSkipTurnFunctionality(unittest.TestCase):
 
     @patch('pygame.event.get')
     def test_skip_turn_confirmation_ends_turn(self, mock_event_get):
-        """Verifica que confirmar el salto de turno cambia al siguiente jugador."""
+        """Verifica que confirmar el salto de turno cambia al siguiente jugador.
+        
+        Principio SRP: Prueba la responsabilidad de __handle_events de manejar
+        la entrada del usuario para confirmar el salto de turno.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__game_state_manager__.change_state('AWAITING_SKIP_CONFIRMATION')
 
@@ -1100,10 +1554,20 @@ class TestSkipTurnFunctionality(unittest.TestCase):
 
 # --- CLASE DE TESTS DE INTEGRACIÓN ---
 class TestIntegrationSkipTurn(unittest.TestCase):
-    """Tests de integración que simulan un escenario completo."""
+    """Tests de integración que simulan un escenario completo.
+    
+    Principios SOLID verificados:
+        - DIP: La UI interactúa con las abstracciones (Mocks)
+          de Validator y Dice para completar un flujo de juego.
+        - LSP: El sistema transiciona consistentemente entre
+          estados (AWAITING_ROLL -> AWAITING_SKIP_CONFIRMATION -> AWAITING_ROLL).
+    """
 
     def setUp(self):
-        """Configuración para cada test de esta clase."""
+        """Configuración para cada test de esta clase.
+        
+        Principio SRP: Aísla la configuración del test.
+        """
         os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init()
         with patch('pygame.display.set_mode', return_value=pygame.Surface((1600, 900))), \
@@ -1114,7 +1578,11 @@ class TestIntegrationSkipTurn(unittest.TestCase):
     @patch('Backgammon.Interfaces.PygameUI.Dice')
     @patch('pygame.event.get')
     def test_complete_skip_turn_scenario(self, mock_event_get, MockDice, mock_has_move):
-        """Test completo: tirar dados, no poder mover, confirmar, cambiar turno."""
+        """Test completo: tirar dados, no poder mover, confirmar, cambiar turno.
+        
+        Principio LSP: Prueba la robustez y consistencia del manejador de
+        estados a través de un ciclo completo de "saltar turno".
+        """
         mock_dice_instance = MockDice.return_value
         mock_dice_instance.obtener_dado1.return_value = 2
         mock_dice_instance.obtener_dado2.return_value = 5
@@ -1136,7 +1604,11 @@ class TestIntegrationSkipTurn(unittest.TestCase):
     @patch('Backgammon.Interfaces.PygameUI.Dice')
     @patch('pygame.event.get')
     def test_both_players_skip_turn_scenario(self, mock_event_get, MockDice, mock_has_move):
-        """Test donde ambos jugadores deben saltar turno consecutivamente."""
+        """Test donde ambos jugadores deben saltar turno consecutivamente.
+        
+        Principio LSP: Prueba la consistencia del manejador de estados
+        al manejar el flujo de "saltar turno" para ambos jugadores.
+        """
         mock_dice_instance = MockDice.return_value
         
         self.ui.__current_player__ = "negro"
@@ -1162,9 +1634,19 @@ class TestIntegrationSkipTurn(unittest.TestCase):
 
 # --- CLASE DE TESTS PARA GameStateManager ---
 class TestGameStateManagerSkipConfirmation(unittest.TestCase):
+    """
+    Pruebas para GameStateManager, enfocadas en el estado de confirmación de salto.
+    
+    Principios SOLID verificados:
+        - SRP: Verifica que GameStateManager maneja correctamente
+          la transición hacia y desde el estado AWAITING_SKIP_CONFIRMATION.
+    """
     
     def setUp(self):
-        """Configuración para cada test de esta clase."""
+        """Configuración para cada test de esta clase.
+        
+        Principio SRP: Aísla la configuración del test.
+        """
         os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init()
         with patch('pygame.display.set_mode', return_value=pygame.Surface((1600, 900))), \
@@ -1175,7 +1657,12 @@ class TestGameStateManagerSkipConfirmation(unittest.TestCase):
     @patch('Backgammon.Interfaces.PygameUI.Dice')
     @patch('pygame.event.get')
     def test_both_players_skip_turn_scenario(self, mock_event_get, MockDice, mock_has_move):
-        """Test donde ambos jugadores deben saltar turno consecutivamente."""
+        """Test donde ambos jugadores deben saltar turno consecutivamente.
+        
+        Principio LSP: Verifica la consistencia del GameStateManager al
+        manejar el estado AWAITING_SKIP_CONFIRMATION
+        múltiples veces seguidas.
+        """
         mock_dice_instance = MockDice.return_value
         
         self.ui.__current_player__ = "negro"
@@ -1208,7 +1695,10 @@ class TestSOLIDPrinciples(unittest.TestCase):
     """
 
     def setUp(self):
-        """Configura el entorno sin interfaz gráfica."""
+        """Configura el entorno sin interfaz gráfica.
+        
+        Principio SRP: Aísla la configuración del test.
+        """
         with patch('pygame.init'), \
              patch('pygame.display.set_mode'), \
              patch('pygame.font.Font'):
@@ -1217,7 +1707,7 @@ class TestSOLIDPrinciples(unittest.TestCase):
     # --- SINGLE RESPONSIBILITY PRINCIPLE (SRP) TESTS ---
     def test_srp_dice_calculator_only_handles_dice_logic(self):
         """
-        Verifica que DiceMovesCalculator solo maneja lógica de dados.
+        [SRP] Verifica que DiceMovesCalculator solo maneja lógica de dados.
         SRP: Una clase debe tener una sola razón para cambiar.
         """
         # Test directo de la clase DiceMovesCalculator
@@ -1233,7 +1723,7 @@ class TestSOLIDPrinciples(unittest.TestCase):
 
     def test_srp_game_state_manager_only_handles_states(self):
         """
-        Verifica que GameStateManager solo maneja estados del juego.
+        [SRP] Verifica que GameStateManager solo maneja estados del juego.
         """
         manager = GameStateManager()
 
@@ -1250,7 +1740,9 @@ class TestSOLIDPrinciples(unittest.TestCase):
             manager.change_state('INVALID_STATE')
 
     def test_srp_message_manager_only_handles_messages(self):
-        """Verifica que MessageManager solo maneja generación de mensajes."""
+        """
+        [SRP] Verifica que MessageManager solo maneja generación de mensajes.
+        """
         start_msg = MessageManager.get_start_message()
         doubles_msg = MessageManager.get_doubles_roll_message("negro", 4, [4, 4, 4, 4])
         normal_msg = MessageManager.get_normal_roll_message("blanco", [2, 6])
@@ -1266,8 +1758,8 @@ class TestSOLIDPrinciples(unittest.TestCase):
     # --- OPEN/CLOSED PRINCIPLE (OCP) TESTS ---
     def test_ocp_game_state_manager_extensible_for_new_states(self):
         """
-        Verifica que GameStateManager sea extensible para nuevos estados
-        sin modificar código existente (OCP).
+        [OCP] Verifica que GameStateManager sea extensible para nuevos estados
+        sin modificar código existente.
         """
         manager = GameStateManager()
         current_states = manager.valid_states.copy()
@@ -1282,7 +1774,7 @@ class TestSOLIDPrinciples(unittest.TestCase):
 
     def test_ocp_dice_calculator_extensible_for_new_rules(self):
         """
-        Verifica que DiceMovesCalculator sea extensible para nuevas reglas
+        [OCP] Verifica que DiceMovesCalculator sea extensible para nuevas reglas
         sin modificar métodos existentes.
         """
         # Los métodos estáticos son extensibles por naturaleza
@@ -1300,7 +1792,7 @@ class TestSOLIDPrinciples(unittest.TestCase):
     # --- DEPENDENCY INVERSION PRINCIPLE (DIP) TESTS ---
     def test_dip_pygame_ui_uses_manager_classes(self):
         """
-        Verifica que PygameUI usa las clases gestoras (principio DIP).
+        [DIP] Verifica que PygameUI usa las clases gestoras.
         """
         # Test indirecto: verificar que PygameUI puede usar las funcionalidades
         # sin verificar directamente los atributos privados problemáticos
@@ -1320,7 +1812,9 @@ class TestSOLIDPrinciples(unittest.TestCase):
         self.assertIn("Presiona", message)
 
     def test_dip_classes_work_independently(self):
-        """Verifica que las clases gestoras funcionan independientemente (DIP)."""
+        """
+        [DIP] Verifica que las clases gestoras funcionan independientemente.
+        """
         # Test de DiceMovesCalculator independiente
         moves = DiceMovesCalculator.calculate_available_moves(5, 5)
         self.assertEqual(moves, [5, 5, 5, 5])
@@ -1339,7 +1833,7 @@ class TestSOLIDPrinciples(unittest.TestCase):
     # --- INTEGRATION TEST FOR SOLID PRINCIPLES ---
     def test_solid_integration_all_principles_work_together(self):
         """
-        Test de integración que verifica que todos los principios SOLID
+        [SOLID] Test de integración que verifica que todos los principios SOLID
         trabajen juntos correctamente.
         """
         # SRP: Cada clase maneja su responsabilidad específica
@@ -1367,7 +1861,9 @@ class TestSOLIDPrinciples(unittest.TestCase):
         self.assertIsInstance(game_state.get_current_state(), str)
 
     def test_solid_architecture_separation_of_concerns(self):
-        """Verifica que la arquitectura mantenga separación de responsabilidades."""
+        """
+        [SRP] Verifica que la arquitectura mantenga separación de responsabilidades.
+        """
         # DiceMovesCalculator: Solo cálculos de dados
         self.assertEqual(DiceMovesCalculator.calculate_available_moves(1, 1), [1, 1, 1, 1])
         self.assertEqual(DiceMovesCalculator.calculate_available_moves(2, 4), [2, 4])
@@ -1394,30 +1890,55 @@ class TestDiceMovesCalculator(unittest.TestCase):
     """
     Tests unitarios para la clase DiceMovesCalculator.
     Verifica el cumplimiento del principio SRP.
+    
+    Principios SOLID verificados:
+        - SRP: La clase DiceMovesCalculator solo tiene la
+          responsabilidad de lógica relacionada con los dados
+          (cálculo de movimientos, detección de dobles).
     """
 
     def test_calculate_normal_moves(self):
-        """Verifica el cálculo correcto para dados normales."""
+        """Verifica el cálculo correcto para dados normales.
+        
+        Principio SRP: Prueba una responsabilidad específica (cálculo
+        de movimientos normales) de la clase.
+        """
         moves = DiceMovesCalculator.calculate_available_moves(2, 5)
         self.assertEqual(moves, [2, 5])
 
     def test_calculate_doubles_moves(self):
-        """Verifica el cálculo correcto para dobles."""
+        """Verifica el cálculo correcto para dobles.
+        
+        Principio SRP: Prueba una responsabilidad específica (cálculo
+        de movimientos dobles) de la clase.
+        """
         moves = DiceMovesCalculator.calculate_available_moves(4, 4)
         self.assertEqual(moves, [4, 4, 4, 4])
 
     def test_is_doubles_roll_true(self):
-        """Verifica detección correcta de dobles."""
+        """Verifica detección correcta de dobles.
+        
+        Principio SRP: Prueba una responsabilidad específica (detección
+        de dobles) de la clase.
+        """
         result = DiceMovesCalculator.is_doubles_roll(6, 6)
         self.assertTrue(result)
 
     def test_is_doubles_roll_false(self):
-        """Verifica detección correcta de no-dobles."""
+        """Verifica detección correcta de no-dobles.
+        
+        Principio SRP: Prueba una responsabilidad específica (detección
+        de no-dobles) de la clase.
+        """
         result = DiceMovesCalculator.is_doubles_roll(3, 5)
         self.assertFalse(result)
 
     def test_edge_cases_doubles(self):
-        """Verifica casos extremos para dobles."""
+        """Verifica casos extremos para dobles.
+        
+        Principio LSP: Verifica que la lógica de dobles es consistente
+        para todos los valores posibles (1-6).
+        """
         # Todos los valores posibles de dobles
         for i in range(1, 7):
             moves = DiceMovesCalculator.calculate_available_moves(i, i)
@@ -1431,18 +1952,33 @@ class TestGameStateManager(unittest.TestCase):
     """
     Tests unitarios para la clase GameStateManager.
     Verifica el cumplimiento del principio SRP y validación de estados.
+    
+    Principios SOLID verificados:
+        - SRP: La clase GameStateManager solo tiene la responsabilidad
+          de gestionar y validar el estado actual del juego.
     """
 
     def setUp(self):
-        """Configura un GameStateManager para cada test."""
+        """Configura un GameStateManager para cada test.
+        
+        Principio SRP: Aísla la instancia del manager para cada test.
+        """
         self.manager = GameStateManager()
 
     def test_initial_state(self):
-        """Verifica que el estado inicial sea correcto."""
+        """Verifica que el estado inicial sea correcto.
+        
+        Principio SRP: Prueba una responsabilidad específica (estado inicial)
+        del GameStateManager.
+        """
         self.assertEqual(self.manager.get_current_state(), 'START_ROLL')
 
     def test_valid_state_changes(self):
-        """Verifica que los cambios de estado válidos funcionen."""
+        """Verifica que los cambios de estado válidos funcionen.
+        
+        Principio SRP: Prueba la responsabilidad de cambiar y reportar
+        estados válidos.
+        """
         valid_states = ['START_ROLL', 'AWAITING_ROLL', 'AWAITING_PIECE_SELECTION']
 
         for state in valid_states:
@@ -1450,12 +1986,20 @@ class TestGameStateManager(unittest.TestCase):
             self.assertEqual(self.manager.get_current_state(), state)
 
     def test_invalid_state_change_raises_error(self):
-        """Verifica que estados inválidos generen error."""
+        """Verifica que estados inválidos generen error.
+        
+        Principio LSP: El manager maneja consistentemente una entrada
+        inválida (lanzando una excepción).
+        """
         with self.assertRaises(ValueError):
             self.manager.change_state('INVALID_STATE')
 
     def test_state_persistence(self):
-        """Verifica que el estado se mantenga hasta el próximo cambio."""
+        """Verifica que el estado se mantenga hasta el próximo cambio.
+        
+        Principio SRP: Prueba que el manager mantiene correctamente
+        el estado interno.
+        """
         self.manager.change_state('AWAITING_ROLL')
         self.assertEqual(self.manager.get_current_state(), 'AWAITING_ROLL')
 
@@ -1469,30 +2013,47 @@ class TestMessageManager(unittest.TestCase):
     """
     Tests unitarios para la clase MessageManager.
     Verifica el cumplimiento del principio SRP para generación de mensajes.
+    
+    Principios SOLID verificados:
+        - SRP: La clase MessageManager solo tiene la responsabilidad
+          de crear strings de mensajes para el usuario.
     """
 
     def test_start_message(self):
-        """Verifica el mensaje de inicio."""
+        """Verifica el mensaje de inicio.
+        
+        Principio SRP: Prueba la generación de un mensaje específico,
+        confirmando la responsabilidad única de la clase.
+        """
         message = MessageManager.get_start_message()
         self.assertIn("Presiona 'R'", message)
         self.assertIn("empieza", message)
 
     def test_roll_winner_message_negro(self):
-        """Verifica el mensaje cuando gana negro."""
+        """Verifica el mensaje cuando gana negro.
+        
+        Principio SRP: Prueba la generación de un mensaje específico.
+        """
         message = MessageManager.get_roll_winner_message("negro", 5, 3)
         self.assertIn("Negro (5)", message)
         self.assertIn("Blanco (3)", message)
         self.assertIn("gana", message)
 
     def test_roll_winner_message_blanco(self):
-        """Verifica el mensaje cuando gana blanco."""
+        """Verifica el mensaje cuando gana blanco.
+        
+        Principio SRP: Prueba la generación de un mensaje específico.
+        """
         message = MessageManager.get_roll_winner_message("blanco", 6, 2)
         self.assertIn("Blanco (6)", message)
         self.assertIn("Negro (2)", message)
         self.assertIn("gana", message)
 
     def test_doubles_roll_message(self):
-        """Verifica el mensaje específico para dobles."""
+        """Verifica el mensaje específico para dobles.
+        
+        Principio SRP: Prueba la generación de un mensaje específico.
+        """
         message = MessageManager.get_doubles_roll_message("negro", 4, [4, 4, 4, 4])
         self.assertIn("dobles", message)
         self.assertIn("Negro", message)
@@ -1500,24 +2061,36 @@ class TestMessageManager(unittest.TestCase):
         self.assertIn("4 movimientos", message)
 
     def test_normal_roll_message(self):
-        """Verifica el mensaje para tirada normal."""
+        """Verifica el mensaje para tirada normal.
+        
+        Principio SRP: Prueba la generación de un mensaje específico.
+        """
         message = MessageManager.get_normal_roll_message("blanco", [2, 6])
         self.assertIn("Turno de blanco", message)
         self.assertIn("[2, 6]", message)
 
     def test_move_completed_message_remaining(self):
-        """Verifica mensaje cuando quedan movimientos."""
+        """Verifica mensaje cuando quedan movimientos.
+        
+        Principio SRP: Prueba la generación de un mensaje específico.
+        """
         message = MessageManager.get_move_completed_message(2, [3, 5])
         self.assertIn("Te quedan 2 dados", message)
         self.assertIn("[3, 5]", message)
 
     def test_move_completed_message_finished(self):
-        """Verifica mensaje cuando se completa el turno."""
+        """Verifica mensaje cuando se completa el turno.
+        
+        Principio SRP: Prueba la generación de un mensaje específico.
+        """
         message = MessageManager.get_move_completed_message(0, [])
         self.assertEqual(message, "Turno completado.")
 
     def test_dice_not_available_message(self):
-        """Verifica mensaje cuando no se tiene el dado necesario."""
+        """Verifica mensaje cuando no se tiene el dado necesario.
+        
+        Principio SRP: Prueba la generación de un mensaje específico.
+        """
         message = MessageManager.get_dice_not_available_message(4, [2, 6])
         self.assertIn("No tienes el dado 4 disponible", message)
         self.assertIn("[2, 6]", message)
@@ -1532,12 +2105,18 @@ class TestPygameUICoverageExtension(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Configura entorno sin pantalla."""
+        """Configura entorno sin pantalla.
+        
+        Principio SRP: Centraliza la configuración de Pygame para la suite.
+        """
         os.environ["SDL_VIDEODRIVER"] = "dummy"
         pygame.init()
 
     def setUp(self):
-        """Crea instancia de PygameUI para cada test."""
+        """Crea instancia de PygameUI para cada test.
+        
+        Principio SRP: Aísla la instancia de UI para cada test.
+        """
         with patch('pygame.display.set_mode', return_value=pygame.Surface((1600, 900))), \
              patch('pygame.font.Font'):
             self.ui = PygameUI()
@@ -1545,24 +2124,40 @@ class TestPygameUICoverageExtension(unittest.TestCase):
     # --- Tests para BarManager ---
 
     def test_bar_manager_remove_piece_no_pieces(self):
-        """Test que remove_piece_from_bar retorna False cuando no hay fichas."""
+        """Test que remove_piece_from_bar retorna False cuando no hay fichas.
+        
+        Principio SRP: Verifica una responsabilidad específica de BarManager
+        (manejar la remoción de fichas cuando está vacía).
+        """
         result = self.ui.__bar_manager__.remove_piece_from_bar("negro")
         self.assertFalse(result)
 
     def test_bar_manager_remove_piece_success(self):
-        """Test que remove_piece_from_bar retorna True y remueve correctamente."""
+        """Test que remove_piece_from_bar retorna True y remueve correctamente.
+        
+        Principio SRP: Verifica la responsabilidad de BarManager
+        (manejar la remoción de fichas).
+        """
         self.ui.__bar_manager__.add_piece_to_bar("negro")
         result = self.ui.__bar_manager__.remove_piece_from_bar("negro")
         self.assertTrue(result)
         self.assertEqual(self.ui.__bar_manager__.get_pieces_count("negro"), 0)
 
     def test_bar_manager_add_invalid_color(self):
-        """Test que agregar color inválido genera error."""
+        """Test que agregar color inválido genera error.
+        
+        Principio LSP: El BarManager maneja consistentemente una
+        entrada inválida (lanzando excepción).
+        """
         with self.assertRaises(ValueError):
             self.ui.__bar_manager__.add_piece_to_bar("rojo")
 
     def test_bar_manager_get_bar_state_returns_copy(self):
-        """Test que get_bar_state retorna copia, no referencia."""
+        """Test que get_bar_state retorna copia, no referencia.
+        
+        Principio SRP: Verifica que el manager protege su estado
+        interno (encapsulación) al reportarlo.
+        """
         self.ui.__bar_manager__.add_piece_to_bar("negro")
         state = self.ui.__bar_manager__.get_bar_state()
         state["negro"] = 999
@@ -1571,61 +2166,96 @@ class TestPygameUICoverageExtension(unittest.TestCase):
     # --- Tests para CaptureValidator ---
 
     def test_capture_validator_can_capture_empty_point(self):
-        """Test que can_capture_piece retorna False si punto vacío."""
+        """Test que can_capture_piece retorna False si punto vacío.
+        
+        Principio SRP: Verifica una responsabilidad específica de CaptureValidator
+        (lógica de captura, caso vacío).
+        """
         result = CaptureValidator.can_capture_piece(None, "negro")
         self.assertFalse(result)
 
     def test_capture_validator_can_capture_same_color(self):
-        """Test que no puede capturar ficha del mismo color."""
+        """Test que no puede capturar ficha del mismo color.
+        
+        Principio SRP: Verifica la lógica de captura (caso mismo color).
+        """
         result = CaptureValidator.can_capture_piece(("negro", 1), "negro")
         self.assertFalse(result)
 
     def test_capture_validator_can_capture_single_opponent(self):
-        """Test que puede capturar ficha solitaria del oponente."""
+        """Test que puede capturar ficha solitaria del oponente.
+        
+        Principio SRP: Verifica la lógica de captura (caso captura válida).
+        """
         result = CaptureValidator.can_capture_piece(("blanco", 1), "negro")
         self.assertTrue(result)
 
     def test_capture_validator_cannot_capture_multiple_opponents(self):
-        """Test que no puede capturar múltiples fichas oponentes."""
+        """Test que no puede capturar múltiples fichas oponentes.
+        
+        Principio SRP: Verifica la lógica de captura (caso bloqueo).
+        """
         result = CaptureValidator.can_capture_piece(("blanco", 2), "negro")
         self.assertFalse(result)
 
     def test_capture_validator_is_move_blocked_empty(self):
-        """Test que punto vacío no está bloqueado."""
+        """Test que punto vacío no está bloqueado.
+        
+        Principio SRP: Verifica la lógica de bloqueo (caso vacío).
+        """
         result = CaptureValidator.is_move_blocked(None, "negro")
         self.assertFalse(result)
 
     def test_capture_validator_is_move_blocked_same_color(self):
-        """Test que mismo color no bloquea."""
+        """Test que mismo color no bloquea.
+        
+        Principio SRP: Verifica la lógica de bloqueo (caso mismo color).
+        """
         result = CaptureValidator.is_move_blocked(("negro", 5), "negro")
         self.assertFalse(result)
 
     def test_capture_validator_is_move_blocked_multiple_opponents(self):
-        """Test que 2+ fichas oponentes bloquean."""
+        """Test que 2+ fichas oponentes bloquean.
+        
+        Principio SRP: Verifica la lógica de bloqueo (caso bloqueo real).
+        """
         result = CaptureValidator.is_move_blocked(("blanco", 2), "negro")
         self.assertTrue(result)
 
     # --- Tests para BarMovementRules ---
 
     def test_bar_movement_rules_entry_point_negro(self):
-        """Test cálculo de punto de entrada para negro."""
+        """Test cálculo de punto de entrada para negro.
+        
+        Principio SRP: Verifica una responsabilidad específica de BarMovementRules
+        (cálculo de punto de entrada para 'negro').
+        """
         self.assertEqual(BarMovementRules.get_entry_point("negro", 3), 3)
         self.assertEqual(BarMovementRules.get_entry_point("negro", 6), 6)
 
     def test_bar_movement_rules_entry_point_blanco(self):
-        """Test cálculo de punto de entrada para blanco."""
+        """Test cálculo de punto de entrada para blanco.
+        
+        Principio SRP: Verifica la lógica de entrada desde barra (para 'blanco').
+        """
         self.assertEqual(BarMovementRules.get_entry_point("blanco", 3), 22)
         self.assertEqual(BarMovementRules.get_entry_point("blanco", 6), 19)
 
     def test_bar_movement_rules_must_enter_true(self):
-        """Test que detecta cuando debe mover desde barra."""
+        """Test que detecta cuando debe mover desde barra.
+        
+        Principio SRP: Verifica la lógica de "debe entrar" (caso positivo).
+        """
         self.ui.__bar_manager__.add_piece_to_bar("negro")
         result = BarMovementRules.must_enter_from_bar_first(
             self.ui.__bar_manager__, "negro")
         self.assertTrue(result)
 
     def test_bar_movement_rules_must_enter_false(self):
-        """Test que no requiere entrada cuando barra vacía."""
+        """Test que no requiere entrada cuando barra vacía.
+        
+        Principio SRP: Verifica la lógica de "debe entrar" (caso negativo).
+        """
         result = BarMovementRules.must_enter_from_bar_first(
             self.ui.__bar_manager__, "negro")
         self.assertFalse(result)
@@ -1633,104 +2263,165 @@ class TestPygameUICoverageExtension(unittest.TestCase):
     # --- Tests para métodos de PygameUI no cubiertos ---
 
     def test_switch_player_negro_to_blanco(self):
-        """Test cambio de jugador negro a blanco."""
+        """Test cambio de jugador negro a blanco.
+        
+        Principio SRP: Prueba la responsabilidad de __switch_player
+        de alternar correctamente el jugador actual.
+        """
         self.ui.__current_player__ = "negro"
         self.ui._PygameUI__switch_player()
         self.assertEqual(self.ui.__current_player__, "blanco")
 
     def test_switch_player_blanco_to_negro(self):
-        """Test cambio de jugador blanco a negro."""
+        """Test cambio de jugador blanco a negro.
+        
+        Principio SRP: Prueba la responsabilidad de __switch_player
+        de alternar correctamente el jugador actual.
+        """
         self.ui.__current_player__ = "blanco"
         self.ui._PygameUI__switch_player()
         self.assertEqual(self.ui.__current_player__, "negro")
 
     def test_calculate_dice_needed_from_bar_negro(self):
-        """Test cálculo de dado desde barra para negro."""
+        """Test cálculo de dado desde barra para negro.
+        
+        Principio SRP: Verifica la responsabilidad de la UI de *calcular*
+        el dado necesario para un movimiento (caso barra 'negro').
+        """
         self.ui.__current_player__ = "negro"
         # Cuando origen es 0 (barra) y destino es 5, para negro el dado es simplemente el destino
         result = self.ui._PygameUI__calculate_dice_needed(0, 5)
         self.assertEqual(result, 5)
 
     def test_calculate_dice_needed_from_bar_blanco(self):
-        """Test cálculo de dado desde barra para blanco."""
+        """Test cálculo de dado desde barra para blanco.
+        
+        Principio SRP: Verifica el cálculo de dado necesario (caso barra 'blanco').
+        """
         self.ui.__current_player__ = "blanco"
         # Para blanco desde barra: 25 - destino
         result = self.ui._PygameUI__calculate_dice_needed(0, 22)
         self.assertEqual(result, 3)
 
     def test_calculate_dice_needed_normal_move(self):
-        """Test cálculo de dado para movimiento normal."""
+        """Test cálculo de dado para movimiento normal.
+        
+        Principio SRP: Verifica el cálculo de dado necesario (caso normal).
+        """
         # Movimiento normal es abs(origen - destino)
         result = self.ui._PygameUI__calculate_dice_needed(5, 10)
         self.assertEqual(result, 5)
 
     def test_is_valid_direction_negro_forward(self):
-        """Test que negro mueve hacia números mayores."""
+        """Test que negro mueve hacia números mayores.
+        
+        Principio SRP: Prueba la responsabilidad de __is_valid_direction
+        de validar la dirección del movimiento para 'negro' (válido).
+        """
         self.ui.__current_player__ = "negro"
         # Negro va de menor a mayor (10 -> 15)
         result = self.ui._PygameUI__is_valid_direction(10, 15)
         self.assertTrue(result)
 
     def test_is_valid_direction_negro_backward_invalid(self):
-        """Test que negro no puede mover hacia atrás."""
+        """Test que negro no puede mover hacia atrás.
+        
+        Principio SRP: Prueba la validación de dirección para 'negro' (inválido).
+        """
         self.ui.__current_player__ = "negro"
         # Negro NO puede ir de mayor a menor (15 -> 10)
         result = self.ui._PygameUI__is_valid_direction(15, 10)
         self.assertFalse(result)
 
     def test_is_valid_direction_blanco_backward(self):
-        """Test que blanco mueve hacia números menores."""
+        """Test que blanco mueve hacia números menores.
+        
+        Principio SRP: Prueba la validación de dirección para 'blanco' (válido).
+        """
         self.ui.__current_player__ = "blanco"
         # Blanco va de mayor a menor (20 -> 15)
         result = self.ui._PygameUI__is_valid_direction(20, 15)
         self.assertTrue(result)
 
     def test_is_valid_direction_blanco_forward_invalid(self):
-        """Test que blanco no puede mover hacia adelante."""
+        """Test que blanco no puede mover hacia adelante.
+        
+        Principio SRP: Prueba la validación de dirección para 'blanco' (inválido).
+        """
         self.ui.__current_player__ = "blanco"
         # Blanco NO puede ir de menor a mayor (10 -> 15)
         result = self.ui._PygameUI__is_valid_direction(10, 15)
         self.assertFalse(result)
 
     def test_get_point_from_mouse_pos_outside_board(self):
-        """Test que click fuera del tablero retorna None."""
+        """Test que click fuera del tablero retorna None.
+        
+        Principio LSP: Verifica el comportamiento consistente de
+        __get_point_from_mouse_pos en un caso límite (fuera del tablero).
+        """
         result = self.ui._PygameUI__get_point_from_mouse_pos((10, 10))
         self.assertIsNone(result)
 
     def test_get_point_from_mouse_pos_bar_area(self):
-        """Test que click en barra retorna 0."""
+        """Test que click en barra retorna 0.
+        
+        Principio LSP: Verifica el comportamiento consistente de
+        __get_point_from_mouse_pos en un caso límite (barra).
+        """
         result = self.ui._PygameUI__get_point_from_mouse_pos((790, 450))
         self.assertEqual(result, 0)
 
     def test_bearing_off_validator_get_destination_negro(self):
-        """Test destino ficticio para bearing off negro."""
+        """Test destino ficticio para bearing off negro.
+        
+        Principio SRP: Verifica una responsabilidad específica de
+        BearingOffValidator (definir el destino de 'bearing off' para 'negro').
+        """
         result = self.ui.__bearing_off_validator__.get_bearing_off_destination("negro")
         self.assertEqual(result, 25)
 
     def test_bearing_off_validator_get_destination_blanco(self):
-        """Test destino ficticio para bearing off blanco."""
+        """Test destino ficticio para bearing off blanco.
+        
+        Principio SRP: Verifica la responsabilidad de BearingOffValidator
+        (definir el destino de 'bearing off' para 'blanco').
+        """
         result = self.ui.__bearing_off_validator__.get_bearing_off_destination("blanco")
         self.assertEqual(result, 0)
 
     def test_bearing_off_validator_is_bearing_off_move_negro(self):
-        """Test detección de intento de bearing off para negro."""
+        """Test detección de intento de bearing off para negro.
+        
+        Principio SRP: Verifica la responsabilidad de BearingOffValidator
+        de identificar un movimiento como 'bearing off' (caso 'negro').
+        """
         result = self.ui.__bearing_off_validator__.is_bearing_off_move("negro", 23, 26)
         self.assertTrue(result)
 
     def test_bearing_off_validator_is_bearing_off_move_blanco(self):
-        """Test detección de intento de bearing off para blanco."""
+        """Test detección de intento de bearing off para blanco.
+        
+        Principio SRP: Verifica la identificación de 'bearing off' (caso 'blanco').
+        """
         result = self.ui.__bearing_off_validator__.is_bearing_off_move("blanco", 2, 0)
         self.assertTrue(result)
 
     def test_bearing_off_validator_not_bearing_off_normal_move(self):
-        """Test que movimiento normal no es bearing off."""
+        """Test que movimiento normal no es bearing off.
+        
+        Principio SRP: Verifica la identificación de 'bearing off' (caso negativo).
+        """
         result = self.ui.__bearing_off_validator__.is_bearing_off_move("negro", 10, 15)
         self.assertFalse(result)
 
     # --- Tests para execute_move con capturas ---
 
     def test_execute_move_with_capture(self):
-        """Test ejecución de movimiento con captura."""
+        """Test ejecución de movimiento con captura.
+        
+        Principio DIP: La UI (__execute_move) orquesta el movimiento,
+        delegando la lógica de captura al Board y BarManager.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [5]
         
@@ -1751,7 +2442,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
         self.assertEqual(self.ui.__bar_manager__.get_pieces_count("blanco"), 1)
 
     def test_execute_move_from_bar_to_board(self):
-        """Test movimiento desde barra al tablero."""
+        """Test movimiento desde barra al tablero.
+        
+        Principio DIP: La UI orquesta el movimiento, delegando la lógica
+        de "salir de la barra" al BarManager y al Board.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [3]
         self.ui.__bar_manager__.add_piece_to_bar("negro")
@@ -1769,7 +2464,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
         self.assertFalse(self.ui.__bar_manager__.has_pieces_on_bar("negro"))
 
     def test_execute_move_removes_dice_from_available(self):
-        """Test que execute_move remueve dado usado."""
+        """Test que execute_move remueve dado usado.
+        
+        Principio SRP: Verifica la responsabilidad de __execute_move
+        de actualizar el estado interno (dados disponibles).
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [2, 5]
         
@@ -1789,7 +2488,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
         self.assertEqual(self.ui.__available_moves__, [5])
 
     def test_execute_move_last_dice_ends_turn(self):
-        """Test que usar último dado termina turno."""
+        """Test que usar último dado termina turno.
+        
+        Principio SRP: Verifica la responsabilidad de __execute_move
+        de gestionar el fin de turno cuando se acaban los dados.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [3]
         
@@ -1811,7 +2514,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
     # --- Tests para validación de movimientos desde barra ---
 
     def test_validate_move_from_bar_no_pieces(self):
-        """Test validación falla si no hay fichas en barra."""
+        """Test validación falla si no hay fichas en barra.
+        
+        Principio DIP: La UI (__validate_and_report_move) depende de
+        BarManager para validar un movimiento desde la barra (caso sin fichas).
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [3]
 
@@ -1821,7 +2528,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
         self.assertIn("No tienes fichas en la barra", self.ui.__message__)
 
     def test_validate_move_from_bar_wrong_dice(self):
-        """Test validación falla con dado incorrecto desde barra."""
+        """Test validación falla con dado incorrecto desde barra.
+        
+        Principio DIP: La UI valida el dado contra la lista de
+        movimientos disponibles (lógica interna, pero informada por Dice).
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [5]
         self.ui.__bar_manager__.add_piece_to_bar("negro")
@@ -1832,7 +2543,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
         self.assertIn("No tienes dado", self.ui.__message__)
 
     def test_validate_move_from_bar_blocked_destination(self):
-        """Test validación falla si destino bloqueado desde barra."""
+        """Test validación falla si destino bloqueado desde barra.
+        
+        Principio DIP: La UI depende de las reglas del Board
+        (via CaptureValidator) para saber si el destino está bloqueado.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [3]
         self.ui.__bar_manager__.add_piece_to_bar("negro")
@@ -1852,7 +2567,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
         self.assertIn("bloqueado", self.ui.__message__)
 
     def test_validate_move_must_enter_from_bar_first(self):
-        """Test que debe mover desde barra antes de tablero."""
+        """Test que debe mover desde barra antes de tablero.
+        
+        Principio DIP: La UI depende de BarMovementRules (via
+        MovementValidator) para forzar la entrada desde la barra.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [3]
         self.ui.__bar_manager__.add_piece_to_bar("negro")
@@ -1875,7 +2594,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
     # --- Tests para attempt_piece_selection con barra ---
 
     def test_attempt_piece_selection_bar_with_pieces(self):
-        """Test selección de barra cuando tiene fichas."""
+        """Test selección de barra cuando tiene fichas.
+        
+        Principio SRP: Verifica la responsabilidad de la UI de manejar
+        la selección de la barra (un punto 'especial') cuando es válido.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [3]
         self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
@@ -1887,7 +2610,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
         self.assertIn("barra seleccionada", self.ui.__message__)
 
     def test_attempt_piece_selection_bar_without_pieces(self):
-        """Test selección de barra sin fichas."""
+        """Test selección de barra sin fichas.
+        
+        Principio SRP: Verifica el manejo de selección de la barra
+        (caso inválido, sin fichas).
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
 
@@ -1897,7 +2624,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
         self.assertIn("No tienes fichas en la barra", self.ui.__message__)
 
     def test_attempt_piece_selection_must_move_from_bar(self):
-        """Test mensaje cuando debe mover desde barra primero."""
+        """Test mensaje cuando debe mover desde barra primero.
+        
+        Principio DIP: La UI consulta a BarMovementRules y
+        reporta al usuario, cumpliendo su SRP de interfaz.
+        """
         self.ui.__current_player__ = "negro"
         self.ui.__available_moves__ = [3]
         self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
@@ -1921,7 +2652,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
 
     @patch("pygame.draw.circle")
     def test_draw_bar_pieces_negro(self, mock_circle):
-        """Test dibujado de fichas negras en barra."""
+        """Test dibujado de fichas negras en barra.
+        
+        Principio SRP: Verifica la responsabilidad única de
+        __draw_bar_pieces de dibujar fichas (caso 'negro').
+        """
         self.ui.__screen__ = pygame.Surface((1600, 900))
         self.ui.__bar_manager__.add_piece_to_bar("negro")
         self.ui.__bar_manager__.add_piece_to_bar("negro")
@@ -1933,7 +2668,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
 
     @patch("pygame.draw.circle")
     def test_draw_bar_pieces_blanco(self, mock_circle):
-        """Test dibujado de fichas blancas en barra."""
+        """Test dibujado de fichas blancas en barra.
+        
+        Principio SRP: Verifica la responsabilidad de __draw_bar_pieces
+        (caso 'blanco').
+        """
         self.ui.__screen__ = pygame.Surface((1600, 900))
         self.ui.__bar_manager__.add_piece_to_bar("blanco")
 
@@ -1944,7 +2683,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
 
     @patch("pygame.draw.circle")
     def test_draw_bar_pieces_more_than_8_shows_count(self, mock_circle):
-        """Test que más de 8 fichas muestra contador."""
+        """Test que más de 8 fichas muestra contador.
+        
+        Principio LSP: Verifica que el método de dibujo __draw_bar_pieces
+        maneja consistentemente un caso límite (muchas fichas).
+        """
         self.ui.__screen__ = pygame.Surface((1600, 900))
         for _ in range(10):
             self.ui.__bar_manager__.add_piece_to_bar("negro")
@@ -1955,7 +2698,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
         self.assertEqual(mock_circle.call_count, 16)
 
     def test_draw_home_pieces_negro(self):
-        """Test dibujado de contador de casa para negro."""
+        """Test dibujado de contador de casa para negro.
+        
+        Principio SRP: Verifica la responsabilidad de __draw_home_pieces
+        de dibujar el contador (caso 'negro').
+        """
         self.ui.__screen__ = pygame.Surface((1600, 900))
         self.ui.__home_manager__.add_piece_to_home("negro")
         self.ui.__home_manager__.add_piece_to_home("negro")
@@ -1966,7 +2713,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
             self.fail(f"draw_home_pieces falló: {e}")
 
     def test_draw_home_pieces_blanco(self):
-        """Test dibujado de contador de casa para blanco."""
+        """Test dibujado de contador de casa para blanco.
+        
+        Principio SRP: Verifica la responsabilidad de __draw_home_pieces
+        (caso 'blanco').
+        """
         self.ui.__screen__ = pygame.Surface((1600, 900))
         self.ui.__home_manager__.add_piece_to_home("blanco")
 
@@ -1976,7 +2727,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
             self.fail(f"draw_home_pieces falló: {e}")
 
     def test_draw_bearing_off_zones_not_active(self):
-        """Test que zonas de bearing off no se dibujan si no puede sacar."""
+        """Test que zonas de bearing off no se dibujan si no puede sacar.
+        
+        Principio LSP: Verifica que __draw_bearing_off_zones
+        se comporta correctamente (no dibuja) cuando el estado no lo permite.
+        """
         self.ui.__screen__ = pygame.Surface((1600, 900))
         self.ui.__current_player__ = "negro"
         
@@ -1996,7 +2751,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
             self.fail(f"draw_bearing_off_zones falló: {e}")
 
     def test_draw_bearing_off_zones_wrong_state(self):
-        """Test que zonas no se dibujan en estado incorrecto."""
+        """Test que zonas no se dibujan en estado incorrecto.
+        
+        Principio LSP: Verifica que el método de dibujo se
+        comporta correctamente (no dibuja) en un estado de juego incorrecto.
+        """
         self.ui.__screen__ = pygame.Surface((1600, 900))
         self.ui.__current_player__ = "negro"
         self.ui.__game_state_manager__.change_state('AWAITING_ROLL')
@@ -2008,7 +2767,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
 
     @patch("pygame.draw.circle")
     def test_draw_pips_value_1(self, mock_circle):
-        """Test dibujado de pips para dado valor 1."""
+        """Test dibujado de pips para dado valor 1.
+        
+        Principio SRP: Verifica la responsabilidad de __draw_pips
+        de dibujar el número correcto de pips (caso 1).
+        """
         self.ui.__screen__ = pygame.Surface((1600, 900))
         rect = pygame.Rect(100, 100, 80, 80)
 
@@ -2018,7 +2781,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
 
     @patch("pygame.draw.circle")
     def test_draw_pips_value_6(self, mock_circle):
-        """Test dibujado de pips para dado valor 6."""
+        """Test dibujado de pips para dado valor 6.
+        
+        Principio SRP: Verifica la responsabilidad de __draw_pips
+        de dibujar el número correcto de pips (caso 6).
+        """
         self.ui.__screen__ = pygame.Surface((1600, 900))
         rect = pygame.Rect(100, 100, 80, 80)
 
@@ -2027,7 +2794,11 @@ class TestPygameUICoverageExtension(unittest.TestCase):
         self.assertEqual(mock_circle.call_count, 6)
 
     def test_draw_dice_without_rolls(self):
-        """Test que draw_message funciona sin dados."""
+        """Test que draw_message funciona sin dados.
+        
+        Principio LSP: Verifica que __draw_message (que también
+        dibuja dados) se comporta establemente cuando __dice_rolls__ está vacío.
+        """
         # Configurar surface real y font mockeado
         self.ui.__screen__ = pygame.Surface((1600, 900))
         
@@ -2047,7 +2818,12 @@ class TestPygameUICoverageExtension(unittest.TestCase):
 
     @patch("pygame.draw.rect")
     def test_draw_dice_with_doubles_highlight(self, mock_rect):
-        """Test que dados dobles tienen highlight visual."""
+        """Test que dados dobles tienen highlight visual.
+        
+        Principio LSP: Verifica que __draw_dice altera su
+        comportamiento (dibuja un highlight) consistentemente
+        cuando __is_doubles_roll__ es True.
+        """
         self.ui.__screen__ = pygame.Surface((1600, 900))
         self.ui.__dice_rolls__ = [5, 5]
         self.ui.__is_doubles_roll__ = True
