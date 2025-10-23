@@ -6,7 +6,7 @@ import sys
 
 # Asegura que los módulos del proyecto se encuentren
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from Backgammon.Interfaces.PygameUI import PygameUI, DiceMovesCalculator, GameStateManager, MessageManager, MovementValidator
+from Backgammon.Interfaces.PygameUI import *
 from Backgammon.Core.Board import Board
 
 
@@ -1522,6 +1522,540 @@ class TestMessageManager(unittest.TestCase):
         self.assertIn("No tienes el dado 4 disponible", message)
         self.assertIn("[2, 6]", message)
 
+class TestPygameUICoverageExtension(unittest.TestCase):
+    """
+    Tests adicionales para aumentar cobertura de PygameUI.
+    Se enfoca en métodos y escenarios no cubiertos en los tests existentes.
+    
+    SOLID: SRP - Cada test verifica un aspecto específico de funcionalidad.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """Configura entorno sin pantalla."""
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
+        pygame.init()
+
+    def setUp(self):
+        """Crea instancia de PygameUI para cada test."""
+        with patch('pygame.display.set_mode', return_value=pygame.Surface((1600, 900))), \
+             patch('pygame.font.Font'):
+            self.ui = PygameUI()
+
+    # --- Tests para BarManager ---
+
+    def test_bar_manager_remove_piece_no_pieces(self):
+        """Test que remove_piece_from_bar retorna False cuando no hay fichas."""
+        result = self.ui.__bar_manager__.remove_piece_from_bar("negro")
+        self.assertFalse(result)
+
+    def test_bar_manager_remove_piece_success(self):
+        """Test que remove_piece_from_bar retorna True y remueve correctamente."""
+        self.ui.__bar_manager__.add_piece_to_bar("negro")
+        result = self.ui.__bar_manager__.remove_piece_from_bar("negro")
+        self.assertTrue(result)
+        self.assertEqual(self.ui.__bar_manager__.get_pieces_count("negro"), 0)
+
+    def test_bar_manager_add_invalid_color(self):
+        """Test que agregar color inválido genera error."""
+        with self.assertRaises(ValueError):
+            self.ui.__bar_manager__.add_piece_to_bar("rojo")
+
+    def test_bar_manager_get_bar_state_returns_copy(self):
+        """Test que get_bar_state retorna copia, no referencia."""
+        self.ui.__bar_manager__.add_piece_to_bar("negro")
+        state = self.ui.__bar_manager__.get_bar_state()
+        state["negro"] = 999
+        self.assertEqual(self.ui.__bar_manager__.get_pieces_count("negro"), 1)
+
+    # --- Tests para CaptureValidator ---
+
+    def test_capture_validator_can_capture_empty_point(self):
+        """Test que can_capture_piece retorna False si punto vacío."""
+        result = CaptureValidator.can_capture_piece(None, "negro")
+        self.assertFalse(result)
+
+    def test_capture_validator_can_capture_same_color(self):
+        """Test que no puede capturar ficha del mismo color."""
+        result = CaptureValidator.can_capture_piece(("negro", 1), "negro")
+        self.assertFalse(result)
+
+    def test_capture_validator_can_capture_single_opponent(self):
+        """Test que puede capturar ficha solitaria del oponente."""
+        result = CaptureValidator.can_capture_piece(("blanco", 1), "negro")
+        self.assertTrue(result)
+
+    def test_capture_validator_cannot_capture_multiple_opponents(self):
+        """Test que no puede capturar múltiples fichas oponentes."""
+        result = CaptureValidator.can_capture_piece(("blanco", 2), "negro")
+        self.assertFalse(result)
+
+    def test_capture_validator_is_move_blocked_empty(self):
+        """Test que punto vacío no está bloqueado."""
+        result = CaptureValidator.is_move_blocked(None, "negro")
+        self.assertFalse(result)
+
+    def test_capture_validator_is_move_blocked_same_color(self):
+        """Test que mismo color no bloquea."""
+        result = CaptureValidator.is_move_blocked(("negro", 5), "negro")
+        self.assertFalse(result)
+
+    def test_capture_validator_is_move_blocked_multiple_opponents(self):
+        """Test que 2+ fichas oponentes bloquean."""
+        result = CaptureValidator.is_move_blocked(("blanco", 2), "negro")
+        self.assertTrue(result)
+
+    # --- Tests para BarMovementRules ---
+
+    def test_bar_movement_rules_entry_point_negro(self):
+        """Test cálculo de punto de entrada para negro."""
+        self.assertEqual(BarMovementRules.get_entry_point("negro", 3), 3)
+        self.assertEqual(BarMovementRules.get_entry_point("negro", 6), 6)
+
+    def test_bar_movement_rules_entry_point_blanco(self):
+        """Test cálculo de punto de entrada para blanco."""
+        self.assertEqual(BarMovementRules.get_entry_point("blanco", 3), 22)
+        self.assertEqual(BarMovementRules.get_entry_point("blanco", 6), 19)
+
+    def test_bar_movement_rules_must_enter_true(self):
+        """Test que detecta cuando debe mover desde barra."""
+        self.ui.__bar_manager__.add_piece_to_bar("negro")
+        result = BarMovementRules.must_enter_from_bar_first(
+            self.ui.__bar_manager__, "negro")
+        self.assertTrue(result)
+
+    def test_bar_movement_rules_must_enter_false(self):
+        """Test que no requiere entrada cuando barra vacía."""
+        result = BarMovementRules.must_enter_from_bar_first(
+            self.ui.__bar_manager__, "negro")
+        self.assertFalse(result)
+
+    # --- Tests para métodos de PygameUI no cubiertos ---
+
+    def test_switch_player_negro_to_blanco(self):
+        """Test cambio de jugador negro a blanco."""
+        self.ui.__current_player__ = "negro"
+        self.ui._PygameUI__switch_player()
+        self.assertEqual(self.ui.__current_player__, "blanco")
+
+    def test_switch_player_blanco_to_negro(self):
+        """Test cambio de jugador blanco a negro."""
+        self.ui.__current_player__ = "blanco"
+        self.ui._PygameUI__switch_player()
+        self.assertEqual(self.ui.__current_player__, "negro")
+
+    def test_calculate_dice_needed_from_bar_negro(self):
+        """Test cálculo de dado desde barra para negro."""
+        self.ui.__current_player__ = "negro"
+        # Cuando origen es 0 (barra) y destino es 5, para negro el dado es simplemente el destino
+        result = self.ui._PygameUI__calculate_dice_needed(0, 5)
+        self.assertEqual(result, 5)
+
+    def test_calculate_dice_needed_from_bar_blanco(self):
+        """Test cálculo de dado desde barra para blanco."""
+        self.ui.__current_player__ = "blanco"
+        # Para blanco desde barra: 25 - destino
+        result = self.ui._PygameUI__calculate_dice_needed(0, 22)
+        self.assertEqual(result, 3)
+
+    def test_calculate_dice_needed_normal_move(self):
+        """Test cálculo de dado para movimiento normal."""
+        # Movimiento normal es abs(origen - destino)
+        result = self.ui._PygameUI__calculate_dice_needed(5, 10)
+        self.assertEqual(result, 5)
+
+    def test_is_valid_direction_negro_forward(self):
+        """Test que negro mueve hacia números mayores."""
+        self.ui.__current_player__ = "negro"
+        # Negro va de menor a mayor (10 -> 15)
+        result = self.ui._PygameUI__is_valid_direction(10, 15)
+        self.assertTrue(result)
+
+    def test_is_valid_direction_negro_backward_invalid(self):
+        """Test que negro no puede mover hacia atrás."""
+        self.ui.__current_player__ = "negro"
+        # Negro NO puede ir de mayor a menor (15 -> 10)
+        result = self.ui._PygameUI__is_valid_direction(15, 10)
+        self.assertFalse(result)
+
+    def test_is_valid_direction_blanco_backward(self):
+        """Test que blanco mueve hacia números menores."""
+        self.ui.__current_player__ = "blanco"
+        # Blanco va de mayor a menor (20 -> 15)
+        result = self.ui._PygameUI__is_valid_direction(20, 15)
+        self.assertTrue(result)
+
+    def test_is_valid_direction_blanco_forward_invalid(self):
+        """Test que blanco no puede mover hacia adelante."""
+        self.ui.__current_player__ = "blanco"
+        # Blanco NO puede ir de menor a mayor (10 -> 15)
+        result = self.ui._PygameUI__is_valid_direction(10, 15)
+        self.assertFalse(result)
+
+    def test_get_point_from_mouse_pos_outside_board(self):
+        """Test que click fuera del tablero retorna None."""
+        result = self.ui._PygameUI__get_point_from_mouse_pos((10, 10))
+        self.assertIsNone(result)
+
+    def test_get_point_from_mouse_pos_bar_area(self):
+        """Test que click en barra retorna 0."""
+        result = self.ui._PygameUI__get_point_from_mouse_pos((790, 450))
+        self.assertEqual(result, 0)
+
+    def test_bearing_off_validator_get_destination_negro(self):
+        """Test destino ficticio para bearing off negro."""
+        result = self.ui.__bearing_off_validator__.get_bearing_off_destination("negro")
+        self.assertEqual(result, 25)
+
+    def test_bearing_off_validator_get_destination_blanco(self):
+        """Test destino ficticio para bearing off blanco."""
+        result = self.ui.__bearing_off_validator__.get_bearing_off_destination("blanco")
+        self.assertEqual(result, 0)
+
+    def test_bearing_off_validator_is_bearing_off_move_negro(self):
+        """Test detección de intento de bearing off para negro."""
+        result = self.ui.__bearing_off_validator__.is_bearing_off_move("negro", 23, 26)
+        self.assertTrue(result)
+
+    def test_bearing_off_validator_is_bearing_off_move_blanco(self):
+        """Test detección de intento de bearing off para blanco."""
+        result = self.ui.__bearing_off_validator__.is_bearing_off_move("blanco", 2, 0)
+        self.assertTrue(result)
+
+    def test_bearing_off_validator_not_bearing_off_normal_move(self):
+        """Test que movimiento normal no es bearing off."""
+        result = self.ui.__bearing_off_validator__.is_bearing_off_move("negro", 10, 15)
+        self.assertFalse(result)
+
+    # --- Tests para execute_move con capturas ---
+
+    def test_execute_move_with_capture(self):
+        """Test ejecución de movimiento con captura."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [5]
+        
+        # Limpiar tablero y configurar escenario
+        for i in range(1, 25):
+            try:
+                estado = self.ui.__board__.obtener_estado_punto(i)
+                if estado:
+                    self.ui.__board__.remover_ficha(i, estado[1])
+            except:
+                pass
+        
+        self.ui.__board__.colocar_ficha(10, "negro", 1)
+        self.ui.__board__.colocar_ficha(15, "blanco", 1)
+
+        self.ui._PygameUI__execute_move(10, 15)
+
+        self.assertEqual(self.ui.__bar_manager__.get_pieces_count("blanco"), 1)
+
+    def test_execute_move_from_bar_to_board(self):
+        """Test movimiento desde barra al tablero."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [3]
+        self.ui.__bar_manager__.add_piece_to_bar("negro")
+        
+        # Limpiar punto destino
+        try:
+            estado = self.ui.__board__.obtener_estado_punto(3)
+            if estado:
+                self.ui.__board__.remover_ficha(3, estado[1])
+        except:
+            pass
+
+        self.ui._PygameUI__execute_move(0, 3)
+
+        self.assertFalse(self.ui.__bar_manager__.has_pieces_on_bar("negro"))
+
+    def test_execute_move_removes_dice_from_available(self):
+        """Test que execute_move remueve dado usado."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [2, 5]
+        
+        # Limpiar y configurar
+        for i in range(1, 25):
+            try:
+                estado = self.ui.__board__.obtener_estado_punto(i)
+                if estado:
+                    self.ui.__board__.remover_ficha(i, estado[1])
+            except:
+                pass
+        
+        self.ui.__board__.colocar_ficha(10, "negro", 1)
+
+        self.ui._PygameUI__execute_move(10, 12)
+
+        self.assertEqual(self.ui.__available_moves__, [5])
+
+    def test_execute_move_last_dice_ends_turn(self):
+        """Test que usar último dado termina turno."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [3]
+        
+        # Limpiar y configurar
+        for i in range(1, 25):
+            try:
+                estado = self.ui.__board__.obtener_estado_punto(i)
+                if estado:
+                    self.ui.__board__.remover_ficha(i, estado[1])
+            except:
+                pass
+        
+        self.ui.__board__.colocar_ficha(10, "negro", 1)
+
+        self.ui._PygameUI__execute_move(10, 13)
+
+        self.assertEqual(self.ui.__current_player__, "blanco")
+
+    # --- Tests para validación de movimientos desde barra ---
+
+    def test_validate_move_from_bar_no_pieces(self):
+        """Test validación falla si no hay fichas en barra."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [3]
+
+        result = self.ui._PygameUI__validate_and_report_move(0, 3)
+
+        self.assertFalse(result)
+        self.assertIn("No tienes fichas en la barra", self.ui.__message__)
+
+    def test_validate_move_from_bar_wrong_dice(self):
+        """Test validación falla con dado incorrecto desde barra."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [5]
+        self.ui.__bar_manager__.add_piece_to_bar("negro")
+
+        result = self.ui._PygameUI__validate_and_report_move(0, 3)
+
+        self.assertFalse(result)
+        self.assertIn("No tienes dado", self.ui.__message__)
+
+    def test_validate_move_from_bar_blocked_destination(self):
+        """Test validación falla si destino bloqueado desde barra."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [3]
+        self.ui.__bar_manager__.add_piece_to_bar("negro")
+        
+        # Limpiar y bloquear destino
+        try:
+            estado = self.ui.__board__.obtener_estado_punto(3)
+            if estado:
+                self.ui.__board__.remover_ficha(3, estado[1])
+        except:
+            pass
+        self.ui.__board__.colocar_ficha(3, "blanco", 2)
+
+        result = self.ui._PygameUI__validate_and_report_move(0, 3)
+
+        self.assertFalse(result)
+        self.assertIn("bloqueado", self.ui.__message__)
+
+    def test_validate_move_must_enter_from_bar_first(self):
+        """Test que debe mover desde barra antes de tablero."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [3]
+        self.ui.__bar_manager__.add_piece_to_bar("negro")
+        
+        # Limpiar y colocar ficha en tablero
+        for i in range(1, 25):
+            try:
+                estado = self.ui.__board__.obtener_estado_punto(i)
+                if estado:
+                    self.ui.__board__.remover_ficha(i, estado[1])
+            except:
+                pass
+        self.ui.__board__.colocar_ficha(10, "negro", 1)
+
+        result = self.ui._PygameUI__validate_and_report_move(10, 13)
+
+        self.assertFalse(result)
+        self.assertIn("desde la barra", self.ui.__message__)
+
+    # --- Tests para attempt_piece_selection con barra ---
+
+    def test_attempt_piece_selection_bar_with_pieces(self):
+        """Test selección de barra cuando tiene fichas."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [3]
+        self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
+        self.ui.__bar_manager__.add_piece_to_bar("negro")
+
+        self.ui._PygameUI__attempt_piece_selection(0)
+
+        self.assertEqual(self.ui.__selected_point__, 0)
+        self.assertIn("barra seleccionada", self.ui.__message__)
+
+    def test_attempt_piece_selection_bar_without_pieces(self):
+        """Test selección de barra sin fichas."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
+
+        self.ui._PygameUI__attempt_piece_selection(0)
+
+        self.assertIsNone(self.ui.__selected_point__)
+        self.assertIn("No tienes fichas en la barra", self.ui.__message__)
+
+    def test_attempt_piece_selection_must_move_from_bar(self):
+        """Test mensaje cuando debe mover desde barra primero."""
+        self.ui.__current_player__ = "negro"
+        self.ui.__available_moves__ = [3]
+        self.ui.__game_state_manager__.change_state('AWAITING_PIECE_SELECTION')
+        self.ui.__bar_manager__.add_piece_to_bar("negro")
+        
+        # Limpiar y colocar ficha
+        for i in range(1, 25):
+            try:
+                estado = self.ui.__board__.obtener_estado_punto(i)
+                if estado:
+                    self.ui.__board__.remover_ficha(i, estado[1])
+            except:
+                pass
+        self.ui.__board__.colocar_ficha(10, "negro", 1)
+
+        self.ui._PygameUI__attempt_piece_selection(10)
+
+        self.assertIn("desde la barra", self.ui.__message__)
+
+    # --- Tests para draw methods ---
+
+    @patch("pygame.draw.circle")
+    def test_draw_bar_pieces_negro(self, mock_circle):
+        """Test dibujado de fichas negras en barra."""
+        self.ui.__screen__ = pygame.Surface((1600, 900))
+        self.ui.__bar_manager__.add_piece_to_bar("negro")
+        self.ui.__bar_manager__.add_piece_to_bar("negro")
+
+        self.ui._PygameUI__draw_bar_pieces()
+
+        # 2 fichas + 2 bordes = 4 círculos
+        self.assertEqual(mock_circle.call_count, 4)
+
+    @patch("pygame.draw.circle")
+    def test_draw_bar_pieces_blanco(self, mock_circle):
+        """Test dibujado de fichas blancas en barra."""
+        self.ui.__screen__ = pygame.Surface((1600, 900))
+        self.ui.__bar_manager__.add_piece_to_bar("blanco")
+
+        self.ui._PygameUI__draw_bar_pieces()
+
+        # 1 ficha + 1 borde = 2 círculos
+        self.assertEqual(mock_circle.call_count, 2)
+
+    @patch("pygame.draw.circle")
+    def test_draw_bar_pieces_more_than_8_shows_count(self, mock_circle):
+        """Test que más de 8 fichas muestra contador."""
+        self.ui.__screen__ = pygame.Surface((1600, 900))
+        for _ in range(10):
+            self.ui.__bar_manager__.add_piece_to_bar("negro")
+
+        self.ui._PygameUI__draw_bar_pieces()
+
+        # Máximo 8 fichas visibles + 8 bordes = 16 círculos
+        self.assertEqual(mock_circle.call_count, 16)
+
+    def test_draw_home_pieces_negro(self):
+        """Test dibujado de contador de casa para negro."""
+        self.ui.__screen__ = pygame.Surface((1600, 900))
+        self.ui.__home_manager__.add_piece_to_home("negro")
+        self.ui.__home_manager__.add_piece_to_home("negro")
+
+        try:
+            self.ui._PygameUI__draw_home_pieces()
+        except Exception as e:
+            self.fail(f"draw_home_pieces falló: {e}")
+
+    def test_draw_home_pieces_blanco(self):
+        """Test dibujado de contador de casa para blanco."""
+        self.ui.__screen__ = pygame.Surface((1600, 900))
+        self.ui.__home_manager__.add_piece_to_home("blanco")
+
+        try:
+            self.ui._PygameUI__draw_home_pieces()
+        except Exception as e:
+            self.fail(f"draw_home_pieces falló: {e}")
+
+    def test_draw_bearing_off_zones_not_active(self):
+        """Test que zonas de bearing off no se dibujan si no puede sacar."""
+        self.ui.__screen__ = pygame.Surface((1600, 900))
+        self.ui.__current_player__ = "negro"
+        
+        # Limpiar y colocar ficha fuera de casa
+        for i in range(1, 25):
+            try:
+                estado = self.ui.__board__.obtener_estado_punto(i)
+                if estado:
+                    self.ui.__board__.remover_ficha(i, estado[1])
+            except:
+                pass
+        self.ui.__board__.colocar_ficha(10, "negro", 1)
+
+        try:
+            self.ui._PygameUI__draw_bearing_off_zones()
+        except Exception as e:
+            self.fail(f"draw_bearing_off_zones falló: {e}")
+
+    def test_draw_bearing_off_zones_wrong_state(self):
+        """Test que zonas no se dibujan en estado incorrecto."""
+        self.ui.__screen__ = pygame.Surface((1600, 900))
+        self.ui.__current_player__ = "negro"
+        self.ui.__game_state_manager__.change_state('AWAITING_ROLL')
+
+        try:
+            self.ui._PygameUI__draw_bearing_off_zones()
+        except Exception as e:
+            self.fail(f"draw_bearing_off_zones falló: {e}")
+
+    @patch("pygame.draw.circle")
+    def test_draw_pips_value_1(self, mock_circle):
+        """Test dibujado de pips para dado valor 1."""
+        self.ui.__screen__ = pygame.Surface((1600, 900))
+        rect = pygame.Rect(100, 100, 80, 80)
+
+        self.ui._PygameUI__draw_pips(rect, 1)
+
+        self.assertEqual(mock_circle.call_count, 1)
+
+    @patch("pygame.draw.circle")
+    def test_draw_pips_value_6(self, mock_circle):
+        """Test dibujado de pips para dado valor 6."""
+        self.ui.__screen__ = pygame.Surface((1600, 900))
+        rect = pygame.Rect(100, 100, 80, 80)
+
+        self.ui._PygameUI__draw_pips(rect, 6)
+
+        self.assertEqual(mock_circle.call_count, 6)
+
+    def test_draw_dice_without_rolls(self):
+        """Test que draw_message funciona sin dados."""
+        # Configurar surface real y font mockeado
+        self.ui.__screen__ = pygame.Surface((1600, 900))
+        
+        # Mock del font que retorna surface real
+        mock_font = Mock()
+        mock_surface = pygame.Surface((200, 50))
+        mock_font.render.return_value = mock_surface
+        self.ui.__font__ = mock_font
+        
+        self.ui.__dice_rolls__ = []
+        
+        try:
+            self.ui._PygameUI__draw_message()
+            # Si llegamos aquí, el test pasa
+        except Exception as e:
+            self.fail(f"draw_message falló: {e}")
+
+    @patch("pygame.draw.rect")
+    def test_draw_dice_with_doubles_highlight(self, mock_rect):
+        """Test que dados dobles tienen highlight visual."""
+        self.ui.__screen__ = pygame.Surface((1600, 900))
+        self.ui.__dice_rolls__ = [5, 5]
+        self.ui.__is_doubles_roll__ = True
+
+        self.ui._PygameUI__draw_dice()
+
+        # Verificar que se llamó rect para los bordes highlight
+        self.assertGreater(mock_rect.call_count, 2)
 
 if __name__ == "__main__":
     unittest.main()
