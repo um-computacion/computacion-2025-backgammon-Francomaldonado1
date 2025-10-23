@@ -1292,3 +1292,62 @@ Me devuelve el mismo AtributeError; AttributeError: 'Board' object has no attrib
 
 BOT: (Me pasa el codigo actualizado)
 (pasan todos los tests, hago commit)
+
+YO: 
+
+Hola buenas noches, Ya hemos casi terminado con el proyecto, y al correr el coverage, veo que hay una cobertura del 83% cosa que esta mal por que necesito al menos 90%. Tenia entendido que el puntaje de pylint aumentaba el coverage puede ser? o era al reves? Actualmente tengo un 7.19/10 en el pylint, asi que en este commit tenia pensado aumentar estos dos valores, buscando un 10/10 en el pylint y un 90% al menos en el coverage. Teniendo en cuenta esto, en el coverage particularmente el archivo "Board.py" tiene cobertura del 55%, pero yo tenia entendido que la cobertura era el porcentaje de codigo que tiene tests que lo prueben en su archivo correspondiente de test, por lo que no entiendo por que los archivos que no son de tests tambien tienen un porcentaje de cobertura, podrias explicarme esto?. Bueno teniendo en cuenta que el objetivo principal es aumentar el pylint y la cobertura, podrias modificar el archivo Board.py tratando de mejorar la cobertura y luego respondeme cada pregunta que hice, muchas gracias. 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Veo que has modificado algunas lineas, por ejemplo la 183 que es self.remover_ficha(destino, 1) la cambiaste por self._remover_de_barra(color) que es cualquier cosa comparado a lo que tenia yo antes, aparte necesito mejorar el pylint y la cobertura sin modificar el codigo actual, ya que tanto la CLI como pygame utilizan metodos de board ya que board es como la clase principal del core del proyecto. Asi que por favor rehace las modificaciones manteniendo todas las lineas iguales y mejora el pylint y cobertura agregando mas lineas si es necesario o haciendo cambios como borrado de lineas  dobles, division de lineas muy largas o cosas que NO modifiquen la logica para que sigan funcionando tal cual lo hacen la CLI y pygame, gracias.
+
+BOT: (Me dice que modificaciones puedo hacer, las hago manual y aumenta el pylint de Board a 9,50)
+
+YO:
+
+Bueno gracias, mejoro el pylint  9,50. Ahora podrias dedicarte a testear los escenarios que aun no han sido testeados de board para mejorar la cobertura de este? Todos los tests utilizando unittest, gracias.
+
+BOT: (Me genera una nueva clase de tests con varios tests)
+
+YO:
+
+Podrias agregarle a cada tests una breve mencion al principio solid que cumplen como hemos hecho en todos los metodos y tests del proyecto porfavor y ademas correguir los siguientes errores; 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Fallan dos tests, podrias corregirlos?
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Sigue fallando, en la linea 694 de self.assertTrue(self.tablero.esta_vacio(5) no deberiamos usar el metodo self.tablero.obtener_estado_punto? por que si decimos que esta vacio es ilogico realizar un movimiento desde ahi, igualmente probe implementar esto que te menciono y sigue fallando, asique por favor rehace el codigo de este test para que funcione correctamente. Respecto al segundo test que falla, no entiendo la logica del test, por que si se puede realizar el movimiento, estamos definiendo que hay 1 ficha en la posicion 19 y 14 fichas en la posicion 20, luego en la linea 1004 indicamos que queremos usar el dado1 que vale 1 desde la posicion 20; exito = self.tablero.realizar_movimiento_completo("negro", dados, 20, usar_dado1=True) cosa que si es posible por que utilizamos realizar_movimiento_completo, no sacamos la ficha a casa pero el movimiento es posible quedando una ficha en la posicion 21. Tampoco indicamos que jugador es el que esta jugando, capaz esto tambien hace que falle. Por favor corregui estos dos errores si es necesario rehace los tests, y enviame unicamente los dos tests correguidos, gracias. 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Bien, solo esta fallando el primero ahora, la linea de self.assertTrue(exito) no deberia ir al final? ya que antes esta la linea ;
+exito = self.tablero.realizar_movimiento_doble("negro", dados, 5) por lo que no podemos hacer el asertTrue antes de realizar los movimientos de 5 a 7 y de 7 a 10 no? igualmente lo puse al final y fallo asi que correguilo por favor.
+ self.assertTrue(exito)
+AssertionError: False is not true
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Bien gracias, aumento la cobertura particular de Board de 55% a 92% y la cobertura general de 83% a 87%, pero todavia falta para llegar a un minimo del 90% asi que es necesario aumentar la cobertura de PygameUI que esta actualmente en 68%. Te dejo codigo de pygameUI y de Test_PygameUI para que veas que escenarios y metodos ya han sido testeados y cuales no. Por favor hace esto unicamente agregando tests sin modificar los tests ya existentes ya que funcionan y pasan todos, y si solamente agregamos mas, es mas facil correguirlos despues, gracias.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Hay varios errores, primero que nada las clases BarManager y BarMovementsRules no estan importadas en el archivo de tests, ya las importe haciendo un import * (all), pero de todas maneras siguen fallando 18 tests, te dejo codigo de error para que lo corrijas; 
+
+BOT: (Me pasa el codigo actualizado)
+(Funciona bien, pasan todos los tests y aumenta la cobertura al 90%, hago commit)
+

@@ -1,4 +1,5 @@
 """Clase Board para el tablero de Backgammon."""
+import copy
 from Backgammon.Core.Dice import Dice
 
 
@@ -65,11 +66,13 @@ class Board:
         if self.__puntos__[punto - 1] is None:
             self.__puntos__[punto - 1] = [color, cantidad]
         else:
-            mismo_color, cant_actual = self.__puntos__[punto - 1]
+            mismo_color, _ = self.__puntos__[punto - 1]
             if mismo_color == color:
                 self.__puntos__[punto - 1][1] += cantidad
             else:
-                raise ValueError("No se pueden mezclar fichas de distinto color en el mismo punto.")
+                raise ValueError(
+                 "No se pueden mezclar fichas de distinto color en el mismo punto."
+                )
 
     def remover_ficha(self, punto: int, cantidad: int = 1) -> None:
         """
@@ -85,7 +88,7 @@ class Board:
         if self.__puntos__[punto - 1] is None:
             raise ValueError("No hay fichas en este punto.")
 
-        color, cant_actual = self.__puntos__[punto - 1]
+        _ , cant_actual = self.__puntos__[punto - 1]
         if cant_actual < cantidad:
             raise ValueError("No hay suficientes fichas para quitar.")
 
@@ -139,12 +142,12 @@ class Board:
             if destino > 24:
                 return 25  # Fuera del tablero (casa)
             return destino
-        else:  # color == "blanco"
-            # Blanco avanza de 24 hacia 1
-            destino = origen - movimiento
-            if destino < 1:
+    
+        # Blanco avanza de 24 hacia 1
+        destino = origen - movimiento
+        if destino < 1:
                 return 0   # Fuera del tablero (casa)
-            return destino
+        return destino
 
     def mover_desde_barra(self, color: str, movimiento: int) -> bool:
         """
@@ -261,9 +264,13 @@ class Board:
         casa = self.__casa__.get(color, 0)
         puede_sacar = self.puede_sacar_fichas(color)
 
-        return f"Color {color}: Puntos={puntos_con_fichas}, Barra={barra}, Casa={casa}, PuedeSacar={puede_sacar}"
+        return (
+        f"Color {color}: Puntos={puntos_con_fichas},"
+        f"Barra={barra}, Casa={casa}, PuedeSacar={puede_sacar}"
+        )
 
-    def realizar_movimiento_completo(self, color: str, dados: Dice, origen: int, usar_dado1: bool = True, usar_dado2: bool = False) -> bool:
+    def realizar_movimiento_completo(self, color: str, dados: Dice, 
+            origen: int, usar_dado1: bool = True, usar_dado2: bool = False) -> bool:
         """
         Realiza un movimiento completo usando uno de los dados disponibles.
         Implementa las reglas correctas de bearing off.
@@ -327,7 +334,8 @@ class Board:
 
         Reglas:
         1) Se puede sacar con el valor exacto del dado.
-        2) EXCEPCIÓN: Si el dado es mayor, solo es válido si NO hay fichas en posiciones más lejanas al borne
+        2) EXCEPCIÓN: Si el dado es mayor, 
+        solo es válido si NO hay fichas en posiciones más lejanas al borne
         (es decir, más atrás dentro del cuadrante casa).
 
         Convenciones del tablero usadas aquí (consistentes con el resto del código):
@@ -375,9 +383,9 @@ class Board:
 
     def _hay_fichas_en_posiciones_mas_altas(self, color: str, origen: int) -> bool:
         """
-        Indica si hay fichas del color en posiciones MÁS LEJANAS AL BORNE dentro del cuadrante casa.
-        Para NEGRO (casa 19..24, sale en 25): "más atrás" son puntos con índice MENOR (19..origen-1).
-        Para BLANCO (casa 1..6, sale en 0)   : "más atrás" son puntos con índice MAYOR (origen+1..6).
+        Indica si hay fichas del color en posiciones MÁS LEJANAS AL BORNE.
+        Para NEGRO (casa 19..24): "más atrás" son puntos con índice MENOR (19..origen-1).
+        Para BLANCO (casa 1..6): "más atrás" son puntos con índice MAYOR (origen+1..6).
         """
         if color == "negro":
             puntos_a_revisar = range(19, origen)  # 19..origen-1
@@ -426,64 +434,61 @@ class Board:
 
 
     def realizar_movimiento_doble(self, color: str, dados: Dice, origen: int) -> bool:
-            """
-            Mueve una sola ficha usando ambos dados consecutivamente.
-   
-            Realiza dos movimientos seguidos con la misma ficha:
-            - Primer movimiento: origen → intermedio (usando dado1)
-            - Segundo movimiento: intermedio → destino (usando dado2)
+        """
+        Mueve una sola ficha usando ambos dados consecutivamente.
+
+        Realiza dos movimientos seguidos con la misma ficha:
+        - Primer movimiento: origen → intermedio (usando dado1)
+        - Segundo movimiento: intermedio → destino (usando dado2)
             
-            SRP: Ejecuta movimientos encadenados.
-            OCP: Permite redefinir reglas de movimiento múltiple.
+        SRP: Ejecuta movimientos encadenados.
+        OCP: Permite redefinir reglas de movimiento múltiple.
+        Args:
+            color (str): Color del jugador.
+            dados (Dice): Objeto dados con la tirada actual.
+            origen (int): Punto de origen (0 para barra, 1-24 para puntos del tablero).
 
-            Args:
-                color (str): Color del jugador.
-                dados (Dice): Objeto dados con la tirada actual.
-                origen (int): Punto de origen (0 para barra, 1-24 para puntos del tablero).
+        Returns:
+            bool: True si ambos movimientos fueron exitosos, False en caso contrario.
+        """
+        if not dados.han_sido_tirados():
+            return False
 
-            Returns:
-                bool: True si ambos movimientos fueron exitosos, False en caso contrario.
-            """
-            if not dados.han_sido_tirados():
+        dado1, dado2 = dados.obtener_valores()
+
+        # Movimiento desde la barra no se puede hacer doble
+        if origen == 0:
+            return False
+
+        # Verificar que hay ficha del color correcto en origen
+        estado_origen = self.obtener_estado_punto(origen)
+        if estado_origen is None or estado_origen[0] != color:
+            return False
+
+        # Calcular posiciones intermedias y final
+        intermedio = self.calcular_destino(origen, dado1, color)
+        destino_final = self.calcular_destino(intermedio, dado2, color)
+
+        # Crear snapshot del estado actual para poder deshacer
+        snapshot = self._crear_snapshot_tablero()
+
+        try:
+            # PRIMER MOVIMIENTO: origen → intermedio
+            exito_primero = self._realizar_movimiento_simple(origen, intermedio, color)
+            if not exito_primero:
                 return False
 
-            dado1, dado2 = dados.obtener_valores()
+            # SEGUNDO MOVIMIENTO: intermedio → destino_final
+            exito_segundo = self._realizar_movimiento_simple(intermedio, destino_final, color)
+            if not exito_segundo:
+            # Deshacer el primer movimiento
+             self._restaurar_snapshot_tablero(snapshot)
+            return False
 
-            # Movimiento desde la barra no se puede hacer doble
-            if origen == 0:
-                return False
-
-            # Verificar que hay ficha del color correcto en origen
-            estado_origen = self.obtener_estado_punto(origen)
-            if estado_origen is None or estado_origen[0] != color:
-                return False
-
-            # Calcular posiciones intermedias y final
-            intermedio = self.calcular_destino(origen, dado1, color)
-            destino_final = self.calcular_destino(intermedio, dado2, color)
-
-            # Crear snapshot del estado actual para poder deshacer
-            snapshot = self._crear_snapshot_tablero()
-
-            try:
-                # PRIMER MOVIMIENTO: origen → intermedio
-                exito_primero = self._realizar_movimiento_simple(origen, intermedio, color)
-                if not exito_primero:
-                    return False
-
-                # SEGUNDO MOVIMIENTO: intermedio → destino_final
-                exito_segundo = self._realizar_movimiento_simple(intermedio, destino_final, color)
-                if not exito_segundo:
-                    # Deshacer el primer movimiento
-                    self._restaurar_snapshot_tablero(snapshot)
-                    return False
-
-                return True
-
-            except Exception:
-                # En caso de cualquier error, restaurar estado
-                self._restaurar_snapshot_tablero(snapshot)
-                return False
+        except Exception:
+            # En caso de cualquier error, restaurar estado
+            self._restaurar_snapshot_tablero(snapshot)
+            return False
 
     def _realizar_movimiento_simple(self, origen: int, destino: int, color: str) -> bool:
         """
@@ -573,7 +578,6 @@ class Board:
         Returns:
             dict: Snapshot del estado del tablero.
         """
-        import copy
         return {
             'puntos': copy.deepcopy(self.__puntos__),
             'barra': copy.deepcopy(self.__barra__),
@@ -606,7 +610,8 @@ class Board:
             dados (Dice): Objeto dados con la tirada actual.
 
         Returns:
-            list[int]: Lista de puntos válidos para mover (incluye 0 si puede mover desde barra).
+            list[int]: Lista de puntos válidos para mover
+             (incluye 0 si puede mover desde barra).
         """
         if not dados.han_sido_tirados():
             return []
@@ -691,7 +696,8 @@ class Board:
         Reglas:
         - Si el destino está vacío, se coloca la ficha.
         - Si el destino tiene fichas del mismo color, se apila.
-        - Si el destino tiene UNA sola ficha del color contrario, se la come y se envía a la barra.
+        - Si el destino tiene UNA sola ficha del color contrario,
+          se la come y se envía a la barra.
         - Si el destino tiene 2+ fichas del color contrario, el movimiento no es válido.
 
         Args:

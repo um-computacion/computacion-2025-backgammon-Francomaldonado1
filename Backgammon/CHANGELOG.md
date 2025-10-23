@@ -307,3 +307,14 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 ### CHANGED 
 - Se corrige test que fallaba de clase TestDoublesValidation.
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para probar la lógica de bearing off.
+
+# [0.0.39] 22/10/2025
+### ADDED
+- Se agrega clase de tests TestPygameUICoverageExtension para aumentar la cobertura de PygameUI.py y asi aumentar la cobertura total.
+- Se agrega clase de tests TestBoardCoverageCompletion para aumentar la cobertura de Board.py y asi aumentar la cobertura total.
+
+### CHANGED
+
+- Se actualiza Board.py para mejorar el pylint.
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para aumentar la cobertura de PygameUI.py y Board.py.
+- Se actualiza REPORTS.md dado que alcanzamos el 90% de cobertura y aumentamos tambien el pylint.
