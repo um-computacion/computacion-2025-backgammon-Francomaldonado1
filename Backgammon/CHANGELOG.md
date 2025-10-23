@@ -318,3 +318,10 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 - Se actualiza Board.py para mejorar el pylint.
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para aumentar la cobertura de PygameUI.py y Board.py.
 - Se actualiza REPORTS.md dado que alcanzamos el 90% de cobertura y aumentamos tambien el pylint.
+
+# [0.0.40] 22/10/2025 (23:00 hs)
+### ADDED
+- Se agregan docstrings a los tests de Test_PygameUI.py explicando brevemente los principios SOLID que cumplen cada uno de los tests. 
+
+### CHANGED
+- Se actualiza prompts-documentación.md con los prompts y las indicaciones que se utilizaron para agregar docstrings a los tests de Test_PygameUI.py.
