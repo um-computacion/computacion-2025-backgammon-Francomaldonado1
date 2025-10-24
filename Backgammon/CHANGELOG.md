@@ -325,3 +325,11 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 
 ### CHANGED
 - Se actualiza prompts-documentación.md con los prompts y las indicaciones que se utilizaron para agregar docstrings a los tests de Test_PygameUI.py.
+
+# [0.0.41] 23/10/2025 
+### ADDED 
+- Se agrega justificación de la interfaz grafica de PygameUI en el archivo de justificación.md.
+
+### CHANGED
+- Se borra del archivo de justificación.md el apartado "Justificacion del diseño minimalista" en CLI porque decidi que no es necesario. 
+- Se actualiza prompts-documentación.md con los prompts y las indicaciones que se utilizaron para agregar la justificación de la interfaz grafica de PygameUI en el archivo de justificación.md. 
