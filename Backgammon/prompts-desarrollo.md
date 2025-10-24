@@ -1873,3 +1873,84 @@ corriguiendo estos 6 errores en orden y sin tocar la logica ni las correcciones 
 BOT: (Me pasa el codigo actualizado)
 (Funciona excelente, hago commit)
 
+YO:
+
+Hola buenas tardes, "que interpretas respecto a este parrafo de las instrucciones y requisitos para realizar el backgammon El repositorio contendrá un archivo README.md con una explicación detallada de cómo debe ponerse en funcionamiento el Backgammon para modo testing y para modo juego desplegados ambos con Docker." porque no entiendo que es lo que quieren que haga, podrias ayudarme?
+
+BOT: (Me explica y me da 3 opciones para elegir sobre como implementar esto)
+
+YO:
+
+Me gusto la opción 1, podrias ayudarme a implementarla y mandarme el docker compose directamente ya armado? Es necesario armar tambien un dockerfile? En caso de ser necesario, hacelo y mandamelo tambien porfavor
+
+BOT:
+
+¡Perfecto! Te voy a armar ambos archivos. Primero necesito saber un poco más sobre tu proyecto para hacerlo bien:
+
+¿Qué lenguaje de programación estás usando? (Python, Java, etc.)
+¿Cuál es la estructura de tu proyecto? Por ejemplo:
+
+¿Cómo se llama el archivo principal? (main.py, app.py, etc.)
+¿Tienes un archivo de dependencias? (requirements.txt, package.json, etc.)
+
+
+¿Cómo se ejecutan actualmente?
+
+Para CLI: python main.py --cli o similar?
+Para GUI: python main.py --gui?
+Para tests: pytest, python -m unittest, etc.?
+
+Con esa info te armo los archivos exactos que necesitas.
+
+YO:
+
+El proyecto es el mismo en el que venimos trabajando en las otras conversaciones, esta escrito en python, no tiene un archivo principal pero esta dividido en tres partes importantes Core (Player, Checker, Dice y la clase "principal" Board), luego tiene interfaces (CLI y pygameUI) y tests (tests de cada clase de core y de cada interfaz). La clase que maneja el flujo por asi decirlo es board, relaciona todas las demas clases de core y es la utilizada para las interfaces. Los comandos necesarios para ejecutar el proyecto son los siguientes:
+source venv/bin/activate (activamos entorno virtual para poder ejecutar los tests de pygame)
+python3 -m unittest Backgammon/Tests/*.py (para ejecutar todos los tests)
+python3 -m Backgammon.Interfaces.PygameUI (para ejecutar la interfaz grafica) 
+python3 -m Backgammon.Interfaces.CLI (para ejecutar la interfaz de texto) 
+No entiendo con que te refieres cuando utilizas "gui" podrias explicarme esto?, Y luego arma correctamente el dockerfile y el docker compose, gracias.
+
+BOT:
+
+Mi recomendación:
+
+Usa Docker para CLI y Tests
+Para la GUI, ejecuta localmente sin Docker (como lo hacías antes)
+En el README incluí ambas opciones explicadas
+
+¿Necesitas que ajuste algo o te ayudo con alguna configuración específica?
+
+YO:
+
+Bien gracias, y respecto a la variable de entorno (env), como va a hacer el usuario para modificarla?, porque estas definiendo que sea directamente en modo CLI, entonces no se como el usuario va a poder modificarla desde la terminal si quisiera desplegarla en modo gui. Respecto a tu recomendación de ejecutar pygame directamente local sin docker, me parece bien pero deberiamos borrar entonces el if del CMD que es el comando que ejecuta la imagen docker para que solamente ejecute el CLI. Aparte de esto te esta faltando el otro dockerfile con el modo testing y el comando que te mande antes para ejecutar todos los tests, no se si deberia ser otro dockerfile o un docker-compose.yml directamente pero podrias hacerlo ? 
+
+BOT: (Me pasa dockerfile y docker-compose.yml)
+
+YO:
+
+Pero si son dos servicios distintos el de tests y el de CLI, no podrian estar los dos juntos en un unico docker-compose?
+
+BOT: SI, Es como deberia estar, te mando el archivo docker-compose.yml con los dos servicios:
+(Me actualiza el codigo) 
+
+YO:
+
+Pero si el dockerfile tiene en su ultima linea: CMD ["python3", "-m", "Backgammon.Interfaces.CLI"], esto no es innecesario en el servicio de tests en el docker-compose.yml? Porque los dos servicios tienen build: . (que es construir usando el dockerfile de este directorio), No es inutil esto para correr los tests?
+
+BOT:
+
+La respuesta corta: NO es inútil
+Cuando en el docker-compose.yml pones:
+yamlcommand: python3 -m unittest Backgammon/Tests/*.py
+Este comando SOBRESCRIBE el CMD del Dockerfile. Es decir:
+
+Servicio CLI: No tiene command: en el docker-compose → usa el CMD del Dockerfile (CLI)
+Servicio test: Tiene command: en el docker-compose → ignora el CMD del Dockerfile y ejecuta los tests
+
+YO: (Lo pruebo y falla)
+
+Me tira error en el comando de python3 -m unittest Backgammon/Tests/*.py, habia otro comando que era con discover para ejecutar todos los tests directamente. Podrias pasarme este comando y yo lo reemplazo en el comand del service de test?
+
+BOT: (Me pasa el codigo actualizado)
+(Todavia no funciona bien pero hago commit y luego lo corrijo) 

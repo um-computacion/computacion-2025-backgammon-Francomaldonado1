@@ -333,3 +333,14 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 ### CHANGED
 - Se borra del archivo de justificación.md el apartado "Justificacion del diseño minimalista" en CLI porque decidi que no es necesario. 
 - Se actualiza prompts-documentación.md con los prompts y las indicaciones que se utilizaron para agregar la justificación de la interfaz grafica de PygameUI en el archivo de justificación.md. 
+
+# [0.0.42] 24/10/2025
+### ADDED
+- Se agrega Dockerfile con instrucciones para construir la imagen Docker para jugar al Backgammon en la CLI.
+- Se agrega archivo docker-compose.yml con servicio doble (Uno para la CLI a partir del Dockerfile y otro para los tests)
+- Se agrega archivo README.md con instrucciones para construir la imagen Docker y ejecutar los tests y la CLI con docker-compose. 
+- (NO FUNCIONA BIEN TODAVIA) 
+
+### CHANGED
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para agregar la imagen Docker y docker-compose.yml.
+
