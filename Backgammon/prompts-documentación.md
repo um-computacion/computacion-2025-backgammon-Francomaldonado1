@@ -188,3 +188,17 @@ Buenas noches, necesito que me ayudes a agregarle docstrings breves de los princ
 
 BOT: (Me pasa el codigo actualizado)
 (Esta bien, hago commit)
+
+YO: 
+
+Podrias ayudarme a agregar la justificación de la interfaz grafica de PygameUI en el archivo de justificación.md siguiendo el formato utilizado para justificar la interfaz de texto CLI, ya que son similares. Debe tener su responsabilidad, metodos disponibles, principios SOLID explicados, estrategias de testing y cobertura, y esto es opcional, quiero que lo analices y me des tu opinión, en la justificacion del CLI hay un apartado llamado "Justificacion del diseño minimalista" pero en realidad estos terminos yo los utilice para los archivos del core, para expresar que la logica principal estaba en la clase principal Board y el resto de clases (Player, Dice y Checker) tenian un diseño minimalista encargados unicamente de representar un objeto de su clase, por lo que este apartado en la CLI no se si es necesario porque la cli no tiene un diseño "minimo", al contrario tiene una gran cantidad de metodos y clases. Asi que si consideras optimo borrar este apartado, borralo y hace una justificacion similar para pygame. Te dejo archivo de pygame y de test_pygameUI.py para que veas metodos, clases y tests implementados, gracias.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+bien, me gusta, podrias enviarmelo como estaba en un archivo markdown utilizando numerales para los titulos, subtitulos y texto normal segun corresponda y utilizando guiones medios en cada linea al principio para que se separen las lineas y se vean correctamente en github.
+
+BOT: (Me pasa el codigo actualizado)
+(Esta bien, hago commit)
+
