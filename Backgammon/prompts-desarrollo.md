@@ -1954,3 +1954,76 @@ Me tira error en el comando de python3 -m unittest Backgammon/Tests/*.py, habia 
 
 BOT: (Me pasa el codigo actualizado)
 (Todavia no funciona bien pero hago commit y luego lo corrijo) 
+
+YO:
+
+Necesito que me ayudes a correguir una logica del CLI, mira esta secuencia, intento mover una ficha con los dos dados y devuelve movimiento doble invalido, pero la ficha si se mueve correctamente por el tablero, y luego me deja seguir jugando, cosa que esta mal. No solo la validación ya que si es un movimiento doble posible si no que tambien realizar el movimiento y dejar al jugador seguir jugando como si no hubiera hecho ningún movimiento, podrias correguir esto? 
+
+
+BOT: (Me recomienda modificar metodo de board de realizar_movimiento_doble)
+
+YO: (Le envio codigo de este metodo y corrijo lo que falta pero sigue fallando) 
+
+No, esta modificación no sirvío, guarde el archivo de board, volvi a ejecutar la CLI y volvio a pasar lo mismo, aparece movimiento incorrecto pero si realiza el movimiento. 
+
+BOT: (Me pasa el codigo actualizado)
+(Sigue sin funcionar, hago un cambio de borrarle el guion bajo al principio a realizar_movimiento_simple y corrijo este cambio en el archivo de tests en las lineas que se utilizaba el metodo pero paso a correguir el error del CLI con Gemini)
+
+### Utilizando Gemini PRO
+
+YO:
+
+Necesito que me ayudes a correguir una logica del CLI, mira esta secuencia, intento mover una ficha con los dos dados y devuelve movimiento doble invalido, pero la ficha si se mueve correctamente por el tablero, y luego me deja seguir jugando, cosa que esta mal. No solo la validación ya que si es un movimiento doble posible si no que tambien realizar el movimiento y dejar al jugador seguir jugando como si no hubiera hecho ningún movimiento, podrias correguir esto? 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: 
+
+La corrección que haces en manejar_movimientos_normales ya estaba asi como sugieres, osea que no es este el error y respecto al mensaje tampoco, esta igual que como sugieres la corrección, podrias revisar nuevamente el codigo del CLI y ver si encuentras el error en otro metodo? 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+No seria una mejor practica cambiar esto desde board y solucionar el problema de raiz? Aunque hacer esto probablemente nos lleve a correguir los tests de board y luego correguir la CLI y sus tests tambien pero bueno, seria lo correcto no?
+
+BOT: 
+
+Conclusión: El camino de la corrección de raíz en la capa de Dominio (Board) es el estándar de oro y asegura la fiabilidad del código a largo plazo, incluso si requiere más trabajo inicial de actualización de tests. Es, sin duda, lo correcto.
+
+YO:
+
+Bueno te dejo codigo de board para que lo corrijas
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Sigue fallando, no se porque no me deja ahora ni realizar el movimiento doble, claramente la posicion 18 esta vacia, por lo que se deberia poder realizar un movimiento "doble" con la suma de los dados, no se porque ahora ni se mueve la ficha. La otra solución que podriamos aplicar es borrar esta opción de realizar movimiento con la suma de los dos dados, y que simplemente el jugador mueva con un dado y luego con el otro a la misma ficha obteniendo el mismo resultado, de esta forma funciona la interfaz grafica, no permite realizar un movimiento con la suma de los dados. Que opción te parece mejor?
+
+BOT: 
+
+Opción Elegida: Eliminar el Movimiento Combinado y Usar Dos Movimientos Simples
+Esta solución es la mejor práctica para mantener la consistencia y simplificar el dominio.
+(Me pasa el codigo actualizado)
+
+YO: (Lo pruebo y funciona bien)
+
+Bien gracias, necesito que ahora hagamos dos modificaciones mas en la interfaz de texto CLI. Primero me gustaría separar las clases, sus mensajes, la logica del bearing off, etc. Esto para separar la logica y marcar aun mas el principio solid SRP de responsabilidad unica, de igual manera que tenemos en pygame. Igualmente no se que tan factible es esto por que funciona bastante bien la CLI y a comparación de pygame es mucho mas simple por lo que tiene muchos menos metodos, por lo que no se que tan necesario es esto, podrias analizar esta posibilidad y darme una respuesta y explicación de porque si o no implementar esto? Y la segunda modificación que es necesario aplicar a la CLI es usar un tipado fuerte, es decir que en la definición de cada metodo pongamos el tipo de variable que deberia devolver, osea -> int, -> None, -> bool, etc. Respecto a estas quiero una explicación de que es el None, porque ninguno de estos metodos devuelve "nada", creo que significa que puede devolver lo que quiera, pero nose, explicamelo porfavor. Bueno todos los archivos del proyecto (Los de Core e interfaz grafica pygame) tienen tipado fuerte, asi que es inconsistente que la CLI no lo tenga. Podrias analizar estas dos modificaciones, explicarme y responderme sin modificar ni devolver nada de codigo? 
+
+BOT: 
+
+
+Modificación 1: Separar la CLI en Clases (SRP)
+Respuesta Corta: No, no es necesario ni recomendable separar la clase CLI.py de la misma forma que PygameUI.py. Hacerlo sería aplicar el principio SRP de forma demasiado dogmática y, probablemente, complicaría el código innecesariamente.
+
+Modificación 2: Añadir Tipado Fuerte (Type Hints)
+Respuesta Corta: Sí, debes hacerlo absolutamente. Esta es una práctica excelente y necesaria.
+Tu argumento de que "todos los archivos del proyecto (Core e interfaz grafica pygame) tienen tipado fuerte, asi que es inconsistente que la CLI no lo tenga" es el motivo principal y es totalmente correcto.
+
+YO:
+
+Bien gracias, ya entendi todo, entonces podrias agregarle estos Type Hints a todos los metodos de la CLI para dejarla terminada? 
+
+BOT: (Me pasa el codigo actualizado)
+(Corrijo los tests y hago commit) 

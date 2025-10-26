@@ -17,7 +17,7 @@ class CLI:
         - DIP: Usa las clases del núcleo (Board, Dice) sin depender de sus implementaciones internas.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Inicializa la interfaz CLI.
 
@@ -30,7 +30,7 @@ class CLI:
         self.jugador_blanco = ""
         self.turno_actual = "negro"
 
-    def iniciar_juego(self):
+    def iniciar_juego(self) -> None:
         """
         Inicia el juego de Backgammon.
 
@@ -62,7 +62,7 @@ class CLI:
         self.determinar_primer_jugador()
         self.loop_principal()
 
-    def determinar_primer_jugador(self):
+    def determinar_primer_jugador(self) -> None:
         """
         Determina quién comienza la partida tirando un dado cada jugador.
 
@@ -97,7 +97,7 @@ class CLI:
 
         print("=" * 50)
 
-    def mostrar_tablero(self):
+    def mostrar_tablero(self) -> None:
         """
         Muestra el estado actual del tablero en consola.
 
@@ -169,7 +169,7 @@ class CLI:
 
         print("-" * 80)
 
-    def loop_principal(self):
+    def loop_principal(self) -> None:
         """
         Bucle principal del juego.
 
@@ -187,7 +187,7 @@ class CLI:
             self.turno_jugador()
             self.turno_actual = "blanco" if self.turno_actual == "negro" else "negro"
 
-    def turno_jugador(self):
+    def turno_jugador(self) -> None:
         """
         Gestiona el turno de un jugador.
 
@@ -217,7 +217,7 @@ class CLI:
 
         self.dados.reiniciar()
 
-    def mostrar_movimientos_disponibles(self):
+    def mostrar_movimientos_disponibles(self) -> bool:
         """
         Muestra los movimientos posibles del jugador actual.
 
@@ -235,7 +235,7 @@ class CLI:
             print("  (0 = barra)")
         return True
 
-    def manejar_movimientos_normales(self):
+    def manejar_movimientos_normales(self) -> None:
         """
         Maneja los movimientos cuando no hay dobles.
 
@@ -275,12 +275,7 @@ class CLI:
 
             # Preguntar tipo de movimiento
             opciones_disponibles = ["1. Mover una ficha con un dado"]
-
-            # Solo permitir movimiento doble si ambos dados están disponibles
-            if not dado1_usado and not dado2_usado:
-                opciones_disponibles.append("2. Mover una ficha con ambos dados (movimiento doble)")
-
-            opciones_disponibles.append("3. Pasar turno")
+            opciones_disponibles.append("2. Pasar turno")
 
             print("\nOpciones:")
             for opcion in opciones_disponibles:
@@ -330,12 +325,7 @@ class CLI:
                         else:
                             dado2_usado = False
 
-                elif opcion == "2" and not dado1_usado and not dado2_usado:
-                    if self.realizar_movimiento_doble():
-                        movimientos_realizados = 2  # Movimiento doble cuenta como ambos datos
-                        break
-
-                elif opcion == "3":
+                elif opcion == "2":
                     print("Pasando turno...")
                     break
                 else:
@@ -349,7 +339,7 @@ class CLI:
                 print("\n\nEntrada agotada. Finalizando manejo de movimientos.")
                 return
 
-    def manejar_dobles(self):
+    def manejar_dobles(self) -> None:
         """
         Maneja los movimientos cuando la tirada es doble.
 
@@ -394,7 +384,7 @@ class CLI:
                 print("\n\nEntrada agotada. Finalizando manejo de dobles.")
                 return
 
-    def realizar_movimiento_simple_con_dados(self, usar_dado1, usar_dado2) -> bool:
+    def realizar_movimiento_simple_con_dados(self, usar_dado1: bool, usar_dado2: bool) -> bool:
         """
         Realiza un movimiento con el dado especificado.
 
@@ -441,62 +431,8 @@ class CLI:
         """
         return self.realizar_movimiento_simple_con_dados(True, False)
 
-    def realizar_movimiento_doble(self) -> bool:
-        """
-        Realiza un movimiento usando ambos dados.
 
-        SRP: Gestiona la interacción para un movimiento doble.
-        DIP: Depende del método Board.realizar_movimiento_doble para aplicar la jugada.
-        """
-        try:
-            try:
-                origen_str = input("Desde qué punto quiere mover la ficha con ambos dados: ").strip()
-            except (StopIteration, EOFError):
-                print("\nEntrada agotada. Cancelando movimiento doble.")
-                return False
-            origen = int(origen_str)
-
-            # Mostrar qué pasaría
-            dado1, dado2 = self.dados.obtener_valores()
-            intermedio = self.board.calcular_destino(origen, dado1, self.turno_actual)
-            final = self.board.calcular_destino(intermedio, dado2, self.turno_actual)
-
-            print(f"La ficha se moverá: {origen} → {intermedio} → {final}")
-
-            try:
-                confirmar = input("¿Confirma este movimiento? (s/n): ").strip().lower()
-            except (StopIteration, EOFError):
-                print("\nEntrada agotada. Cancelando movimiento doble.")
-                self.mostrar_tablero()
-                return False
-
-            if confirmar not in ['s', 'si', 'sí', 'y', 'yes']:
-                self.mostrar_tablero()
-                return False
-
-            # Realizar el movimiento
-            exito = self.board.realizar_movimiento_doble(self.turno_actual, self.dados, origen)
-
-            if exito:
-                print("✅ Movimiento doble realizado exitosamente.")
-            else:
-                print("❌ Movimiento doble inválido. Intente de nuevo.")
-
-            # SIEMPRE mostrar el tablero después de cualquier intento de movimiento
-            self.mostrar_tablero()
-            return exito
-
-        except ValueError:
-            print("❌ Por favor ingrese un número válido.")
-            self.mostrar_tablero()
-            return False
-        except Exception as e:
-            print(f"❌ Error: {e}")
-            self.mostrar_tablero()
-            return False
-
-
-def main():
+def main() -> None:
     """
     Punto de entrada de la aplicación CLI.
 

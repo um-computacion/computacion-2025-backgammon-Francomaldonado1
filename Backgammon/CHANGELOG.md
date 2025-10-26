@@ -344,3 +344,13 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 ### CHANGED
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para agregar la imagen Docker y docker-compose.yml.
 
+# [0.0.43] 25/10/2025
+### ADDED 
+- Se agrega tipado fuerte (Type Hints) a todos los metodos de la CLI para mantener la consistencia con el resto de archivos del proyecto.
+
+### CHANGED 
+- Se actualiza el codigo de CLI en el metodo manejar_movimientos_normales para que no permita mover fichas con ambos dados, para mantener consistencia con pygame y evitar errores. 
+- Se actualiza el codigo de Board.py borrando el metodo realizar_movimiento_doble para que no permita mover fichas con ambos dados, para mantener consistencia con pygame y evitar errores. 
+- Se borran tests de Test_Board.py correspondientes a la logica borrada (Movimiento doble con los dos dados).
+- Se actualiza Test_CLI.py borrando los tests de Test_CLI.py correspondientes a la logica borrada (Movimiento doble con los dos dados) y modificando los faltantes.
+- Se borran clases de tests de Test_CLI.py duplicadas por error (Lo que aumenta cobertura al 92%).

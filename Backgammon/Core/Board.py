@@ -432,65 +432,40 @@ class Board:
 
         return f"❌ Dado menor ({movimiento}) que la distancia {posicion_relativa} desde {origen}"
 
-
-    def realizar_movimiento_doble(self, color: str, dados: Dice, origen: int) -> bool:
+        
+    def _realizar_paso_movimiento_doble(self, origen: int, destino: int, color: str, movimiento: int) -> bool:
         """
-        Mueve una sola ficha usando ambos dados consecutivamente.
-
-        Realiza dos movimientos seguidos con la misma ficha:
-        - Primer movimiento: origen → intermedio (usando dado1)
-        - Segundo movimiento: intermedio → destino (usando dado2)
-            
-        SRP: Ejecuta movimientos encadenados.
-        OCP: Permite redefinir reglas de movimiento múltiple.
-        Args:
-            color (str): Color del jugador.
-            dados (Dice): Objeto dados con la tirada actual.
-            origen (int): Punto de origen (0 para barra, 1-24 para puntos del tablero).
-
-        Returns:
-            bool: True si ambos movimientos fueron exitosos, False en caso contrario.
+        Ejecuta un paso dentro de un movimiento doble, con validación de bearing off.
         """
-        if not dados.han_sido_tirados():
-            return False
-
-        dado1, dado2 = dados.obtener_valores()
-
-        # Movimiento desde la barra no se puede hacer doble
-        if origen == 0:
-            return False
-
-        # Verificar que hay ficha del color correcto en origen
-        estado_origen = self.obtener_estado_punto(origen)
-        if estado_origen is None or estado_origen[0] != color:
-            return False
-
-        # Calcular posiciones intermedias y final
-        intermedio = self.calcular_destino(origen, dado1, color)
-        destino_final = self.calcular_destino(intermedio, dado2, color)
-
-        # Crear snapshot del estado actual para poder deshacer
-        snapshot = self._crear_snapshot_tablero()
-
-        try:
-            # PRIMER MOVIMIENTO: origen → intermedio
-            exito_primero = self._realizar_movimiento_simple(origen, intermedio, color)
-            if not exito_primero:
+        
+        # Caso 1: Sacar fichas (destino fuera del tablero)
+        if (destino <= 0 and color == "blanco") or (destino >= 25 and color == "negro"):
+            # 1a. Verificar si puede sacar fichas
+            if not self.puede_sacar_fichas(color):
                 return False
 
-            # SEGUNDO MOVIMIENTO: intermedio → destino_final
-            exito_segundo = self._realizar_movimiento_simple(intermedio, destino_final, color)
-            if not exito_segundo:
-            # Deshacer el primer movimiento
-             self._restaurar_snapshot_tablero(snapshot)
-            return False
+            # 1b. Verificar reglas exactas de bearing off
+            if not self._es_bearing_off_valido(color, origen, movimiento):
+                return False
 
-        except Exception:
-            # En caso de cualquier error, restaurar estado
-            self._restaurar_snapshot_tablero(snapshot)
-            return False
+            # 1c. Realizar el bearing off
+            self.remover_ficha(origen, 1)
+            self.sacar_ficha(color)
+            return True
 
-    def _realizar_movimiento_simple(self, origen: int, destino: int, color: str) -> bool:
+        # Caso 2: Destino dentro de rango válido
+        if 1 <= destino <= 24:
+            # 2a. Movimiento normal dentro del tablero (con validación de bloqueo/comer)
+            if not self.es_movimiento_valido_a_punto(destino, color):
+                return False
+            
+            # 2b. Ejecutar el movimiento
+            return self._mover_ficha_bool(origen, destino, color)
+        
+        # Caso 3: Destino fuera de rango (como destino intermedio en el bearing off)
+        return False
+
+    def realizar_movimiento_simple(self, origen: int, destino: int, color: str) -> bool:
         """
         Realiza un movimiento simple de un punto a otro, manejando casos especiales.
 
@@ -571,32 +546,6 @@ class Board:
         except ValueError:
             return False
 
-    def _crear_snapshot_tablero(self) -> dict:
-        """
-        Crea una copia del estado actual del tablero para poder restaurarlo.
-
-        Returns:
-            dict: Snapshot del estado del tablero.
-        """
-        return {
-            'puntos': copy.deepcopy(self.__puntos__),
-            'barra': copy.deepcopy(self.__barra__),
-            'casa': copy.deepcopy(self.__casa__)
-        }
-
-    def _restaurar_snapshot_tablero(self, snapshot: dict) -> None:
-        """
-        Restaura el tablero a un estado anterior usando un snapshot.
-
-        Args:
-            snapshot (dict): Snapshot del estado a restaurar.
-
-        Returns:
-            None
-        """
-        self.__puntos__ = snapshot['puntos']
-        self.__barra__ = snapshot['barra']
-        self.__casa__ = snapshot['casa']
 
     def obtener_movimientos_posibles(self, color: str, dados: Dice) -> list[int]:
         """
