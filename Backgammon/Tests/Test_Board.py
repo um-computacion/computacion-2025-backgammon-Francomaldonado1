@@ -676,119 +676,7 @@ class TestBoardCoverageCompletion(unittest.TestCase):
         self.assertIn("Barra=1", msg)
         self.assertIn("Casa=1", msg)
 
-    # --- Tests para realizar_movimiento_doble ---
-
-    def test_movimiento_doble_existe_y_valida(self):
-        """
-        Test que el método realizar_movimiento_doble existe y valida correctamente.
-        
-        SOLID: SRP - Coordinación de dos movimientos consecutivos.
-        """
-        dados = Dice()
-        dados.set_dados_para_test(1, 1)
-        self.tablero.colocar_ficha(5, "negro", 1)
-        
-        # Intentar movimiento doble - puede fallar por validaciones internas
-        exito = self.tablero.realizar_movimiento_doble("negro", dados, 5)
-        
-        # Verificar que el método retorna un booleano
-        self.assertIsInstance(exito, bool)
-        
-        # Si fue exitoso, verificar que movió correctamente
-        if exito:
-            self.assertEqual(self.tablero.obtener_estado_punto(7), ["negro", 1])
-        
-
-    def test_movimiento_doble_desde_barra_falla(self):
-        """
-        Test movimiento doble desde barra no permitido.
-        
-        SOLID: ISP - Restricción específica: movimientos dobles solo desde tablero.
-        """
-        dados = Dice()
-        dados.set_dados_para_test(2, 3)
-        self.tablero.enviar_a_barra("negro")
-
-        exito = self.tablero.realizar_movimiento_doble("negro", dados, 0)
-
-        self.assertFalse(exito)
-
-    def test_movimiento_doble_sin_dados_tirados(self):
-        """
-        Test movimiento doble sin dados tirados.
-        
-        SOLID: DIP - Validación de precondición con abstracción Dice.
-        """
-        dados = Dice()
-        self.tablero.colocar_ficha(5, "negro", 1)
-
-        exito = self.tablero.realizar_movimiento_doble("negro", dados, 5)
-
-        self.assertFalse(exito)
-
-    def test_movimiento_doble_origen_vacio(self):
-        """
-        Test movimiento doble desde punto vacío.
-        
-        SOLID: ISP - Validación de origen antes de ejecutar.
-        """
-        dados = Dice()
-        dados.set_dados_para_test(2, 3)
-
-        exito = self.tablero.realizar_movimiento_doble("negro", dados, 5)
-
-        self.assertFalse(exito)
-
-    def test_movimiento_doble_color_incorrecto(self):
-        """
-        Test movimiento doble con color incorrecto.
-        
-        SOLID: ISP - Validación de pertenencia de ficha.
-        """
-        dados = Dice()
-        dados.set_dados_para_test(2, 3)
-        self.tablero.colocar_ficha(5, "blanco", 1)
-
-        exito = self.tablero.realizar_movimiento_doble("negro", dados, 5)
-
-        self.assertFalse(exito)
-
-    def test_movimiento_doble_primer_paso_bloqueado(self):
-        """
-        Test movimiento doble falla si primer paso está bloqueado.
-        
-        SOLID: SRP - Validación de cada paso del movimiento compuesto.
-        """
-        dados = Dice()
-        dados.set_dados_para_test(2, 3)
-        self.tablero.colocar_ficha(5, "negro", 1)
-        self.tablero.colocar_ficha(7, "blanco", 2)  # Bloquea destino intermedio
-
-        exito = self.tablero.realizar_movimiento_doble("negro", dados, 5)
-
-        self.assertFalse(exito)
-        # Debe mantener estado original
-        self.assertEqual(self.tablero.obtener_estado_punto(5), ["negro", 1])
-
-    def test_movimiento_doble_segundo_paso_bloqueado_deshace(self):
-        """
-        Test movimiento doble deshace si segundo paso falla.
-        
-        SOLID: SRP - Transaccionalidad: rollback si falla el segundo paso.
-        """
-        dados = Dice()
-        dados.set_dados_para_test(2, 3)
-        self.tablero.colocar_ficha(5, "negro", 1)
-        self.tablero.colocar_ficha(10, "blanco", 2)  # Bloquea destino final
-
-        exito = self.tablero.realizar_movimiento_doble("negro", dados, 5)
-
-        self.assertFalse(exito)
-        # Estado debe restaurarse
-        self.assertEqual(self.tablero.obtener_estado_punto(5), ["negro", 1])
-        self.assertTrue(self.tablero.esta_vacio(7))
-
-    # --- Tests para _realizar_movimiento_simple ---
+    # --- Tests para realizar_movimiento_simple ---
 
     def test_movimiento_simple_bearing_off_negro(self):
         """
@@ -797,7 +685,7 @@ class TestBoardCoverageCompletion(unittest.TestCase):
         SOLID: SRP - Movimiento atómico con bearing off incluido.
         """
         self.tablero.colocar_ficha(23, "negro", 2)
-        exito = self.tablero._realizar_movimiento_simple(23, 25, "negro")
+        exito = self.tablero.realizar_movimiento_simple(23, 25, "negro")
 
         self.assertTrue(exito)
         self.assertEqual(self.tablero.obtener_estado_punto(23), ["negro", 1])
@@ -810,7 +698,7 @@ class TestBoardCoverageCompletion(unittest.TestCase):
         SOLID: SRP - Lógica simétrica para ambos colores.
         """
         self.tablero.colocar_ficha(2, "blanco", 2)
-        exito = self.tablero._realizar_movimiento_simple(2, 0, "blanco")
+        exito = self.tablero.realizar_movimiento_simple(2, 0, "blanco")
 
         self.assertTrue(exito)
         self.assertEqual(self.tablero.obtener_estado_punto(2), ["blanco", 1])
@@ -824,7 +712,7 @@ class TestBoardCoverageCompletion(unittest.TestCase):
         """
         self.tablero.colocar_ficha(23, "negro", 1)
         self.tablero.colocar_ficha(10, "negro", 1)  # Ficha fuera de casa
-        exito = self.tablero._realizar_movimiento_simple(23, 25, "negro")
+        exito = self.tablero.realizar_movimiento_simple(23, 25, "negro")
 
         self.assertFalse(exito)
 
@@ -835,7 +723,7 @@ class TestBoardCoverageCompletion(unittest.TestCase):
         SOLID: ISP - Validación de límites del tablero.
         """
         self.tablero.colocar_ficha(5, "negro", 1)
-        exito = self.tablero._realizar_movimiento_simple(5, 26, "negro")
+        exito = self.tablero.realizar_movimiento_simple(5, 26, "negro")
 
         self.assertFalse(exito)
 
@@ -846,7 +734,7 @@ class TestBoardCoverageCompletion(unittest.TestCase):
         SOLID: ISP - Validación de origen antes de mover.
         """
         self.tablero.colocar_ficha(5, "blanco", 1)
-        exito = self.tablero._realizar_movimiento_simple(5, 8, "negro")
+        exito = self.tablero.realizar_movimiento_simple(5, 8, "negro")
 
         self.assertFalse(exito)
 
@@ -877,31 +765,6 @@ class TestBoardCoverageCompletion(unittest.TestCase):
         exito = self.tablero._mover_ficha_bool(5, 10, "negro")
         self.assertTrue(exito)
         self.assertEqual(self.tablero.obtener_estado_punto(10), ["negro", 1])
-
-    # --- Tests para _crear_snapshot_tablero y _restaurar_snapshot_tablero ---
-
-    def test_snapshot_preserva_estado(self):
-        """
-        Test snapshot preserva correctamente el estado.
-        
-        SOLID: SRP - Mecanismo de backup/restore para transacciones.
-        """
-        self.tablero.colocar_ficha(5, "negro", 3)
-        self.tablero.enviar_a_barra("blanco")
-        self.tablero.sacar_ficha("negro")
-
-        snapshot = self.tablero._crear_snapshot_tablero()
-
-        # Modificar tablero
-        self.tablero.remover_ficha(5, 2)
-
-        # Restaurar
-        self.tablero._restaurar_snapshot_tablero(snapshot)
-
-        # Verificar que se restauró
-        self.assertEqual(self.tablero.obtener_estado_punto(5), ["negro", 3])
-        self.assertEqual(self.tablero.get_barra(), {"blanco": 1})
-        self.assertEqual(self.tablero.get_casa(), {"negro": 1})
 
     # --- Tests para obtener_movimientos_posibles (casos edge) ---
 

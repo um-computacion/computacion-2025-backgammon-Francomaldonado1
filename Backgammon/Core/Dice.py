@@ -9,11 +9,6 @@ class Dice:
     - SRP: Responsabilidad única - Generar números aleatorios para dados
     - DIP: Sin dependencias - No depende de reglas de backgammon
     - OCP: Extensible - Permite crear dados con diferentes comportamientos
-    
-    DECISIÓN DE DISEÑO:
-    No calcula movimientos disponibles (responsabilidad de DiceMovesCalculator).
-    No valida movimientos (responsabilidad de MovementValidator).
-    Ver justificacion.md para la separación de responsabilidades.
     """
 
     def __init__(self):

@@ -1351,3 +1351,19 @@ Hay varios errores, primero que nada las clases BarManager y BarMovementsRules n
 BOT: (Me pasa el codigo actualizado)
 (Funciona bien, pasan todos los tests y aumenta la cobertura al 90%, hago commit)
 
+### Utilizando Gemini PRO
+
+YO: 
+
+Podrias ayudarme ahora a corregir los tests que fallan debido a las modificaciones de Board y CLI empezando por los tests de board;
+
+BOT: (Me pasa codigo actualizado, borramos los tests correspondientes a la logica borrada)
+
+YO: 
+
+Bien gracias, ahora sigamos con los errores de Test_CLI.py, estos son un poco mas complejos, te dejo codigo de archivo y del error para que lo corrijas;
+
+BOT: (Me pasa el codigo actualizado)
+(Aumenta la cobertura al 92%, los tests pasan, hago commit)
+
+

@@ -46,131 +46,19 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(cli.jugador_blanco, "")
         self.assertEqual(cli.turno_actual, "negro")
 
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_realizar_movimiento_doble_exitoso(self, mock_print, mock_input):
-        """
-        Test de movimiento doble exitoso.
-        
-        Verifica:
-            - Movimiento usando ambos dados consecutivamente
-            - Confirmación del usuario
-        
-        Principio DIP: Usa Board.realizar_movimiento_doble como abstracción.
-        """
-        mock_input.side_effect = ["6", "s"]
-        self.cli.dados.obtener_valores = Mock(return_value=(3, 4))
-        self.cli.board.calcular_destino = Mock(side_effect=[9, 13])
-        self.cli.board.realizar_movimiento_doble = Mock(return_value=True)
-
-        with patch.object(self.cli, 'mostrar_tablero'):
-            resultado = self.cli.realizar_movimiento_doble()
-
-        self.assertTrue(resultado)
-        self.cli.board.realizar_movimiento_doble.assert_called_once()
-
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_realizar_movimiento_doble_cancelado(self, mock_print, mock_input):
-        """
-        Test de movimiento doble cancelado por el usuario.
-        
-        Verifica:
-            - Respeto de la decisión del usuario
-        
-        Principio SRP: La interfaz solo captura y transmite la decisión.
-        """
-        mock_input.side_effect = ["6", "n"]
-        self.cli.dados.obtener_valores = Mock(return_value=(3, 4))
-        self.cli.board.calcular_destino = Mock(side_effect=[9, 13])
-
-        with patch.object(self.cli, 'mostrar_tablero'):
-            resultado = self.cli.realizar_movimiento_doble()
-
-        self.assertFalse(resultado)
-
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_realizar_movimiento_doble_fallido(self, mock_print, mock_input):
-        """
-        Test de movimiento doble que falla en el board.
-        
-        Verifica:
-            - Propagación correcta de fallos desde Board
-        
-        Principio LSP: Comportamiento predecible en éxito y fallo.
-        """
-        mock_input.side_effect = ["6", "si"]
-        self.cli.dados.obtener_valores = Mock(return_value=(3, 4))
-        self.cli.board.calcular_destino = Mock(side_effect=[9, 13])
-        self.cli.board.realizar_movimiento_doble = Mock(return_value=False)
-
-        with patch.object(self.cli, 'mostrar_tablero'):
-            resultado = self.cli.realizar_movimiento_doble()
-
-        self.assertFalse(resultado)
-
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_realizar_movimiento_doble_valor_invalido(self, mock_print, mock_input):
-        """
-        Test de movimiento doble con valor inválido.
-        
-        Verifica:
-            - Manejo de errores de entrada
-        
-        Principio SRP: Validación de entrada está separada.
-        """
-        mock_input.side_effect = ["abc"]
-
-        with patch.object(self.cli, 'mostrar_tablero'):
-            resultado = self.cli.realizar_movimiento_doble()
-
-        self.assertFalse(resultado)
-
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_realizar_movimiento_doble_excepcion(self, mock_print, mock_input):
-        """
-        Test cuando se produce excepción en movimiento doble.
-        
-        Verifica:
-            - Manejo robusto de excepciones
-        
-        Principio SRP: Separación entre lógica y manejo de errores.
-        """
-        mock_input.side_effect = ["6", "s"]
-        self.cli.dados.obtener_valores = Mock(side_effect=Exception("Error de prueba"))
-
-        with patch.object(self.cli, 'mostrar_tablero'):
-            resultado = self.cli.realizar_movimiento_doble()
-
-        self.assertFalse(resultado)
-
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_confirmacion_movimiento_doble_variantes(self, mock_print, mock_input):
-        """
-        Test de diferentes formas de confirmar movimiento doble.
-        
-        Verifica:
-            - Aceptación de múltiples variantes de confirmación
-        
-        Principio OCP: Extensible para nuevas formas de confirmación.
-        """
-        confirmaciones_validas = ["s", "si", "sí", "y", "yes"]
-
-        for confirmacion in confirmaciones_validas:
-            with self.subTest(confirmacion=confirmacion):
-                mock_input.side_effect = ["6", confirmacion]
-                self.cli.dados.obtener_valores = Mock(return_value=(3, 4))
-                self.cli.board.calcular_destino = Mock(side_effect=[9, 13])
-                self.cli.board.realizar_movimiento_doble = Mock(return_value=True)
-
-                with patch.object(self.cli, 'mostrar_tablero'):
-                    resultado = self.cli.realizar_movimiento_doble()
-
-                self.assertTrue(resultado)
+    # --- INICIO DE TESTS ELIMINADOS ---
+    # Se eliminaron los siguientes tests porque probaban el método 
+    # 'realizar_movimiento_doble', que fue eliminado de CLI.py 
+    # por decisión de diseño:
+    #
+    # - test_realizar_movimiento_doble_exitoso
+    # - test_realizar_movimiento_doble_cancelado
+    # - test_realizar_movimiento_doble_fallido
+    # - test_realizar_movimiento_doble_valor_invalido
+    # - test_realizar_movimiento_doble_excepcion
+    # - test_confirmacion_movimiento_doble_variantes
+    #
+    # --- FIN DE TESTS ELIMINADOS ---
 
     @patch('builtins.input')
     def test_keyboard_interrupt_en_movimientos_normales(self, mock_input):
@@ -499,25 +387,9 @@ class TestBackgammonCLIEdgeCases(unittest.TestCase):
 
         self.cli.board.obtener_movimientos_posibles.assert_called()
 
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_realizar_movimiento_doble_sin_confirmacion_valida(self, mock_print, mock_input):
-        """
-        Test de movimiento doble con confirmaciones inválidas.
-        
-        Verifica:
-            - Manejo de entradas no reconocidas
-        
-        Principio SRP: Validación de entrada separada.
-        """
-        mock_input.side_effect = ["6", "maybe", "no", "n"]
-        self.cli.dados.obtener_valores = Mock(return_value=(3, 4))
-        self.cli.board.calcular_destino = Mock(side_effect=[9, 13])
-
-        with patch.object(self.cli, 'mostrar_tablero'):
-            resultado = self.cli.realizar_movimiento_doble()
-
-        self.assertFalse(resultado)
+    # --- INICIO DE TESTS ELIMINADOS ---
+    # Se eliminó 'test_realizar_movimiento_doble_sin_confirmacion_valida'
+    # --- FIN DE TESTS ELIMINADOS ---
 
     @patch('builtins.print')
     def test_mostrar_tablero_con_estados_mixtos(self, mock_print):
@@ -663,7 +535,10 @@ class TestCLISOLIDPrinciples(unittest.TestCase):
         # Cada método tiene un propósito único
         metodos_presentacion = ['mostrar_tablero', 'mostrar_movimientos_disponibles']
         metodos_coordinacion = ['loop_principal', 'turno_jugador', 'determinar_primer_jugador']
-        metodos_entrada = ['realizar_movimiento_simple_con_dados', 'realizar_movimiento_doble']
+        
+        # --- CORRECCIÓN ---
+        # Se elimina 'realizar_movimiento_doble' de la lista
+        metodos_entrada = ['realizar_movimiento_simple_con_dados']
         
         for metodo in metodos_presentacion + metodos_coordinacion + metodos_entrada:
             self.assertTrue(hasattr(self.cli, metodo), 
@@ -724,7 +599,9 @@ class TestCLISOLIDPrinciples(unittest.TestCase):
         # Los métodos existentes no necesitan modificarse
         # para agregar nuevos tipos de movimiento
         self.assertTrue(hasattr(self.cli, 'realizar_movimiento_simple_con_dados'))
-        self.assertTrue(hasattr(self.cli, 'realizar_movimiento_doble'))
+        
+        # --- CORRECCIÓN ---
+        # Se elimina la aserción para 'realizar_movimiento_doble'
         
         # Se puede extender agregando nuevos métodos
         def realizar_movimiento_triple(self):
@@ -806,6 +683,8 @@ class TestCLISOLIDPrinciples(unittest.TestCase):
         CLI solo usa los métodos necesarios de Board y Dice.
         """
         # CLI solo usa métodos públicos específicos de Board
+        # --- CORRECCIÓN ---
+        # Se elimina 'realizar_movimiento_doble' de la lista
         metodos_board_usados = [
             'inicializar_posiciones_estandar',
             'obtener_estado_punto',
@@ -814,7 +693,6 @@ class TestCLISOLIDPrinciples(unittest.TestCase):
             'ha_ganado',
             'obtener_movimientos_posibles',
             'realizar_movimiento_completo',
-            'realizar_movimiento_doble',
             'calcular_destino'
         ]
         
@@ -828,6 +706,8 @@ class TestCLISOLIDPrinciples(unittest.TestCase):
         
         ISP: Interfaz pública mínima y coherente.
         """
+        # --- CORRECCIÓN ---
+        # Se elimina 'realizar_movimiento_doble' de la lista
         metodos_publicos = [
             'iniciar_juego',
             'determinar_primer_jugador',
@@ -838,7 +718,6 @@ class TestCLISOLIDPrinciples(unittest.TestCase):
             'manejar_movimientos_normales',
             'manejar_dobles',
             'realizar_movimiento_simple_con_dados',
-            'realizar_movimiento_doble'
         ]
         
         for metodo in metodos_publicos:
@@ -1081,11 +960,12 @@ class TestCLISOLIDPrinciples(unittest.TestCase):
         metodos_juego = ['loop_principal', 'turno_jugador', 'determinar_primer_jugador']
         
         # Métodos de movimiento están juntos
+        # --- CORRECCIÓN ---
+        # Se elimina 'realizar_movimiento_doble' de la lista
         metodos_movimiento = [
             'manejar_movimientos_normales',
             'manejar_dobles',
             'realizar_movimiento_simple_con_dados',
-            'realizar_movimiento_doble'
         ]
         
         # Todos existen y son parte de grupos cohesivos
@@ -1093,423 +973,6 @@ class TestCLISOLIDPrinciples(unittest.TestCase):
         for metodo in todos_metodos:
             self.assertTrue(hasattr(self.cli, metodo),
                           f"Método cohesivo {metodo} debe existir")
-
-class TestCLIIntegration(unittest.TestCase):
-    """
-    Tests de integración para CLI.
-    
-    Verifica:
-        - Flujos completos del juego
-        - Interacción entre componentes
-        - Escenarios end-to-end
-    
-    Principios SOLID verificados:
-        - DIP: Componentes interactúan a través de abstracciones
-        - LSP: Comportamiento consistente en diferentes escenarios
-    """
-
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_flujo_completo_juego_muy_corto(self, mock_print, mock_input):
-        """
-        Test de flujo completo de un juego muy corto.
-        
-        Verifica:
-            - Integración de todos los componentes
-            - Flujo desde inicio hasta fin
-        
-        Principio DIP: Todos los componentes interactúan mediante interfaces.
-        """
-        mock_input.side_effect = [
-            "TestPlayer1", "TestPlayer2",
-            "", "",
-        ] + [""] * 5
-
-        cli = CLI()
-        cli.board.inicializar_posiciones_estandar = Mock()
-        cli.board.ha_ganado = Mock(return_value=True)
-        cli.dados.tirar = Mock()
-        cli.dados.obtener_dado1 = Mock(side_effect=[6, 3])
-
-        with patch.object(cli, 'mostrar_tablero'):
-            cli.iniciar_juego()
-
-        self.assertEqual(cli.jugador_negro, "TestPlayer1")
-        self.assertEqual(cli.jugador_blanco, "TestPlayer2")
-        self.assertEqual(cli.turno_actual, "negro")
-
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_flujo_con_varios_empates_inicial(self, mock_print, mock_input):
-        """
-        Test con varios empates al determinar quién empieza.
-        
-        Verifica:
-            - Manejo correcto de múltiples empates
-        
-        Principio SRP: La lógica de desempate está encapsulada.
-        """
-        mock_input.side_effect = [
-            "Player1", "Player2",
-            "", "", "", "", "", ""
-        ] + [""] * 5
-
-        cli = CLI()
-        cli.board.inicializar_posiciones_estandar = Mock()
-        cli.board.ha_ganado = Mock(return_value=True)
-        cli.dados.tirar = Mock()
-        cli.dados.obtener_dado1 = Mock(side_effect=[4, 4, 3, 3, 2, 5])
-
-        with patch.object(cli, 'mostrar_tablero'):
-            cli.iniciar_juego()
-
-        self.assertEqual(cli.turno_actual, "blanco")
-        self.assertEqual(cli.dados.tirar.call_count, 6)
-
-    def test_main_function_normal(self):
-        """
-        Test de la función main con ejecución normal.
-        
-        Verifica:
-            - Punto de entrada funcional
-        
-        Principio SRP: main solo inicia y maneja excepciones globales.
-        """
-        with patch('Backgammon.Interfaces.CLI.CLI') as mock_cli_class:
-            mock_cli_instance = Mock()
-            mock_cli_class.return_value = mock_cli_instance
-
-            main()
-
-            mock_cli_class.assert_called_once()
-            mock_cli_instance.iniciar_juego.assert_called_once()
-
-    def test_main_function_keyboard_interrupt(self):
-        """
-        Test de la función main con interrupción de teclado.
-        
-        Verifica:
-            - Manejo elegante de Ctrl+C
-        
-        Principio SRP: Manejo de interrupciones centralizado.
-        """
-        with patch('Backgammon.Interfaces.CLI.CLI') as mock_cli_class:
-            mock_cli_instance = Mock()
-            mock_cli_instance.iniciar_juego.side_effect = KeyboardInterrupt()
-            mock_cli_class.return_value = mock_cli_instance
-
-            with patch('builtins.print') as mock_print:
-                main()
-
-            mock_print.assert_called_with("\n\n¡Hasta luego! 👋")
-
-    def test_main_function_exception(self):
-        """
-        Test de la función main con excepción inesperada.
-        
-        Verifica:
-            - Manejo robusto de errores no esperados
-        
-        Principio SRP: Gestión de errores separada de lógica principal.
-        """
-        with patch('Backgammon.Interfaces.CLI.CLI') as mock_cli_class:
-            mock_cli_instance = Mock()
-            mock_cli_instance.iniciar_juego.side_effect = Exception("Error inesperado")
-            mock_cli_class.return_value = mock_cli_instance
-
-            with patch('builtins.print') as mock_print:
-                main()
-
-            mock_print.assert_called_with("\n❌ Error inesperado: Error inesperado")
-
-    @patch('builtins.print')
-    def test_mostrar_tablero_con_casa_vacia(self, mock_print):
-        """
-        Test específico para mostrar_tablero con casa vacía.
-        
-        Verifica:
-            - Presentación correcta de casa sin fichas
-        
-        Principio LSP: Comportamiento consistente con casa llena o vacía.
-        """
-        cli = CLI()
-        cli.board = Mock()
-        cli.board.obtener_estado_punto = Mock(return_value=None)
-        cli.board.get_barra = Mock(return_value={"negro": 0, "blanco": 0})
-        cli.board.get_casa = Mock(return_value={"negro": 0, "blanco": 0})
-
-        cli.mostrar_tablero()
-
-        calls = [str(call) for call in mock_print.call_args_list]
-        self.assertTrue(any("CUADRANTE CASA NEGRO" in call for call in calls))
-        self.assertTrue(any("CUADRANTE CASA BLANCO" in call for call in calls))
-        self.assertTrue(any("CASA: vacía" in call for call in calls))
-
-    @patch('builtins.print')
-    def test_simbolos_correctos_fichas(self, mock_print):
-        """
-        Test que verifica que se usen los símbolos correctos para las fichas.
-        
-        Verifica:
-            - Representación visual correcta de fichas
-        
-        Principio SRP: La presentación visual está separada de la lógica.
-        """
-        cli = CLI()
-        cli.board = Mock()
-
-        def mock_estado(punto):
-            if punto == 1:
-                return ("negro", 2)
-            elif punto == 12:
-                return ("blanco", 3)
-            else:
-                return None
-
-        cli.board.obtener_estado_punto = Mock(side_effect=mock_estado)
-        cli.board.get_barra = Mock(return_value={})
-        cli.board.get_casa = Mock(return_value={})
-
-        cli.mostrar_tablero()
-
-        calls = [str(call) for call in mock_print.call_args_list]
-        output = " ".join(calls)
-
-        self.assertIn("○", output)
-        self.assertIn("●", output)
-
-
-class TestBackgammonCLIEdgeCases(unittest.TestCase):
-    """
-    Tests para casos extremos y edge cases.
-    
-    Verifica:
-        - Comportamiento en situaciones límite
-        - Robustez ante entradas inusuales
-    
-    Principios SOLID verificados:
-        - LSP: Comportamiento predecible en casos extremos
-        - SRP: Cada método maneja un aspecto específico
-    """
-
-    def setUp(self):
-        """
-        Configuración para tests de edge cases.
-        
-        Principio SRP: Configuración separada de tests.
-        """
-        self.cli = CLI()
-        self.cli.board = Mock()
-        self.cli.dados = Mock()
-
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_manejar_movimientos_sin_dados_disponibles(self, mock_print, mock_input):
-        """
-        Test cuando no quedan dados disponibles.
-        
-        Verifica:
-            - Finalización correcta sin dados
-        
-        Principio LSP: Comportamiento predecible sin recursos.
-        """
-        mock_input.side_effect = ["3"]
-        self.cli.board.obtener_movimientos_posibles = Mock(return_value=[])
-
-        self.cli.manejar_movimientos_normales()
-
-        self.cli.board.obtener_movimientos_posibles.assert_called()
-
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_realizar_movimiento_doble_sin_confirmacion_valida(self, mock_print, mock_input):
-        """
-        Test de movimiento doble con confirmaciones inválidas.
-        
-        Verifica:
-            - Manejo de entradas no reconocidas
-        
-        Principio SRP: Validación de entrada separada.
-        """
-        mock_input.side_effect = ["6", "maybe", "no", "n"]
-        self.cli.dados.obtener_valores = Mock(return_value=(3, 4))
-        self.cli.board.calcular_destino = Mock(side_effect=[9, 13])
-
-        with patch.object(self.cli, 'mostrar_tablero'):
-            resultado = self.cli.realizar_movimiento_doble()
-
-        self.assertFalse(resultado)
-
-    @patch('builtins.print')
-    def test_mostrar_tablero_con_estados_mixtos(self, mock_print):
-        """
-        Test de mostrar_tablero con diferentes estados en diferentes puntos.
-        
-        Verifica:
-            - Presentación correcta de estados variados
-        
-        Principio SRP: Presentación no afecta lógica del juego.
-        """
-        def mock_estado_mixto(punto):
-            estados = {
-                1: ("negro", 1),
-                6: ("blanco", 2),
-                12: None,
-                13: ("negro", 5),
-                24: ("blanco", 1)
-            }
-            return estados.get(punto, None)
-
-        self.cli.board.obtener_estado_punto = Mock(side_effect=mock_estado_mixto)
-        self.cli.board.get_barra = Mock(return_value={"negro": 1, "blanco": 0})
-        self.cli.board.get_casa = Mock(return_value={"negro": 2, "blanco": 3})
-
-        self.cli.mostrar_tablero()
-
-        self.assertEqual(self.cli.board.obtener_estado_punto.call_count, 24)
-
-    def test_loop_principal_sin_ganador_inmediato(self):
-        """
-        Test del loop principal con varios turnos antes de que alguien gane.
-        
-        Verifica:
-            - Múltiples iteraciones del bucle principal
-        
-        Principio SRP: loop_principal solo coordina, no implementa reglas.
-        """
-        self.cli.jugador_negro = "Juan"
-        self.cli.jugador_blanco = "María"
-
-        call_count = [0]
-        def mock_ha_ganado(color):
-            call_count[0] += 1
-            return call_count[0] > 8 and color == "negro"
-
-        self.cli.board.ha_ganado = Mock(side_effect=mock_ha_ganado)
-
-        with patch.object(self.cli, 'turno_jugador') as mock_turno:
-            with patch('builtins.print'):
-                self.cli.loop_principal()
-
-        self.assertGreater(mock_turno.call_count, 0)
-
-    @patch('builtins.input')
-    @patch('builtins.print')
-    def test_turno_completo_con_movimientos_exitosos(self, mock_print, mock_input):
-        """
-        Test de un turno completo con movimientos exitosos.
-        
-        Verifica:
-            - Flujo completo de un turno normal
-        
-        Principio DIP: Coordinación mediante abstracciones.
-        """
-        mock_input.side_effect = [""] + ["1", "1", "1", "1", "3"] * 3 + [""] * 10
-
-        self.cli.jugador_negro = "TestPlayer"
-        self.cli.turno_actual = "negro"
-
-        self.cli.dados.tirar = Mock()
-        self.cli.dados.reiniciar = Mock()
-        self.cli.dados.__str__ = Mock(return_value="[3,4]")
-        self.cli.dados.es_doble = Mock(return_value=False)
-        self.cli.dados.obtener_dado1 = Mock(return_value=3)
-        self.cli.dados.obtener_dado2 = Mock(return_value=4)
-
-        call_count = [0]
-        def mock_movimientos(*args):
-            call_count[0] += 1
-            if call_count[0] <= 3:
-                return [1, 2]
-            else:
-                return []
-
-        self.cli.board.obtener_movimientos_posibles = Mock(side_effect=mock_movimientos)
-        self.cli.board.realizar_movimiento_completo = Mock(return_value=True)
-
-        with patch.object(self.cli, 'mostrar_tablero'):
-            self.cli.turno_jugador()
-
-        self.assertGreaterEqual(self.cli.board.realizar_movimiento_completo.call_count, 2)
-        self.cli.dados.reiniciar.assert_called_once()
-
-
-# --- CLASE DE TESTS PARA PRINCIPIOS SOLID EN CLI ---
-class TestCLISOLID(unittest.TestCase):
-    """
-    Suite de tests dedicada a verificar el cumplimiento de los principios SOLID.
-    """
-    def setUp(self):
-        """Configuración para los tests SOLID, inyectando Mocks."""
-        self.cli = CLI()
-        self.cli.board = Mock()
-        self.cli.dados = Mock()
-        # SOLUCIÓN: Configuración base para evitar errores de 'unpack'
-        self.cli.board.obtener_estado_punto.return_value = (None, 0)
-        self.cli.board.get_barra.return_value = {"negro": 0, "blanco": 0}
-        self.cli.board.get_casa.return_value = {"negro": 0, "blanco": 0}
-
-    def test_srp_cli_delegates_all_game_logic(self):
-        """[SRP] La CLI delega toda la lógica de juego a los componentes del Core."""
-        with patch('builtins.input', side_effect=["1", "1", "3"]): # Opción, origen, pasar
-            self.cli.turno_actual = "negro"
-            # Configuramos todos los mocks necesarios para un turno
-            self.cli.dados.obtener_dado1.return_value = 1
-            self.cli.dados.obtener_dado2.return_value = 2
-            self.cli.board.obtener_movimientos_posibles.return_value = [(1, 2)]
-            self.cli.board.realizar_movimiento_completo.return_value = True
-
-            self.cli.manejar_movimientos_normales()
-
-            # Afirmamos que la CLI llamó a los métodos del tablero y los dados.
-            self.cli.board.obtener_movimientos_posibles.assert_called()
-            self.cli.board.realizar_movimiento_completo.assert_called()
-
-    def test_ocp_cli_is_extensible_for_display(self):
-        """[OCP] La CLI está abierta a extensión para diferentes formatos de visualización."""
-        class FancyCLI(CLI):
-            """Una CLI extendida que modifica la visualización del tablero."""
-            def mostrar_tablero(self):
-                print("--- TABLERO ESTILIZADO ---")
-                # Llama al método original para no reescribir toda la lógica
-                super().mostrar_tablero()
-
-        fancy_cli = FancyCLI()
-        fancy_cli.board = Mock()
-        fancy_cli.board.obtener_estado_punto.return_value = (None, 0)
-        fancy_cli.board.get_barra.return_value = {"negro": 0, "blanco": 0}
-        fancy_cli.board.get_casa.return_value = {"negro": 0, "blanco": 0}
-
-        with patch('builtins.print') as mock_print:
-            fancy_cli.mostrar_tablero()
-            mock_print.assert_any_call("--- TABLERO ESTILIZADO ---")
-            # Verificamos que también se ejecutó la lógica del método padre
-            fancy_cli.board.obtener_estado_punto.assert_called()
-
-    def test_lsp_subclass_can_be_substituted(self):
-        """[LSP] Una subclase de CLI (ej. para un bot) puede sustituir a la original."""
-        class AutomatedCLI(CLI):
-            """Una CLI que simula las decisiones de un bot en lugar de pedir input."""
-            def pedir_input_movimiento(self):
-                # En lugar de pedir input, el bot siempre devuelve '1', '1'.
-                return "1", "1"
-
-        auto_cli = AutomatedCLI()
-        origen, dado_elegido = auto_cli.pedir_input_movimiento()
-        self.assertEqual(origen, "1")
-        self.assertEqual(dado_elegido, "1")
-
-    def test_dip_cli_relies_on_abstractions(self):
-        """[DIP] La CLI depende de abstracciones (la 'interfaz' de Board y Dice)."""
-        self.assertIsInstance(self.cli.board, Mock)
-        self.assertIsInstance(self.cli.dados, Mock)
-        
-        # La CLI puede operar con el Mock de Board porque solo le importa
-        # el "contrato" (que tenga un método `ha_ganado`), no la clase concreta.
-        self.cli.board.ha_ganado.return_value = True
-        resultado = self.cli.board.ha_ganado("negro")
-        self.assertTrue(resultado)
-
 
 
 if __name__ == '__main__':
