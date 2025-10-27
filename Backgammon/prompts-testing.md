@@ -1366,4 +1366,15 @@ Bien gracias, ahora sigamos con los errores de Test_CLI.py, estos son un poco ma
 BOT: (Me pasa el codigo actualizado)
 (Aumenta la cobertura al 92%, los tests pasan, hago commit)
 
+YO:
 
+Bien gracias, ya borre el metodo y funciona todo bien, pero ahora es necesario correguir los tests de pygame, podrias hacerlo? 
+
+BOT: (Me pasa metodo correguido de pygame, lo actualizo y lo mismo para test_pygameUI)
+
+YO:
+
+Falla un solo tests con un AssertionError, el error es el siguiente;
+
+BOT: (Me cambia un test por otro que valida lo mismo (logica de bearing off con dados mayores) pero de mejor manera) 
+(Quedan correguidos los tests, hago commit) 

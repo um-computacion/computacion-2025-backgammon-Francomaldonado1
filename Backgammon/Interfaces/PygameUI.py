@@ -926,15 +926,26 @@ class PygameUI:
             - DIP: Usa BarManager y Board para verificar estado sin implementar lógica interna.
             - ISP: Llama solo a métodos necesarios de cada dependencia.
         """
-        # Click en la barra
+        # Click en la barra (point == 0)
         if point == 0:
             if self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
                 self.__selected_point__ = 0
                 self.__message__ = (f"Ficha en la barra seleccionada. Dados: "
                                 f"{self.__available_moves__}. Elige punto de entrada.")
+            # --- CORRECCIÓN CRASH: Manejar clic en zona bearing off de Blanco ---
+            elif self.__current_player__ == "blanco" and self.__bearing_off_validator__.can_bear_off("blanco"):
+                self.__message__ = "Selecciona una ficha (1-6) para sacar."
+            # --- FIN CORRECCIÓN ---
             else:
                 self.__message__ = "No tienes fichas en la barra."
             return
+
+        # --- CORRECCIÓN CRASH: Manejar clic en zona bearing off de Negro ---
+        if point == 25:
+            if self.__current_player__ == "negro" and self.__bearing_off_validator__.can_bear_off("negro"):
+                self.__message__ = "Selecciona una ficha (19-24) para sacar."
+            return
+        # --- FIN CORRECCIÓN ---
         
         # Verificar si debe mover desde la barra primero
         if BarMovementRules.must_enter_from_bar_first(self.__bar_manager__,
@@ -943,7 +954,7 @@ class PygameUI:
                             "Haz clic en el centro del tablero.")
             return
         
-        # Click en punto normal
+        # Click en punto normal (AHORA sabemos que point está entre 1 y 24)
         estado_punto = self.__board__.obtener_estado_punto(point)
         if estado_punto and estado_punto[0] == self.__current_player__:
             self.__selected_point__ = point
@@ -959,7 +970,7 @@ class PygameUI:
                 
                 if in_home:
                     # Verificar si tiene algún dado válido para sacar ESTA ficha
-                    dice_needed = self.__calculate_bearing_off_dice(point)
+                    # (Esta lógica ya es correcta, comprueba todos los dados)
                     for dice_value in self.__available_moves__:
                         is_valid, _ = self.__bearing_off_validator__.validate_bearing_off_move(
                             self.__current_player__, point, dice_value)
@@ -977,6 +988,7 @@ class PygameUI:
                 self.__message__ = f"Punto {point} seleccionado. Dados: [{dice_str}]. Elige destino."
         else:
             self.__message__ = "No tienes fichas en esta posición. Elige una válida."
+
 
     def __attempt_move(self, origen: int, destino: int) -> None:
         """
@@ -1011,32 +1023,47 @@ class PygameUI:
             - DIP: Usa BearingOffValidator y HomeManager sin conocer su implementación.
             - LSP: Puede sustituir movimientos normales cuando corresponde.
         """
-        # Calcular dado necesario
-        dice_needed = self.__calculate_bearing_off_dice(origen)
+
+        # 1. Verificar PRIMERO si el jugador PUEDE hacer bearing off
+        if not self.__bearing_off_validator__.can_bear_off(self.__current_player__):
+            self.__message__ = self.__message_manager__.get_cannot_bear_off_message()
+            return # Salir si no puede sacar fichas en absoluto
         
-        # Verificar que el dado esté disponible
-        if dice_needed not in self.__available_moves__:
+        # 2. Encontrar un dado válido para este movimiento
+        dice_to_use = None
+        # Iteramos los dados disponibles ordenados (para usar el más bajo válido)
+        for dice_value in sorted(list(set(self.__available_moves__))):
+            is_valid, _ = self.__bearing_off_validator__.validate_bearing_off_move(
+                self.__current_player__, origen, dice_value)
+            
+            if is_valid:
+                dice_to_use = dice_value
+                break # Encontramos el dado más bajo que funciona
+
+        # 3. Verificar si encontramos un dado
+        if dice_to_use is None:
+            # Si no encontramos dado, reportar error
+            exact_dice = self.__calculate_bearing_off_dice(origen)
             available_str = ', '.join(map(str, self.__available_moves__))
-            self.__message__ = f"Necesitas dado {dice_needed}. Tienes: {available_str}"
-            return
-        
-        # Validar según las reglas de bearing off
-        is_valid, error_msg = self.__bearing_off_validator__.validate_bearing_off_move(
-            self.__current_player__, origen, dice_needed)
-        
-        if not is_valid:
-            self.__message__ = error_msg
+            # Usar el MessageManager para el mensaje de error
+            self.__message__ = self.__message_manager__.get_dice_not_available_message(
+                exact_dice, self.__available_moves__
+            )
+            # Añadir contexto sobre reglas de bearing off
+            self.__message__ += f" (o superior si no hay fichas atrás)"
             return
         
         # Ejecutar bearing off
         try:
             self.__board__.remover_ficha(origen, 1)
             self.__home_manager__.add_piece_to_home(self.__current_player__)
-            self.__available_moves__.remove(dice_needed)
+            # Usar el dado que encontramos (ej. 6, 5, 4, 3 o 2)
+            self.__available_moves__.remove(dice_to_use)
             
             # Verificar victoria
             if self.__home_manager__.has_won(self.__current_player__):
-                self.__message__ = f"🎉 ¡{self.__current_player__.upper()} GANA! 🎉"
+                self.__message__ = self.__message_manager__.get_victory_message(
+                    self.__current_player__)
                 return
             
             remaining_moves = len(self.__available_moves__)
@@ -1300,8 +1327,15 @@ class PygameUI:
         self.__is_doubles_roll__ = self.__dice_calculator__.is_doubles_roll(dado1, dado2)
         
         # Verificar si el jugador tiene movimientos disponibles
-        if not self.__movement_validator__.has_any_valid_move(
-                self.__current_player__, self.__available_moves__):
+        has_board_moves = self.__movement_validator__.has_any_valid_move(
+            self.__current_player__, self.__available_moves__)
+        
+        has_bearing_off_moves = False
+        # Solo chequear bearing off si ya puede hacerlo (optimización)
+        if self.__bearing_off_validator__.can_bear_off(self.__current_player__):
+            has_bearing_off_moves = self.__has_valid_bearing_off_moves()
+
+        if not has_board_moves and not has_bearing_off_moves:
             if self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
                 self.__message__ = f"{self.__current_player__.capitalize()}: No puedes entrar desde la barra. Presiona 'R' para saltar turno."
             else:
@@ -1515,36 +1549,7 @@ class PygameUI:
                 text_rect = count_text.get_rect(center=(bar_center_x, start_y - 200))
                 self.__screen__.blit(count_text, text_rect)
 
-    def __draw_home_pieces(self) -> None:
-        """
-        Dibuja el contador de fichas que han salido del tablero (casa).
-        
-        Principios SOLID:
-            - SRP: Renderiza solo información de fichas en casa.
-            - DIP: Usa HomeManager sin conocer detalles internos.
-        """
-        font_small = pygame.font.Font(None, 30)
     
-        # Fichas negras en casa (ABAJO a la izquierda, cerca de su zona de bearing off)
-        negro_count = self.__home_manager__.get_pieces_count("negro")
-        if negro_count > 0:
-            text = f"Casa Negro: {negro_count}/15"
-            color = self.__white__ if negro_count < 15 else (0, 255, 0)
-            text_surface = font_small.render(text, True, color)
-            x = 50  # Esquina izquierda
-            y = self.__screen__.get_height() - 80  # Abajo
-            self.__screen__.blit(text_surface, (x, y))
-        
-        # Fichas blancas en casa (ARRIBA a la izquierda, cerca de su zona de bearing off)
-        blanco_count = self.__home_manager__.get_pieces_count("blanco")
-        if blanco_count > 0:
-            text = f"Casa Blanco: {blanco_count}/15"
-            color = self.__white__ if blanco_count < 15 else (0, 255, 0)
-            text_surface = font_small.render(text, True, color)
-            x = 50  # Esquina izquierda
-            y = 30  # Arriba
-            self.__screen__.blit(text_surface, (x, y))
-        
     def __draw_bearing_off_zones(self) -> None:
         """
         Dibuja las zonas visuales de bearing off cuando están activas.
@@ -1668,8 +1673,7 @@ class PygameUI:
         
         # Luego el resto
         self.__draw_checkers()
-        self.__draw_bar_pieces()
-        self.__draw_home_pieces()  
+        self.__draw_bar_pieces() 
         self.__draw_message()
         if self.__dice_rolls__:
             self.__draw_dice()
