@@ -2027,3 +2027,31 @@ Bien gracias, ya entendi todo, entonces podrias agregarle estos Type Hints a tod
 
 BOT: (Me pasa el codigo actualizado)
 (Corrijo los tests y hago commit) 
+
+YO:
+
+Hola buenas tardes, necesito que me ayudes a correguir la logica del bearing off en pygameUI. A la hora de sacar fichas, una vez que el jugador tiene todas sus fichas en su ultimo cuadrante, si tiene un dado mayor al que necesita para sacar la ficha a "casa" pero no tiene fichas en posiciones mas lejanas puede utilizar el dado. Por ejemplo supongamos que el jugador negro tiene 10 fichas en posicion 23 y 5 fichas en posicion 24, con dados 6, 5, 4 o 3 puede sacar desde la posicion 23 porque no tiene fichas en posiciones menores (22, 21, 20, 19), esta logica funciona correctamente en la CLI pero en pygame no, podrias ayudarme a correguirla? Te dejo codigo de error que cerro la interfaz grafica y codigo de Pygame
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Encontre dos errores, primero el mensaje de "Blanco: Todas tus fichas están bloqueadas. Presiona 'R' para saltar turno." Esta claramente mal por que lo que buscamos implementar es que el jugador blanco, con dados 6 y 5 con cualquiera de los dos dados deberia poder sacar a casa desde la posición 4 (Ya que no tiene fichas en posiciones mayores), por lo que esta logica esta mal. Y segundo el mensaje de abajo que representa la "Casa Negro" Interrumpe el tablero, debería estar mas abajo (fuera del tablero) como pasa con el mensaje de Casa Blanco, podrias correguir esto? (Le mando foto de el tablero y mensajes que se ven) 
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Bien gracias, ahora si funciona bien esta logica, podrias "centrar" el texto del contador de "Casa Blanco"? Si te fijas en el contador de "Casa Negro" esta centrado y el de Casa Blanco esta muy cerca del tablero.
+
+BOT: (Me pasa el codigo actualizado)
+
+YO:
+
+Mira, se superponen los mensajes, la otra opción es borrar directamente el contador de arriba, ya que el cuadrado que es el boton de casa ya tiene un contador incluido, que te parece esto?
+
+BOT: 
+
+La mejor solución, tal como sugieres, es eliminar la lógica del método __draw_home_pieces para que ya no dibuje ese texto en las esquinas. Esto soluciona permanentemente el problema de superposición.
+
+YO: (Borro el metodo, corrijo los tests y hago commit)

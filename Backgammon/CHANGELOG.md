@@ -354,3 +354,16 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 - Se borran tests de Test_Board.py correspondientes a la logica borrada (Movimiento doble con los dos dados).
 - Se actualiza Test_CLI.py borrando los tests de Test_CLI.py correspondientes a la logica borrada (Movimiento doble con los dos dados) y modificando los faltantes.
 - Se borran clases de tests de Test_CLI.py duplicadas por error (Lo que aumenta cobertura al 92%).
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para corregir los tests que utilizaban movimientos dobles con los dos dados.
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para corregir metodos que utilizaban movimientos dobles con los dos dados y borrar metodos no necesarios.
+
+# [0.0.44] 26/10/2025 
+### ADDED
+- Se modifican metodos __attempt_piece_selection y __attempt_bearing_off para que permitan hacer bearing off con dados mayores si no hay fichas atrás.
+
+### CHANGED
+- Se borra draw_home_pieces de PygameUI.py porque decidim que no era necesario ya que este contador de fichas en casa esta en el boton de casa.
+- Se actualizan los tests de Test_PygameUI.py para que pasen los tests de bearing off con dados mayores si no hay fichas atrás.
+- Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para correguir tests que fallaban.
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para correguir esta logica de bearing off.
+
