@@ -2055,3 +2055,13 @@ BOT:
 La mejor solución, tal como sugieres, es eliminar la lógica del método __draw_home_pieces para que ya no dibuje ese texto en las esquinas. Esto soluciona permanentemente el problema de superposición.
 
 YO: (Borro el metodo, corrijo los tests y hago commit)
+
+YO:
+
+Hola buenas noches, necesito que me ayudes con algo, en la estructura del proyecto los profesores mencionaron un archivo "assets" para incluir fotos y sonidos al proyecto, podrias guiarme sobre como hacer esto? Imagenes para que serian, para el readme y el archivo de justificación.md no? y sonidos adonde podriamos agregar, a cada movimiento o solo a la victoria, que tan complicado es agregar estos, guiame en todo este proceso porque la verdad que nunca he agregado fotos ni sonidos a un codigo, gracias. Recordando el archivo que nos mandaron como consigna, en el apartado de la justificación habia que cumplir con "Anexos: diagramas UML(ej: diagrama de clases)." Esto se agregaria en el archivo assets supongo pero como? y como se pasa del archivo assets al markdown de justificación.md? Porfavor empeza respondiendo mis preguntas y poniendome en contexto, luego vemos que podemos implementar a partir de estas ideas, gracias. 
+
+BOT: (Me explica como funciona y para que sirve carpeta assets)
+
+YO (Creo la carpeta assets con archivos images y sounds)
+(Hago commit, mañana agrego imagenes y sonidos) 
+

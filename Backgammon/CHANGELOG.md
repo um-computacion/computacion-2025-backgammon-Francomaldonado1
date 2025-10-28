@@ -367,3 +367,9 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para correguir tests que fallaban.
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para correguir esta logica de bearing off.
 
+[0.0.45] 27/10/2025
+### ADDED
+- Se agrega carpeta assets con archivos images y sounds. (Vacios por ahora) 
+
+### CHANGED
+- Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para agregar la carpeta assets y entender como funciona. 
