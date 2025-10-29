@@ -380,3 +380,10 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 
 ### CHANGED
 - Se actualiza el archivo de justificacion.md con la explicación e implementación de los diagramas UML.
+
+[0.0.47] 29/10/2025
+### ADDED
+- Se agregan distintos sonidos (Dice roll, Move piece, Capture, Win game, Error, Bearing off) al directorio assets/sounds.
+
+### CHANGED
+- Se actualiza el codigo de PygameUI.py para que cargue los sonidos y los use en la interfaz grafica.
