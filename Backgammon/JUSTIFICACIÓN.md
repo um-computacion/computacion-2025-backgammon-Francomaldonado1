@@ -491,3 +491,18 @@
 - - La `PygameUI` representa una evolución de la `CLI`, demostrando una arquitectura de UI robusta y escalable. Su principal fortaleza de diseño es la aplicación intensiva del **Principio de Responsabilidad Única**, descomponiendo la alta complejidad de una GUI en múltiples clases gestoras y validadoras.
 - 
 - - Está **completamente desacoplada del Core**, depende de abstracciones (cumpliendo **DIP**) y valida su arquitectura y funcionalidad mediante una suite de tests exhaustiva que cubre desde la lógica de estado hasta la simulación de eventos gráficos.
+
+
+# Anexos: Diagramas UML
+
+### Diagrama General de Clases
+
+Aquí se muestra la estructura principal del proyecto, incluyendo las clases del Core y las Interfaces:
+
+![Diagrama General de Clases](Backgammon/assets/images/UMLClassGeneral.png)
+
+### Detalle de la Arquitectura de PygameUI
+
+Este diagrama muestra en detalle la clase `PygameUI` y cómo se compone de sus clases auxiliares:
+
+![Detalle Arquitectura PygameUI](Backgammon/assets/images/UMLClassPygameUI.png)

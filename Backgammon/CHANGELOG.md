@@ -373,3 +373,10 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 
 ### CHANGED
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para agregar la carpeta assets y entender como funciona. 
+
+[0.0.46] 28/10/2025
+### ADDED
+- Se agregan las imagenes de los diagramas UML (Uno general y otro de la estructura de PygameUI) al archivo images de assets.
+
+### CHANGED
+- Se actualiza el archivo de justificacion.md con la explicación e implementación de los diagramas UML.
