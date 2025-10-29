@@ -803,6 +803,7 @@ class PygameUI:
             - ISP: Utiliza interfaces específicas de cada gestor sin acoplamiento excesivo.
         """
         pygame.init()  # pylint: disable=no-member
+        pygame.mixer.init()
         self.__screen__ = pygame.display.set_mode((board_width, board_height))
         pygame.display.set_caption("Backgammon")
         self.__clock__ = pygame.time.Clock()
@@ -842,6 +843,33 @@ class PygameUI:
         self.__board_width__ = 1500
         self.__board_height__ = 800
         self.__bar_width__ = 80
+
+        try:
+            base_path = os.path.dirname(__file__)
+            assets_path = os.path.join(base_path, '..', 'assets', 'sounds')
+
+            # Carga todos los sonidos
+            self.__sound_dice_roll__ = pygame.mixer.Sound(os.path.join(assets_path, "dice_roll.wav"))
+            self.__sound_move_piece__ = pygame.mixer.Sound(os.path.join(assets_path, "move_piece.wav"))
+            self.__sound_capture__ = pygame.mixer.Sound(os.path.join(assets_path, "capture.wav"))
+            self.__sound_win__ = pygame.mixer.Sound(os.path.join(assets_path, "win_game.wav"))
+            self.__sound_error__ = pygame.mixer.Sound(os.path.join(assets_path, "error.wav"))
+            self.__sound_bearing_off__ = pygame.mixer.Sound(os.path.join(assets_path, "bearing_off.wav"))
+            # Añade más si tienes...
+
+            print("Sonidos cargados correctamente.")
+
+        except (pygame.error, FileNotFoundError) as e:
+            print(f"Error al cargar sonidos: {e}. Algunos sonidos pueden no funcionar.")
+            # Inicializa todos a None si hay CUALQUIER error
+            self.__sound_dice_roll__ = None
+            self.__sound_move_piece__ = None
+            self.__sound_capture__ = None
+            self.__sound_win__ = None
+            self.__sound_error__ = None
+            self.__sound_bearing_off__ = None
+
+
 
     def run(self) -> None:
         """
@@ -938,6 +966,8 @@ class PygameUI:
             # --- FIN CORRECCIÓN ---
             else:
                 self.__message__ = "No tienes fichas en la barra."
+                if self.__sound_error__:
+                   self.__sound_error__.play()
             return
 
         # --- CORRECCIÓN CRASH: Manejar clic en zona bearing off de Negro ---
@@ -952,6 +982,8 @@ class PygameUI:
                                                     self.__current_player__):
             self.__message__ = ("Debes mover primero desde la barra. "
                             "Haz clic en el centro del tablero.")
+            if self.__sound_error__:
+                self.__sound_error__.play()
             return
         
         # Click en punto normal (AHORA sabemos que point está entre 1 y 24)
@@ -988,6 +1020,8 @@ class PygameUI:
                 self.__message__ = f"Punto {point} seleccionado. Dados: [{dice_str}]. Elige destino."
         else:
             self.__message__ = "No tienes fichas en esta posición. Elige una válida."
+            if self.__sound_error__:
+                self.__sound_error__.play()
 
 
     def __attempt_move(self, origen: int, destino: int) -> None:
@@ -1057,6 +1091,10 @@ class PygameUI:
         try:
             self.__board__.remover_ficha(origen, 1)
             self.__home_manager__.add_piece_to_home(self.__current_player__)
+            
+            if self.__sound_bearing_off__:
+                self.__sound_bearing_off__.play()
+
             # Usar el dado que encontramos (ej. 6, 5, 4, 3 o 2)
             self.__available_moves__.remove(dice_to_use)
             
@@ -1064,6 +1102,8 @@ class PygameUI:
             if self.__home_manager__.has_won(self.__current_player__):
                 self.__message__ = self.__message_manager__.get_victory_message(
                     self.__current_player__)
+                if self.__sound_win__:
+                    self.__sound_win__.play()
                 return
             
             remaining_moves = len(self.__available_moves__)
@@ -1202,6 +1242,9 @@ class PygameUI:
                                                         self.__current_player__)):
             captured_color = destination_state[0]
             capture_occurred = True
+
+            if self.__sound_capture__:
+                self.__sound_capture__.play()
             
             try:
                 self.__board__.remover_ficha(destino, 1)
@@ -1218,6 +1261,9 @@ class PygameUI:
                 self.__bar_manager__.remove_piece_from_bar(self.__current_player__)
             else:  # Movimiento normal
                 self.__board__.mover_ficha(origen, destino, self.__current_player__)
+
+            if not capture_occurred and self.__sound_move_piece__:
+                self.__sound_move_piece__.play()
             
             # Remover el dado usado
             self.__available_moves__.remove(dado_usado)
@@ -1293,6 +1339,10 @@ class PygameUI:
             - DIP: Usa Dice y MessageManager sin implementar reglas internas.
         """
         self.__dice__.tirar()
+
+        if self.__sound_dice_roll__:
+            self.__sound_dice_roll__.play()
+
         roll1 = self.__dice__.obtener_dado1()
         roll2 = self.__dice__.obtener_dado2()
         while roll1 == roll2:
@@ -1320,6 +1370,10 @@ class PygameUI:
             - OCP: Dobles son manejados sin modificar flujo normal.
         """
         self.__dice__.tirar()
+
+        if self.__sound_dice_roll__:
+            self.__sound_dice_roll__.play()
+
         dado1 = self.__dice__.obtener_dado1()
         dado2 = self.__dice__.obtener_dado2()
         self.__dice_rolls__ = [dado1, dado2]
@@ -1338,8 +1392,12 @@ class PygameUI:
         if not has_board_moves and not has_bearing_off_moves:
             if self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
                 self.__message__ = f"{self.__current_player__.capitalize()}: No puedes entrar desde la barra. Presiona 'R' para saltar turno."
+                if self.__sound_error__:
+                   self.__sound_error__.play()
             else:
                 self.__message__ = f"{self.__current_player__.capitalize()}: Todas tus fichas están bloqueadas. Presiona 'R' para saltar turno."
+                if self.__sound_error__:
+                   self.__sound_error__.play()
             self.__game_state_manager__.change_state('AWAITING_SKIP_CONFIRMATION')
             return
         
@@ -1365,43 +1423,56 @@ class PygameUI:
         if (origen != 0 and BarMovementRules.must_enter_from_bar_first(
                 self.__bar_manager__, self.__current_player__)):
             self.__message__ = "Debes mover primero desde la barra."
+            if self.__sound_error__:
+                self.__sound_error__.play()
             return False
         
         # Movimiento desde la barra
         if origen == 0:
             if not self.__bar_manager__.has_pieces_on_bar(self.__current_player__):
                 self.__message__ = "No tienes fichas en la barra."
+                if self.__sound_error__:
+                   self.__sound_error__.play()
                 return False
             
             dado_necesario = (destino if self.__current_player__ == "negro" else 25 - destino)
             if dado_necesario not in self.__available_moves__:
                 self.__message__ = f"No tienes dado {dado_necesario}. Disponibles: {self.__available_moves__}"
+                if self.__sound_error__:
+                   self.__sound_error__.play()
                 return False
             
             destination_state = self.__board__.obtener_estado_punto(destino)
             if self.__capture_validator__.is_move_blocked(destination_state,
                                                         self.__current_player__):
                 self.__message__ = f"Punto {destino} bloqueado (2+ fichas rivales)."
+                if self.__sound_error__:
+                   self.__sound_error__.play()
                 return False
             return True
         
         # VALIDACIÓN CRÍTICA: Verificar dirección correcta
         if not self.__is_valid_direction(origen, destino):
             self.__message__ = "Dirección incorrecta. Negro va hacia arriba, Blanco hacia abajo."
+            if self.__sound_error__:
+                self.__sound_error__.play()
             return False
         
         # Calcular dado necesario
         dado_necesario = self.__calculate_dice_needed(origen, destino)
         if dado_necesario not in self.__available_moves__:
             self.__message__ = f"No tienes dado {dado_necesario}. Disponibles: {self.__available_moves__}"
+            if self.__sound_error__:
+                self.__sound_error__.play()
             return False
         
         # Verificar si el destino está bloqueado
         destination_state = self.__board__.obtener_estado_punto(destino)
         if self.__capture_validator__.is_move_blocked(destination_state, self.__current_player__):
             self.__message__ = f"Punto {destino} bloqueado (2+ fichas rivales)."
+            if self.__sound_error__:
+                   self.__sound_error__.play()
             return False
-        
         return True
 
     def __calculate_dice_needed(self, origen: int, destino: int) -> int:
