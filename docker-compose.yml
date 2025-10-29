@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  backgammon-cli:
+    build: .
+    image: backgammon:latest
+    container_name: backgammon-cli
+    volumes:
+      - .:/app
+    stdin_open: true  # Mantiene stdin abierto (necesario para CLI)
+    tty: true         # Asigna una pseudo-TTY (necesario para CLI)
+    profiles:
+      - game
+      
+  backgammon-test:
+    build: .
+    image: backgammon:latest
+    container_name: backgammon-test
+    command: python3 -m unittest discover -s Backgammon/Tests -p "*.py"
+    volumes:
+      - .:/app
+    profiles:
+      - test

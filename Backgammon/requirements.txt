@@ -1,0 +1,3 @@
+Coverage
+pygame
+pylint>=3.0.0
