@@ -499,10 +499,10 @@
 
 Aquí se muestra la estructura principal del proyecto, incluyendo las clases del Core y las Interfaces:
 
-![Diagrama General de Clases](Backgammon/assets/images/UMLClassGeneral.png)
+![Diagrama General de Clases](assets/images/UMLClassGeneral.png)
 
 ### Detalle de la Arquitectura de PygameUI
 
 Este diagrama muestra en detalle la clase `PygameUI` y cómo se compone de sus clases auxiliares:
 
-![Detalle Arquitectura PygameUI](Backgammon/assets/images/UMLClassPygameUI.png)
+![Detalle Arquitectura PygameUI](assets/images/UMLClassPygameUI.png)
