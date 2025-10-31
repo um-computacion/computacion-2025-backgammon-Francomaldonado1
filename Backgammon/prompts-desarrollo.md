@@ -2065,3 +2065,167 @@ BOT: (Me explica como funciona y para que sirve carpeta assets)
 YO (Creo la carpeta assets con archivos images y sounds)
 (Hago commit, mañana agrego imagenes y sonidos) 
 
+YO:
+
+Ahora no aparece ningun error, y pude ver la foto correctamente en la carpeta images desde visual studio code! El problema es que en github no se ven, esto es lo que veo en github y al hacer click en el nombre de la foto no se abre nada ni nada, osea que obligatoriamente tengo que estar en visual studio code o algun interprete para poder verlo.
+
+BOT:
+
+¿Por qué no se ve en GitHub?
+El problema que describes (UMLClassGeneral.png aparece listado como un archivo, pero no se muestra la previsualización ni se abre al hacer clic) ocurre cuando GitHub detecta que el archivo no es un PNG estándar o no lo reconoce como una imagen visualizable directamente en su interfaz.
+
+YO:
+
+Bien gracias, no importa que no se vean las fotos, ahora me gustaria si es posible que me ayudes a agregarle sonidos, entiendo que deberia descargarlos desde una pagina, pero luego como hacemos para vincularlos con la interfaz grafica?
+
+BOT: (Me pasa codigo para agregar sonidos en pygameUI (Inicalizador de modulo mixer y codigo del init de PygameUI))
+
+YO:
+
+dale, enfoquemonos en el sonido de tirar los dados, podrias darme alguna URL para buscar sonidos gratis? o donde puedo buscarlos
+
+BOT: (Me pasa algunas URLs para buscar sonidos gratis, yo busco los que mas me gustan para cada cosa y los descargo y convierto a .wav que era lo recomendado por la IA) 
+
+YO:
+
+No deberia hacer antes del try el self.__Sound_dice_Roll__ = "dice_roll.wav" o algo asi? porque al poner el try me tira que el self no esta definido (ninguno) osea self.__sound_move_pice__, self.__sound_capture__ y todos los demas no estan definidos
+
+BOT:
+
+El error que te tira (self no está definido) indica que el bloque try...except que añadiste para cargar los sonidos no está correctamente indentado dentro del método __init__.
+
+YO:
+
+Bien gracias, si estaba mal identado el try, ahora esta bien y pude agregarle el sonido al metodo roll_player_dice, tambien se lo agregue a roll_to_start abajo del self.__dice__.tirar(). Ahora podriamos seguir con los demas sonidos? suponiendo que ya descargue todos en formato .wav y con los nombres que sugeriste recien; self.__sound_move_piece__, self.__sound_capture__, etc.
+
+BOT: (Me pasa el codigo actualizado)
+(Hago commit)
+
+YO:
+
+Bien gracias, ahora podrias ayudarme a implementar una base de datos con Redis a mi proyecto para poder guardar partidas en curso y luego volver a acceder a estas?
+
+BOT: (Me explica como hacerlo pero crea el archivo dentro de PygameUI.py)
+
+YO:
+
+esta es la mejor manera de hacerlo? No seria mejor trabajarlo en un archivo llamado redis o algo similar por separado?
+
+BOT:
+
+Meter toda la lógica de Redis directamente en PygameUI.py rompe el Principio de Responsabilidad Única (SRP). La responsabilidad de PygameUI es dibujar la pantalla y manejar los clics, no saber cómo conectarse a una base de datos y serializar JSON.
+
+Lo que has propuesto, crear un archivo separado (como PersistenceManager.py o RedisManager.py), es la arquitectura ideal.
+
+YO:
+
+Porque deberia ir en Core, si es un sistema de guardado externo, no puede ir directamente dentro del directorio Backgammon?
+
+BOT:
+
+Estás en lo correcto:
+
+Core (Dominio): Debería ser la lógica pura del juego (las reglas, qué es un Board, un Dice). Idealmente, Core no debería saber si se está guardando en Redis, en un archivo, o en la nube.
+
+Persistence (Infraestructura): Es un "servicio externo" que sabe cómo conectarse a Redis y cómo guardar datos.
+
+YO:
+
+Podrias rehacer el codigo de __guardar_partida y __cargar_partida usando RedisManager en ves de PercistenceManager?
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Agrego metodos a PygameUI.py y creo clase RedisManager en backgammon/Persistence/RedisManager.py)
+
+Bien, ya agregue el codigo a pygame y cree la clase con ruta Backgammon/Persistanse/RedisManager.py. Ahora como hago para guardar partidas en curso y continuarlas luego?
+
+BOT:
+
+Para Guardar la Partida:
+
+En cualquier momento durante tu turno (o el del oponente), simplemente presiona la tecla G en tu teclado.
+
+Verás un mensaje en la barra superior que dice "Partida guardada en 'partida_guardada_1'." (o un error si falla).
+
+YO:
+
+No funciona, estuve jugando y al tocar G o L no hace nada ni devuelve ningun mensaje. Podrias ayudarme a correguirlo?
+
+
+BOT:
+
+Mi sospecha principal sigue siendo que el servidor Redis no está corriendo y el mensaje de error que debería aparecer en la ventana del juego no se está mostrando por alguna razón. Por favor, verifica primero la salida de la terminal al iniciar el juego.
+
+YO:
+
+Si, me aparece Conectado a Redis exitosamente (desde RedisManager) en la terminal, pero como mencione anteriormente ni G ni L realizan ninguna funcion.
+
+BOT: (Me pasa sección de event.key para verificar si reconoce las teclas G y L con un debug) 
+
+YO:
+
+Al presionar me tiro el siguiente AtributeError que no vi; AttributeError: 'Board' object has no attribute 'obtener_estado_dict'. Did you mean: 'obtener_estado_punto'?, podriamos correguir esto?
+
+BOT:
+
+Para corregirlo, tienes que abrir tu archivo Backgammon/Core/Board.py y agregarle los dos métodos que sirven para "empaquetar" y "desempaquetar" su estado: obtener_estado_dict (para guardar) y cargar_estado_dict (para cargar).
+(Me pasa metodos para agregar en Board.py con docstrings dedicados a principios solid directamente)
+
+YO:
+
+Bien gracias, ya quedo comentado y fucionando estas nuevas funcionalidades, ahora podrias hacerme tests para estos nuevos metodos (en Test_Board.py y Test_Pygame.py) para mantener la cobertura alta y no dejar escenarios del proyecto sin testing? Tambien me gustaria agregar esto del guardado de partidas a la CLI, no se si preferis que hagamos esto antes o despues de los tests correspondientes. Decime y te mando el codigo que necesites para trabajar en el proximo paso. Podrias explicarme tambien por que le asignamos un puerto en el __init__ de RedisManager si no estamos ejecutando nada en la web, y tampoco estamos dockerizando redis, no entiendo su funcionalidad. Tenia entendido que se usaban los puertos solamente para acceder luego con un localhost desde la web pero en este caso no lo entiendo, podrias explicarmelo? 
+
+BOT: (Me explica lo del puerto) 
+
+Mi recomendación es hacer los tests primero.
+
+¿Por qué? Porque ahora mismo tenemos nueva funcionalidad en Board.py, RedisManager.py y PygameUI.py que no está probada. Es mejor asegurarnos de que esta lógica de guardar/cargar es 100% sólida antes de duplicarla en la CLI. Si hay un error, lo encontraremos ahora y no tendremos que arreglarlo en dos sitios después. 
+
+Para empezar, ¿podrías mandarme el contenido de los siguientes archivos?
+
+Test_Board.py (para añadirle los nuevos tests).
+
+Test_PygameUI.py (o Test_Pygame.py, como lo tengas nombrado, para añadir los tests de guardado/carga).
+
+Backgammon/Persistence/RedisManager.py (para asegurarme de la importación y los métodos exactos al crear los mocks).
+
+¡En cuanto me los pases, preparo los tests!
+
+YO:
+
+Bien gracias, te dejo los archivos pedidos, no hace falta que me mandes el codigo completo de estos ya que es muy extenso, mandame solo los metodos nuevos.
+
+BOT: (Me pasa el codigo de tests)
+
+YO: 
+
+Fallan 2 tests, te dejo codigo de error.
+
+BOT: (Me explica que debemos agregar metodo cargar_estado_dict a BarManager y HomeManager para poder cargar estados ya que los tests estan bien escritos)
+
+YO:
+
+Fallan los tests, me di cuenta que en el argumento del setUp, a el ultimo argumento (mock_redis_manager) le ponemos class y al resto no, esto podria ser el error?
+
+BOT: (Me pasa el codigo actualizado)
+
+YO (Arreglo dos AtributeError, pero sigue fallando)
+
+Ahi correegui los AtributeError, primero le borre los "PygameUI" en estas lineas
+
+ self.mock_redis_instance = self.ui.__redis_manager__
+
+self.mock_board_instance = self.ui.__board__
+
+self.mock_state_instance = self.ui.__game_state_manager__
+
+self.mock_home_instance = self.ui.__home_manager__
+
+self.mock_bar_instance = self.ui.__bar_manager__
+
+ (antes era self.ui.PygameUI__bar_manager__) Y luego tambien le cambie en cada test por separado de la clase ; self.ui._PygameUI__load_game("slot_test_cargar") esta linea (Cambie __cargar_partida por __load_game y en la linea que es similar de el otro tests cambie por __save_game. Esto aparentemente soluciono los errores, pero aparecieron dos AssertionError ahora, podrias correguirlos teniendo en cuenta esto que hice?
+
+ BOT: (Me pasa el codigo actualizado)
+
+(La cobertura sigue siendo del 90% por lo que decido no testear esta logica, se me hizo muy largo y complicado) 
+(Hago commit) 

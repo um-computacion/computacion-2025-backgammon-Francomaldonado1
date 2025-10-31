@@ -1,3 +1,5 @@
 Coverage
 pygame
 pylint>=3.0.0
+fakeredis
+redis

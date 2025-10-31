@@ -1,122 +1,172 @@
-# Backgammon - Instrucciones de Ejecución con Docker
+# Proyecto Backgammon
 
-Este documento explica cómo poner en funcionamiento el juego de Backgammon usando Docker tanto para testing como para jugar.
+- **Autor:** Franco Maldonado
 
-## Prerrequisitos
+- Bienvenido a este proyecto. A continuación se detallan los pasos necesarios para la instalación, configuración y ejecución del programa y sus pruebas unitarias.
 
-- Docker instalado en tu sistema
-- Docker Compose instalado
+---
 
-## Construcción de la Imagen
-
-Antes de ejecutar cualquier modo, construye la imagen de Docker:
-
+## Estructura del Proyecto
 ```bash
-docker-compose build
+.
+├── Backgammon/
+│   ├── assets/
+│   │   ├── images/
+│   │   │   ├── UMLClassGeneral.png
+│   │   │   └── UMLClassPygameUI.png
+│   │   └── sounds/
+│   │       ├── bearing_off.wav
+│   │       ├── capture.wav
+│   │       ├── dice_roll.wav
+│   │       ├── error.wav
+│   │       ├── move_piece.wav
+│   │       └── win_game.wav
+│   │
+│   ├── Core/                    # Lógica principal del juego
+│   │   ├── Board.py             # Representa el tablero y las posiciones
+│   │   ├── Checker.py           # Define las fichas y su color
+│   │   ├── Dice.py              # Simula los dados
+│   │   ├── Player.py            # Maneja los jugadores y sus turnos
+│   │   └── __init__.py
+│   │
+│   ├── Interfaces/              # Interfaces de usuario
+│   │   ├── CLI.py               # Interfaz de consola
+│   │   ├── PygameUI.py          # Interfaz gráfica con Pygame
+│   │   └── __init__.py
+│   │
+│   ├── Persistence/             # Gestión de persistencia
+│   │   ├── RedisManager.py      # Manejo de Redis para almacenamiento
+│   │   └── __init__.py
+│   │
+│   ├── Tests/                   # Pruebas unitarias
+│   │   ├── Test_Board.py
+│   │   ├── Test_Checker.py
+│   │   ├── Test_CLI.py
+│   │   ├── Test_Dice.py
+│   │   ├── Test_Player.py
+│   │   ├── Test_PygameUI.py
+│   │   ├── Test_RedisManager.py
+│   │   └── __init__.py
+│   │
+│   ├── CHANGELOG.md             # Registro de cambios
+│   ├── JUSTIFICACIÓN.md         # Justificación del proyecto
+│   ├── prompts-desarrollo.md    # Prompts de desarrollo
+│   ├── prompts-documentación.md # Prompts de documentación
+│   ├── prompts-testing.md       # Prompts de testing
+│   ├── requirements.txt         # Dependencias del proyecto
+│   └── __init__.py
+│
+├── venv/                        # Entorno virtual (no incluir en git)
+├── .coverage                    # Archivo de cobertura
+├── .gitignore                   # Archivos ignorados por git
+├── .pylintrc                    # Configuración de pylint
+├── coverage_report.txt          # Reporte de cobertura
+├── docker-compose.yml           # Configuración de Docker Compose
+├── Dockerfile                   # Configuración de Docker
+├── generate_reports.py          # Script para generar reportes
+├── pylint_report.txt            # Reporte de pylint
+├── README.md                    # Este archivo
+└── REPORTS.md                   # Reportes del proyecto
 ```
 
-## Modo Testing
+---
 
-Para ejecutar todos los tests del proyecto:
+## Instalación y Configuración
 
+- Sigue estos pasos para configurar el entorno de desarrollo local.
+
+### 1. Clonar el Repositorio (Opcional)
+
+- Si aún no tienes el código, clónalo desde tu repositorio (reemplaza la URL):
 ```bash
-docker-compose --profile test up
+git clone 
+cd 
 ```
 
-Este comando ejecutará todos los tests ubicados en `Backgammon/Tests/` usando el comando:
+### 2. Configurar el Entorno Virtual
+
+- Es una buena práctica usar un entorno virtual (venv) para aislar las dependencias del proyecto.
+
+#### Crear el entorno virtual:
 ```bash
-python3 -m unittest Backgammon/Tests/*.py
+python3 -m venv venv
 ```
 
-Para ver los resultados y que el contenedor se elimine automáticamente al finalizar:
+#### Activar el entorno virtual:
 
-```bash
-docker-compose --profile test up --abort-on-container-exit --remove-orphans
-```
-
-Para eliminar el contenedor después de ejecutar los tests:
-
-```bash
-docker-compose --profile test down
-```
-
-## Modo Juego - CLI (Interfaz de Texto)
-
-Para jugar usando la interfaz de línea de comandos desplegada con Docker:
-
-```bash
-docker-compose --profile game up
-```
-
-La interfaz CLI te permitirá interactuar con el juego directamente desde la terminal Docker.
-
-Para detener el juego, presiona `Ctrl+C` y luego ejecuta:
-
-```bash
-docker-compose --profile game down
-```
-
-## Modo Juego - GUI (Interfaz Gráfica con Pygame)
-
-La interfaz gráfica **NO se ejecuta con Docker** debido a limitaciones técnicas del display gráfico. Para usar la GUI, ejecuta el proyecto localmente:
-
-### Configuración local:
-
-1. Activar el entorno virtual:
+- **En macOS/Linux:**
 ```bash
 source venv/bin/activate
 ```
 
-2. Ejecutar la interfaz gráfica:
+- **En Windows (PowerShell):**
+```bash
+.\venv\Scripts\Activate.ps1
+```
+
+- **En Windows (CMD):**
+```bash
+venv\Scripts\activate.bat
+```
+
+#### Instalar las dependencias:
+
+- Una vez activado el entorno, instala las librerías necesarias: 
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Cómo Ejecutar el Programa
+
+- Puedes ejecutar el juego en dos modos diferentes desde la raíz del proyecto.
+
+### Ejecutar en modo CLI (Interfaz de Terminal)
+```bash
+python3 -m Backgammon.Interfaces.CLI
+```
+## Botones para CLI:
+# R: Tirar dados
+
+### Ejecutar en modo GUI (Interfaz Gráfica)
+
+- Asegúrate de tener Pygame y otras dependencias gráficas instaladas (deberían estar en Backgammon/requirements.txt).
 ```bash
 python3 -m Backgammon.Interfaces.PygameUI
 ```
+## Botones para PygameUI:
+# R: Tirar dados
+# G: Guardar partida
+# L: Cargar partida
 
-## Resumen de Comandos
+---
 
-| Modo | Comando |
-|------|---------|
-| **Testing** | `docker-compose --profile test up` |
-| **CLI** | `docker-compose --profile game up` |
-| **GUI** | `source venv/bin/activate && python3 -m Backgammon.Interfaces.PygameUI` |
+## 🧪 Ejecutar Pruebas (Tests)
 
-## Arquitectura del Proyecto
+- Para verificar que todo funcione correctamente, puedes ejecutar las pruebas unitarias.
 
-El proyecto está dividido en tres componentes principales:
+### Ejecutar todos los tests
 
-- **Core**: Contiene las clases principales (Player, Checker, Dice, Board)
-- **Interfaces**: CLI y PygameUI
-- **Tests**: Tests unitarios de cada clase del Core y de cada interfaz
-
-La clase `Board` maneja el flujo del juego y relaciona todas las demás clases del Core, siendo utilizada por ambas interfaces.
-
-## Uso de Profiles
-
-El archivo `docker-compose.yml` contiene dos servicios con profiles diferentes:
-- **Profile `test`**: Ejecuta los tests
-- **Profile `game`**: Ejecuta la interfaz CLI
-
-Esto permite tener ambos servicios en un solo archivo y ejecutarlos selectivamente según se necesite.
-
-## Solución de Problemas
-
-### Los tests fallan
-- Verifica que la estructura de directorios sea correcta
-- Asegúrate de que todos los archivos de test estén en `Backgammon/Tests/`
-- Reconstruye la imagen: `docker-compose build --no-cache`
-
-### La CLI no responde o no puedo escribir
-- Asegúrate de usar `docker-compose --profile game up` (NO uses el flag `-d`)
-- Los flags `stdin_open` y `tty` en el docker-compose.yml son necesarios para la interacción
-
-### Cambios en el código no se reflejan
-- Los cambios se reflejan automáticamente gracias al volumen montado
-- Si aún no se reflejan, reconstruye: `docker-compose build`
-
-## Limpieza
-
-Para eliminar contenedores, imágenes y volúmenes:
-
+- El siguiente comando descubrirá y ejecutará automáticamente todos los archivos de prueba (Test_*.py) dentro del directorio Backgammon/Tests/.
 ```bash
-docker-compose down --rmi all --volumes
+python3 -m unittest discover -s Backgammon/Tests -p "Test_*.py"
 ```
+
+### Ejecutar un archivo de test específico
+
+- Si quieres ejecutar un solo archivo de prueba (por ejemplo, Backgammon/Tests/Test_Board.py cambia "Board" por el nombre del archivo que quieras testear): 
+```bash
+# Ejemplo para ejecutar: Backgammon/Tests/Test_Board.py
+python3 -m unittest Backgammon/Tests/Test_Board.py
+```
+
+---
+
+## Notas Adicionales
+
+- Todos los comandos se ejecutan desde la raíz del proyecto. (Yo personalmente tengo un directorio "Backgammon" con toda la logica, por eso lo especifico al inicio de la ruta) 
+- Asegúrate de mantener actualizado el archivo Backgammon/requirements.txt con todas las dependencias necesarias.
+- Para desactivar el entorno virtual cuando termines, simplemente ejecuta: `deactivate`
+- Los reportes de cobertura y pylint se pueden generar ejecutando el script generate_reports.py (Necesarios para un desarrollador)
+

@@ -728,6 +728,35 @@ class Board:
             dict: Diccionario {color: cantidad} de fichas en la casa.
         """
         return self.__casa__
+    
+
+    def obtener_estado_dict(self) -> dict:
+        """
+        Exporta el estado actual del tablero a un diccionario serializable (JSON).
+        SRP: Única responsabilidad de empaquetar el estado interno.
+        """
+        return {
+            "puntos": self.__puntos__,
+            "barra": self.__barra__,
+            "casa": self.__casa__
+        }
+
+    def cargar_estado_dict(self, estado: dict) -> None:
+        """
+        Carga el estado del tablero desde un diccionario (JSON).
+        SRP: Única responsabilidad de desempaquetar y aplicar estado.
+        """
+        try:
+            # Usamos .get() para cargar de forma segura,
+            # proveyendo valores por defecto si la clave no existe
+            self.__puntos__ = estado.get("puntos", [None] * 24)
+            self.__barra__ = estado.get("barra", {})
+            self.__casa__ = estado.get("casa", {})
+        except Exception as e:
+            print(f"Error grave al cargar estado del tablero: {e}")
+            # Si el estado está muy corrupto, restaurar al inicio
+            self.inicializar_posiciones_estandar()
+
 
     def __str__(self) -> str:
         """

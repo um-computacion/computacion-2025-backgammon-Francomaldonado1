@@ -367,23 +367,39 @@ Se actualiza prompts-testing.md con los prompts y las indicaciones que se utiliz
 - Se actualiza prompts-testing.md con los prompts y las indicaciones que se utilizaron para correguir tests que fallaban.
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para correguir esta logica de bearing off.
 
-[0.0.45] 27/10/2025
+# [0.0.45] 27/10/2025
 ### ADDED
 - Se agrega carpeta assets con archivos images y sounds. (Vacios por ahora) 
 
 ### CHANGED
 - Se actualiza prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para agregar la carpeta assets y entender como funciona. 
 
-[0.0.46] 28/10/2025
+# [0.0.46] 28/10/2025
 ### ADDED
 - Se agregan las imagenes de los diagramas UML (Uno general y otro de la estructura de PygameUI) al archivo images de assets.
 
 ### CHANGED
 - Se actualiza el archivo de justificacion.md con la explicación e implementación de los diagramas UML.
 
-[0.0.47] 29/10/2025
+# [0.0.47] 29/10/2025
 ### ADDED
 - Se agregan distintos sonidos (Dice roll, Move piece, Capture, Win game, Error, Bearing off) al directorio assets/sounds.
 
 ### CHANGED
 - Se actualiza el codigo de PygameUI.py para que cargue los sonidos y los use en la interfaz grafica.
+
+# [0.0.48] 31/10/2025
+### ADDED
+- Se agrega carpeta Persistance (infraestructura) con archivos RedisManager.py y __init__.py. 
+- Se agrega configuración de Redis en el archivo RedisManager.py.
+- Se agregan metodos obtener_estado_dict y cargar_estado_dict en Board.py para serializar y deserializar el estado del tablero.
+- Se agregan metodos __save_game y __load_game en PygameUI.py para guardar y cargar partidas con Redis. 
+- Se agrega load_status_dict a BarManager y HomeManager para poder cargar estados desde un diccionario.
+- Se agregan tests para la lógica de RedisManager en Test_RedisManager.py.
+
+### CHANGED
+- Se mueve de lugar clase de PygameUI.py arriba para que se note que es la clase principal de la interfaz gráfica.
+- Se modifica __handle_events en PygameUI.py para reconozca teclas G y L para guardar y cargar partidas.
+- Se modifica README.md con una explicación de como ejecutar el proyecto y sus tests y borramos logica anterior de ejecución con Docker (ya que no es necesario).
+- Se modifica prompts-documentación.md con los prompts y las indicaciones que se utilizaron para modificar el archivo README.md.
+- Se modifica prompts-desarrollo.md con los prompts y las indicaciones que se utilizaron para agregar la lógica de RedisManager en todos los archivos correspondientes.
