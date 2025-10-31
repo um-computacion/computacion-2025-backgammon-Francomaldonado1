@@ -8,775 +8,8 @@ import time
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from Backgammon.Core.Board import Board  # pylint: disable=wrong-import-position
 from Backgammon.Core.Dice import Dice  # pylint: disable=wrong-import-position
+from Backgammon.Persistence.RedisManager import RedisManager
 
-
-class DiceMovesCalculator:
-    """Calcula movimientos disponibles basados en los dados.
-      Rol: 
-      - Componente de cálculo puro que transforma tiradas de dados en movimientos.
-    
-    Principios SOLID:
-        - SRP: Cada método tiene una única responsabilidad de cálculo específica.
-        - OCP: Puede extenderse con nuevas reglas de dados sin modificar las existentes.
-        - ISP: Interfaz mínima con dos métodos públicos específicos."""
-
-    @staticmethod
-    def calculate_available_moves(dice_roll1: int, dice_roll2: int) -> List[int]:
-        """
-        Calcula los movimientos disponibles.
-        SRP: Su única responsabilidad es calcular los movimientos.
-        OCP: La lógica puede extenderse sin modificar el método.
-        """
-        if dice_roll1 == dice_roll2:
-            return [dice_roll1] * 4
-        return [dice_roll1, dice_roll2]
-
-    @staticmethod
-    def is_doubles_roll(dice_roll1: int, dice_roll2: int) -> bool:
-        """
-        Determina si la tirada es dobles.
-        SRP: Su única responsabilidad es verificar si la tirada es doble.
-        ISP: Método mínimo y específico.
-        """
-        return dice_roll1 == dice_roll2
-
-class GameStateManager:
-    """Gestiona los estados del juego.
-    Rol:
-        - Componente de control de flujo que valida transiciones de estado.
-    
-    Principios SOLID:
-        - SRP: Solo gestiona estados, no implementa lógica asociada a cada estado.
-        - OCP: Nuevos estados pueden agregarse sin modificar la lógica existente.
-        - DIP: Los clientes dependen de métodos públicos, no de implementación interna."""
-
-    def __init__(self):
-        """
-        Inicializa el gestor de estados del juego.
-        SRP: Inicializa el estado del juego.
-        OCP: Estados válidos pueden modificarse sin cambiar métodos.
-        """
-        self.current_state = 'START_ROLL'
-        self.valid_states = {'START_ROLL', 'AWAITING_ROLL', 'AWAITING_PIECE_SELECTION', 'AWAITING_SKIP_CONFIRMATION'}
-
-    def change_state(self, new_state: str) -> None:
-        """
-        Cambia el estado del juego con validación.
-        SRP: Cambia el estado del juego.
-        OCP: Se pueden añadir más estados sin modificar la lógica existente.
-        """
-        if new_state in self.valid_states:
-            self.current_state = new_state
-        else:
-            raise ValueError(f"Estado inválido: {new_state}")
-
-    def get_current_state(self) -> str:
-        """
-        Obtiene el estado actual.
-        SRP: Su única responsabilidad es devolver el estado actual.
-        ISP: Método mínimo de consulta.
-        """
-        return self.current_state
-
-
-class MessageManager:
-    """
-    Genera mensajes apropiados para el estado del juego.
-    
-    Rol:
-        - Componente de presentación que centraliza la generación de mensajes.
-    
-    Principios SOLID:
-        - SRP: Centraliza la creación de todos los mensajes de la UI.
-        - OCP: Nuevos mensajes pueden agregarse sin modificar existentes.
-        - ISP: Cada método genera un tipo específico de mensaje.
-    """
-
-    @staticmethod
-    def get_start_message() -> str:
-        """
-        Mensaje para el inicio del juego.
-        
-        Principios SOLID:
-            - SRP: Genera únicamente el mensaje de inicio.
-            - ISP: Método específico sin parámetros innecesarios.
-        """
-        return "Presiona 'R' para decidir quién empieza."
-
-    @staticmethod
-    def get_roll_winner_message(winner: str, winner_roll: int, loser_roll: int) -> str:
-        """
-        Mensaje cuando alguien gana la tirada inicial.
-        
-        Principios SOLID:
-            - SRP: Formatea mensaje de ganador de tirada inicial.
-            - ISP: Parámetros mínimos necesarios para el mensaje.
-        """
-        winner_display = winner.capitalize()
-        loser_display = "Blanco" if winner == "negro" else "Negro"
-        return (f"{winner_display} ({winner_roll}) gana a {loser_display} "
-                f"({loser_roll}). Presiona 'R' para tirar tus dados.")
-
-    @staticmethod
-    def get_awaiting_roll_message(current_player: str) -> str:
-        """
-        Mensaje cuando el jugador debe tirar dados.
-        
-        Principios SOLID:
-            - SRP: Genera mensaje específico para espera de tirada.
-            - ISP: Interfaz mínima con un solo parámetro.
-        """
-        return f"Turno de {current_player}. Presiona 'R' para tirar los dados."
-
-    @staticmethod
-    def get_doubles_roll_message(current_player: str, dice_value: int,
-                                available_moves: List[int]) -> str:
-        """
-        Mensaje cuando se sacan dobles.
-        
-        Principios SOLID:
-            - SRP: Formatea mensaje específico para tirada de dobles.
-            - ISP: Parámetros específicos del contexto de dobles.
-        """
-        moves_count = len(available_moves)
-        return f"{current_player.capitalize()} sacó dobles de {dice_value}! Tienes {moves_count} movimientos de {dice_value}. Elige ficha."
-
-    @staticmethod
-    def get_normal_roll_message(current_player: str, available_moves: List[int]) -> str:
-        """
-        Mensaje para tirada normal.
-        
-        Principios SOLID:
-            - SRP: Genera mensaje para tirada normal (no dobles).
-            - ISP: Interfaz específica para contexto normal.
-        """
-        dice_str = ', '.join(map(str, available_moves))
-        return f"Turno de {current_player}. Dados: [{dice_str}]. Elige una ficha para mover."
-
-    @staticmethod
-    def get_piece_selected_message(point: int, available_moves: List[int]) -> str:
-        """
-        Mensaje cuando se selecciona una ficha.
-        
-        Principios SOLID:
-            - SRP: Formatea mensaje de selección de pieza.
-            - ISP: Parámetros mínimos para el contexto.
-        """
-        dice_str = ', '.join(map(str, available_moves))
-        return f"Ficha en punto {point} seleccionada. Dados disponibles: [{dice_str}]. Elige destino."
-
-    @staticmethod
-    def get_move_completed_message(remaining_moves: int, available_moves: List[int]) -> str:
-        """
-        Mensaje cuando se completa un movimiento.
-        
-        Principios SOLID:
-            - SRP: Genera mensaje post-movimiento con estado actualizado.
-            - OCP: Maneja caso de turno completo sin modificar lógica base.
-        """
-        if remaining_moves == 0:
-            return "Turno completado."
-        dice_str = ', '.join(map(str, available_moves))
-        return f"Movimiento realizado. Te quedan {remaining_moves} dados: [{dice_str}]. Elige ficha."
-
-    @staticmethod
-    def get_invalid_piece_message(point: int) -> str:
-        """
-        Mensaje cuando se selecciona una ficha inválida.
-        
-        Principios SOLID:
-            - SRP: Formatea error específico de selección inválida.
-            - ISP: Parámetro mínimo necesario.
-        """
-        return f"No tienes fichas en el punto {point}. Elige una válida."
-
-    @staticmethod
-    def get_invalid_move_message() -> str:
-        """
-        Mensaje para movimiento inválido.
-        
-        Principios SOLID:
-            - SRP: Mensaje genérico de error de movimiento.
-            - ISP: Sin parámetros, mensaje fijo.
-        """
-        return "Movimiento inválido. Vuelve a elegir una ficha."
-
-    @staticmethod
-    def get_invalid_direction_message() -> str:
-        """
-        Mensaje para dirección incorrecta.
-        
-        Principios SOLID:
-            - SRP: Error específico de dirección.
-            - ISP: Mensaje fijo sin parámetros.
-        """
-        return "Movimiento inválido (dirección incorrecta)."
-
-    @staticmethod
-    def get_dice_not_available_message(dice_needed: int, available_moves: List[int]) -> str:
-        """
-        Mensaje cuando no se tiene el dado necesario.
-        
-        Principios SOLID:
-            - SRP: Formatea error de dado no disponible.
-            - ISP: Parámetros específicos para este error.
-        """
-        return f"No tienes el dado {dice_needed} disponible. Dados: {available_moves}."
-
-    @staticmethod
-    def get_blocked_move_message(origin: int, destination: int) -> str:
-        """
-        Mensaje para movimiento bloqueado.
-        
-        Principios SOLID:
-            - SRP: Error específico de bloqueo.
-            - ISP: Parámetros mínimos (origen y destino).
-        """
-        return f"Movimiento de {origin} a {destination} bloqueado o inválido."
-    
-    @staticmethod
-    def get_no_moves_available_message(player: str, reason: str) -> str:
-        """
-        Mensaje cuando no hay movimientos disponibles.
-        
-        Principios SOLID:
-            - SRP: Formatea mensaje de sin movimientos con razón.
-            - ISP: Parámetros específicos del contexto.
-        """
-        return f"¡{player.capitalize()} no puede mover! {reason} Presiona 'R' para continuar."
-    
-    @staticmethod
-    def get_bearing_off_available_message(player: str, home_count: int) -> str:
-        """
-        Mensaje cuando puede hacer bearing off.
-        
-        Principios SOLID:
-            - SRP: Mensaje específico de disponibilidad de bearing off.
-            - ISP: Parámetros necesarios para el contexto.
-        """
-        return f"{player.capitalize()}: Puedes sacar fichas ({home_count}/15). Click fuera del tablero."
-
-    @staticmethod
-    def get_cannot_bear_off_message() -> str:
-        """
-        Mensaje cuando intenta bearing off pero no puede.
-        
-        Principios SOLID:
-            - SRP: Error específico de bearing off no permitido.
-            - ISP: Mensaje fijo, sin parámetros.
-        """
-        return "No puedes sacar. Tienes fichas fuera del cuadrante casa."
-
-    @staticmethod
-    def get_bearing_off_success_message(player: str, home_count: int, remaining_moves: int) -> str:
-        """
-        Mensaje cuando saca una ficha exitosamente.
-        
-        Principios SOLID:
-            - SRP: Formatea éxito de bearing off con estado.
-            - OCP: Maneja caso de turno completo sin modificar base.
-        """
-        if remaining_moves > 0:
-            return f"¡Ficha sacada! ({home_count}/15) Te quedan {remaining_moves} dados."
-        return f"Ficha sacada ({home_count}/15). Turno completado."
-
-    @staticmethod
-    def get_victory_message(player: str) -> str:
-        """
-        Mensaje de victoria.
-        
-        Principios SOLID:
-            - SRP: Genera únicamente mensaje de victoria.
-            - ISP: Parámetro mínimo (jugador ganador).
-        """
-        return f"🎉 ¡{player.upper()} GANA EL JUEGO! 🎉"
-
-class MovementValidator:
-    """
-    Valida si un jugador tiene movimientos disponibles.
-    
-    Rol:
-        - Componente de validación que verifica disponibilidad de movimientos.
-    
-    Principios SOLID:
-        - SRP: Orquesta validaciones pero delega lógica específica.
-        - DIP: Recibe Board y BarManager por inyección, no crea instancias.
-        - ISP: Interfaz pública mínima con métodos específicos.
-    """
-
-    def __init__(self, board, bar_manager):
-        """
-        Inicializa el validador con sus dependencias.
-        
-        Principios SOLID:
-            - DIP: Recibe las dependencias (Board, BarManager) por inyección.
-            - SRP: Solo inicializa referencias, no implementa lógica.
-        """
-        self.board = board
-        self.bar_manager = bar_manager
-
-    def has_any_valid_move(self, player: str, available_moves: list) -> bool:
-        """
-        Verifica si el jugador tiene algún movimiento válido disponible.
-        
-        Principios SOLID:
-            - SRP: Su responsabilidad es orquestar las validaciones para un movimiento estándar.
-            - DIP: Depende de abstracciones de reglas (Board, BarManager), no de su implementación.
-            - ISP: Llama solo a métodos necesarios de cada dependencia.
-        """
-        # Primero verificar si debe mover desde la barra
-        if self.bar_manager.has_pieces_on_bar(player):
-            return self._can_enter_from_bar(player, available_moves)
-        
-        # Si no hay fichas en la barra, verificar movimientos desde el tablero
-        return self._can_move_from_board(player, available_moves)
-    
-
-    def _can_enter_from_bar(self, player: str, available_moves: list) -> bool:
-        """
-        Verifica si el jugador puede entrar desde la barra con alguno de los dados.
-        
-        Principios SOLID:
-            - SRP: Valida únicamente entrada desde barra.
-            - DIP: Usa Board para verificar estado sin conocer implementación.
-        """
-        for dice_value in set(available_moves):  # usar set para evitar repetidos
-            entry_point = self._get_entry_point(player, dice_value)
-            destination_state = self.board.obtener_estado_punto(entry_point)
-            
-            # Puede entrar si está vacío, tiene fichas propias, o tiene solo 1 ficha enemiga
-            if destination_state is None:
-                return True
-            
-            dest_color, dest_count = destination_state
-            if dest_color == player or dest_count == 1:
-                return True
-        
-        return False
-
-    def _can_move_from_board(self, player: str, available_moves: list) -> bool:
-        """
-        Verifica si el jugador puede mover alguna ficha del tablero.
-        
-        Principios SOLID:
-            - SRP: Valida únicamente movimientos desde tablero.
-            - DIP: Usa Board para obtener estado sin implementación interna.
-        """
-        for point_num in range(1, 25):
-            point_state = self.board.obtener_estado_punto(point_num)
-            
-            # Si el punto tiene fichas del jugador actual
-            if point_state and point_state[0] == player:
-                # Verificar si puede mover con alguno de los dados disponibles
-                for dice_value in set(available_moves):
-                    destination = self._calculate_destination(player, point_num, dice_value)
-                    
-                    # Verificar que el destino sea válido
-                    if 1 <= destination <= 24:
-                        if self._is_move_possible(destination, player):
-                            return True
-        
-        return False
-
-    def _is_move_possible(self, destination: int, player: str) -> bool:
-        """
-        Verifica si un destino específico es accesible para el jugador.
-        
-        Principios SOLID:
-            - SRP: Valida únicamente accesibilidad de destino.
-            - ISP: Método privado específico, no expuesto públicamente.
-        """
-        destination_state = self.board.obtener_estado_punto(destination)
-        
-        if destination_state is None:
-            return True
-        
-        dest_color, dest_count = destination_state
-        
-        # Accesible si: tiene fichas propias, o tiene solo 1 ficha enemiga (captura)
-        return dest_color == player or dest_count == 1
-
-    def _calculate_destination(self, player: str, origin: int, dice_value: int) -> int:
-        """
-        Calcula el punto de destino basado en el origen y el valor del dado.
-        
-        Principios SOLID:
-            - SRP: Cálculo puro de destino sin validación.
-            - ISP: Método privado específico.
-        """
-        if player == "negro":
-            return origin + dice_value
-        else:
-            return origin - dice_value
-
-    def _get_entry_point(self, player: str, dice_value: int) -> int:
-        """
-        Calcula el punto de entrada desde la barra.
-        
-        Principios SOLID:
-            - SRP: Cálculo específico de entrada desde barra.
-            - ISP: Método privado enfocado.
-        """
-        if player == "negro":
-            return dice_value
-        else:
-            return 25 - dice_value
-
-    def get_blocked_reason(self, player: str, available_moves: list) -> str:
-        """
-        Obtiene una descripción del por qué el jugador no puede mover.
-        
-        Principios SOLID:
-            - SRP: Genera descripción de bloqueo sin modificar estado.
-            - ISP: Método público específico para obtener razón.
-        """
-        if self.bar_manager.has_pieces_on_bar(player):
-            return ("No puedes entrar desde la barra. Todos los puntos de entrada "
-                   "están bloqueados por el oponente.")
-        else:
-            return ("No tienes movimientos válidos. Todas tus fichas están bloqueadas "
-                   "por el oponente.")
-
-
-class BarManager:
-    """
-    Gestiona la lógica de la barra central.
-    
-    Rol:
-        - Componente de estado que mantiene fichas capturadas.
-    
-    Principios SOLID:
-        - SRP: Solo gestiona estado de la barra, no reglas de movimiento.
-        - OCP: Operaciones nuevas pueden agregarse sin modificar existentes.
-        - Encapsulamiento: Protege estado interno mediante atributo privado.
-    """
-
-    def __init__(self):
-        """
-        Inicializa el gestor de barra.
-        
-        Principios SOLID:
-            - SRP: Solo inicializa el estado de la barra.
-            - Encapsulamiento: Usa atributo privado para proteger estado.
-        """
-        self.__bar_pieces__ = {"negro": 0, "blanco": 0}
-
-    def add_piece_to_bar(self, color: str) -> None:
-        """
-        Agrega una ficha a la barra.
-        
-        Principios SOLID:
-            - SRP: Única operación de agregar con validación.
-            - ISP: Método específico para agregar.
-        """
-        if color in self.__bar_pieces__:
-            self.__bar_pieces__[color] += 1
-        else:
-            raise ValueError(f"Color inválido: {color}")
-
-    def remove_piece_from_bar(self, color: str) -> bool:
-        """
-        Remueve una ficha de la barra.
-        
-        Principios SOLID:
-            - SRP: Única operación de remover con validación.
-            - ISP: Método específico para remover.
-        """
-        if color in self.__bar_pieces__ and self.__bar_pieces__[color] > 0:
-            self.__bar_pieces__[color] -= 1
-            return True
-        return False
-
-    def get_pieces_count(self, color: str) -> int:
-        """
-        Obtiene el número de fichas en la barra.
-        
-        Principios SOLID:
-            - SRP: Consulta pura sin modificar estado.
-            - ISP: Método mínimo de consulta.
-        """
-        return self.__bar_pieces__.get(color, 0)
-
-    def has_pieces_on_bar(self, color: str) -> bool:
-        """
-        Verifica si un jugador tiene fichas en la barra.
-        
-        Principios SOLID:
-            - SRP: Verificación específica de existencia.
-            - ISP: Método booleano específico.
-        """
-        return self.get_pieces_count(color) > 0
-
-    def get_bar_state(self) -> dict:
-        """
-        Obtiene el estado completo de la barra.
-        
-        Principios SOLID:
-            - SRP: Consulta de estado completo.
-            - Encapsulamiento: Retorna copia, no referencia interna.
-        """
-        return self.__bar_pieces__.copy()
-
-
-class CaptureValidator:
-    """
-    Valida y determina capturas.
-    
-    Rol:
-        - Componente de validación de reglas de captura.
-    
-    Principios SOLID:
-        - SRP: Métodos estáticos que validan condiciones específicas.
-        - ISP: Interfaz mínima con dos métodos especializados.
-        - OCP: Nuevas reglas pueden agregarse sin modificar existentes.
-    """
-
-    @staticmethod
-    def can_capture_piece(destination_state: tuple, attacking_color: str) -> bool:
-        """
-        Determina si se puede capturar una ficha.
-        
-        Principios SOLID:
-            - SRP: Validación pura de condición de captura.
-            - ISP: Método específico sin efectos secundarios.
-        """
-        if destination_state is None:
-            return False
-        destination_color, destination_count = destination_state
-        return destination_color != attacking_color and destination_count == 1
-
-    @staticmethod
-    def is_move_blocked(destination_state: tuple, attacking_color: str) -> bool:
-        """
-        Determina si un movimiento está bloqueado.
-        
-        Principios SOLID:
-            - SRP: Validación específica de bloqueo.
-            - ISP: Método específico complementario a can_capture_piece.
-        """
-        if destination_state is None:
-            return False
-        destination_color, destination_count = destination_state
-        return destination_color != attacking_color and destination_count > 1
-
-
-class BarMovementRules:
-    """Define las reglas para movimientos desde la barra."""
-
-    @staticmethod
-    def get_entry_point(color: str, dice_value: int) -> int:
-        """Calcula el punto de entrada desde la barra."""
-        if color == "negro":
-            return dice_value
-        return 25 - dice_value
-
-    @staticmethod
-    def must_enter_from_bar_first(bar_manager: 'BarManager', color: str) -> bool:
-        """Determina si el jugador debe mover desde la barra."""
-        return bar_manager.has_pieces_on_bar(color)
-    
-class BearingOffValidator:
-    """
-    Valida y gestiona las reglas de bearing off (sacar fichas a casa).
-    
-    Rol:
-        - Componente especializado en validación de reglas de bearing off.
-    
-    Principios SOLID:
-        - SRP: Cada método valida un aspecto específico de bearing off.
-        - DIP: Depende de Board mediante inyección, no crea instancias.
-        - ISP: Métodos específicos para cada tipo de validación.
-    """
-
-    def __init__(self, board):
-        """
-        Inicializa el validador con su dependencia.
-        
-        Principios SOLID:
-            - DIP: Recibe Board por inyección.
-            - SRP: Solo inicializa referencia.
-        """
-        self.board = board
-
-    def can_bear_off(self, player: str) -> bool:
-        """
-        Verifica si un jugador puede empezar a sacar fichas.
-        Solo puede hacerlo si todas sus fichas están en su cuadrante casa.
-        
-        Principios SOLID:
-            - SRP: Valida únicamente condición de bearing off permitido.
-            - DIP: Usa Board sin conocer implementación interna.
-            - ISP: Método específico que retorna booleano.
-        """
-        if player == "negro":
-            home_quadrant = range(19, 25)  # 19-24 (último cuadrante)
-            other_points = range(1, 19)
-        else:  # blanco
-            home_quadrant = range(1, 7)  # 1-6 (último cuadrante)
-            other_points = range(7, 25)
-
-        for point in other_points:
-            state = self.board.obtener_estado_punto(point)
-            if state and state[0] == player:
-                return False
-        return True
-
-    def is_bearing_off_move(self, player: str, origin: int, destination: int) -> bool:
-        """
-        Determina si un movimiento es un intento de bearing off.
-        
-        Principios SOLID:
-            - SRP: Verifica únicamente si es intento de bearing off.
-            - ISP: Método específico sin efectos secundarios.
-        """
-        if player == "negro":
-            return destination > 24
-        else:  # blanco
-            return destination < 1
-
-    def validate_bearing_off_move(self, player: str, origin: int, 
-                                  dice_value: int) -> tuple[bool, str]:
-        """
-        Valida un movimiento de bearing off según las reglas.
-        
-        Reglas:
-        1. El jugador debe tener todas sus fichas en el cuadrante casa
-        2. El dado debe coincidir exactamente con la posición de la ficha
-        3. Si el dado es mayor y no hay fichas en posiciones superiores, es válido
-        
-        Principios SOLID:
-            - SRP: Valida reglas complejas de bearing off en un solo lugar.
-            - ISP: Retorna tupla específica (validez, mensaje).
-            - OCP: Reglas pueden extenderse sin modificar estructura.
-        """
-        # 1. Verificar que puede hacer bearing off
-        if not self.can_bear_off(player):
-            return False, "No puedes sacar fichas. Tienes fichas fuera del cuadrante casa."
-
-        # 2. Verificar que la ficha está en el cuadrante casa
-        if player == "negro":
-            home_quadrant = range(19, 25)
-            position = 25 - origin  # Distancia a la salida
-        else:
-            home_quadrant = range(1, 7)
-            position = origin  # Distancia a la salida
-
-        if origin not in home_quadrant:
-            return False, "La ficha no está en tu cuadrante casa."
-
-        # 3. Verificar reglas del dado
-        if dice_value == position:
-            # Dado exacto - siempre válido
-            return True, ""
-        elif dice_value > position:
-            # Dado mayor - solo válido si no hay fichas en posiciones superiores
-            if not self._has_pieces_in_higher_positions(player, origin):
-                return True, ""
-            else:
-                return False, f"Necesitas dado {position} o mover fichas superiores primero."
-        else:
-            # Dado menor - nunca válido para bearing off
-            return False, f"Necesitas al menos dado {position} para sacar esta ficha."
-
-    def _has_pieces_in_higher_positions(self, player: str, origin: int) -> bool:
-        """
-        Verifica si hay fichas en posiciones más altas que el origen.
-        
-        Principios SOLID:
-            - SRP: Verificación específica de posiciones superiores.
-            - ISP: Método privado enfocado.
-        """
-        if player == "negro":
-            # Negro (19-24): más alejado = menor número
-            higher_points = range(19, origin)
-        else:
-            # Blanco (1-6): más alejado = mayor número
-            higher_points = range(origin + 1, 7)
-
-        for point in higher_points:
-            state = self.board.obtener_estado_punto(point)
-            if state and state[0] == player:
-                return True
-
-        return False
-
-    def get_bearing_off_destination(self, player: str) -> int:
-        """
-        Obtiene el punto de destino ficticio para bearing off.
-        Usado para calcular movimientos fuera del tablero.
-        
-        Principios SOLID:
-            - SRP: Cálculo específico de destino ficticio.
-            - ISP: Método específico sin efectos secundarios.
-        """
-        return 25 if player == "negro" else 0
-
-class HomeManager:
-    """
-    Gestiona las fichas que han salido del tablero (en casa).
-    
-    Rol:
-        - Componente de estado que mantiene conteo de fichas en casa.
-    
-    Principios SOLID:
-        - SRP: Solo gestiona conteo de fichas en casa, no implementa bearing off.
-        - OCP: Operaciones nuevas pueden agregarse sin modificar existentes.
-        - Encapsulamiento: Protege estado interno mediante atributo privado.
-    """
-
-    def __init__(self):
-        """
-        Inicializa el gestor de casa.
-        
-        Principios SOLID:
-            - SRP: Solo inicializa el estado de casa.
-            - Encapsulamiento: Usa atributo privado.
-        """
-        self.__home_pieces__ = {"negro": 0, "blanco": 0}
-
-    def add_piece_to_home(self, color: str) -> None:
-        """
-        Agrega una ficha a casa.
-        
-        Principios SOLID:
-            - SRP: Única operación de agregar con validación.
-            - ISP: Método específico para agregar.
-        """
-        if color in self.__home_pieces__:
-            self.__home_pieces__[color] += 1
-        else:
-            raise ValueError(f"Color inválido: {color}")
-
-    def get_pieces_count(self, color: str) -> int:
-        """
-        Obtiene el número de fichas en casa.
-        
-        Principios SOLID:
-            - SRP: Consulta pura sin modificar estado.
-            - ISP: Método mínimo de consulta.
-        """
-        return self.__home_pieces__.get(color, 0)
-
-    def get_home_state(self) -> dict:
-        """
-        Obtiene el estado completo de casa.
-        
-        Principios SOLID:
-            - SRP: Consulta de estado completo.
-            - Encapsulamiento: Retorna copia, no referencia interna.
-        """
-        return self.__home_pieces__.copy()
-
-    def has_won(self, color: str) -> bool:
-        """
-        Verifica si un jugador ha ganado (15 fichas en casa).
-        
-        Principios SOLID:
-            - SRP: Verifica únicamente condición de victoria.
-            - ISP: Método booleano específico.
-        """
-        return self.__home_pieces__.get(color, 0) == 15
-    
 class PygameUI:
     """
     Interfaz gráfica principal del juego de Backgammon.
@@ -843,6 +76,7 @@ class PygameUI:
         self.__board_width__ = 1500
         self.__board_height__ = 800
         self.__bar_width__ = 80
+        self.__redis_manager__ = RedisManager()
 
         try:
             base_path = os.path.dirname(__file__)
@@ -897,13 +131,28 @@ class PygameUI:
             - ISP: Separa eventos por tipo (teclado, mouse) para interfaces específicas.
         """
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:  # pylint: disable=no-member
+            if event.type == pygame.QUIT:
                 self.__running__ = False
-            elif event.type == pygame.KEYDOWN:  # pylint: disable=no-member
-                if event.key == pygame.K_ESCAPE:  # pylint: disable=no-member
+            
+            # --- MANEJO DE TECLADO ---
+            elif event.type == pygame.KEYDOWN:
+                # Teclas que funcionan en cualquier estado
+                if event.key == pygame.K_ESCAPE:
                     self.__running__ = False
-                if event.key == pygame.K_r:  # pylint: disable=no-member
+                
+                if event.key == pygame.K_g: # Tecla 'G' para Guardar
+                    # print("DEBUG: Tecla 'G' presionada") # <--- Comentado
+                    self.__save_game()
+
+                if event.key == pygame.K_l: # Tecla 'L' para Cargar
+                    # print("DEBUG: Tecla 'L' presionada") # <--- Comentado
+                    self.__load_game()
+
+                # Teclas que dependen del estado del juego
+                if event.key == pygame.K_r:
+                    # print("DEBUG: Tecla 'R' presionada") # <--- Comentado
                     self.__handle_roll_request()
+                    
             elif (event.type == pygame.MOUSEBUTTONDOWN and  # pylint: disable=no-member
                   event.button == 1):
                 if (self.__game_state_manager__.get_current_state() ==
@@ -2002,8 +1251,845 @@ class PygameUI:
                 ficha_y = y - i * (radius * 1.2)
             pygame.draw.circle(self.__screen__, checker_color, (x, int(ficha_y)), radius)
             pygame.draw.circle(self.__screen__, self.__checker_border__, (x, int(ficha_y)), radius, 2)
+    
+    # Metodos para RedisManager
+
+    def __save_game(self, slot_id: str = "partida_guardada_1") -> None:
+        """
+        Recopila el estado del juego y le pide al RedisManager que lo guarde.
+        """
+        # 1. Recopilar el estado (lógica que SÍ pertenece a la UI)
+        estado_board = self.__board__.obtener_estado_dict()
+        estado_ui = {
+            "current_player": self.__current_player__,
+            "dice_rolls": self.__dice_rolls__,
+            "available_moves": self.__available_moves__,
+            "is_doubles_roll": self.__is_doubles_roll__,
+            "selected_point": self.__selected_point__,
+            "game_state": self.__game_state_manager__.get_current_state(),
+            "home_pieces": self.__home_manager__.get_home_state(),
+            "bar_pieces": self.__bar_manager__.get_bar_state()
+        }
+        estado_completo = {
+            "board_state": estado_board,
+            "ui_state": estado_ui
+        }
+
+        # 2. Llamar al manager (actualizado a __redis_manager__)
+        exito, mensaje = self.__redis_manager__.guardar_partida(slot_id, estado_completo)
+        self.__message__ = mensaje # Mostrar el mensaje (éxito o error)
+
+    def __load_game(self, slot_id: str = "partida_guardada_1") -> None:
+        """
+        Pide el estado al RedisManager y lo aplica a la UI.
+        """
+        # 1. Llamar al manager para obtener el estado (actualizado a __redis_manager__)
+        estado_completo, mensaje = self.__redis_manager__.cargar_partida(slot_id)
+        self.__message__ = mensaje # Mostrar el mensaje (éxito o error)
+
+        if not estado_completo:
+            return # No se pudo cargar, no hacer nada más
+
+        # 2. Aplicar el estado (lógica que SÍ pertenece a la UI)
+        try:
+            # Cargar estado en el Board
+            self.__board__.cargar_estado_dict(estado_completo.get("board_state", {}))
+            
+            # Cargar estado en la UI
+            ui_state = estado_completo.get("ui_state", {})
+            self.__current_player__ = ui_state.get("current_player", "negro")
+            self.__dice_rolls__ = ui_state.get("dice_rolls", [])
+            self.__available_moves__ = ui_state.get("available_moves", [])
+            self.__is_doubles_roll__ = ui_state.get("is_doubles_roll", False)
+            self.__selected_point__ = ui_state.get("selected_point", None)
+            
+            # Cargar estado de los managers (accediendo a sus atributos internos)
+            self.__home_manager__.load_status_dict(ui_state.get("home_pieces", {}))
+            self.__bar_manager__.load_status_dict(ui_state.get("bar_pieces", {}))
+            
+            # Restaurar el estado del juego
+            game_state = ui_state.get("game_state", "AWAITING_ROLL")
+            self.__game_state_manager__.change_state(game_state)
+            
+            self.__draw() # Forzar redibujado
+        
+        except Exception as e:
+            self.__message__ = f"Error al aplicar estado cargado: {e}"
+
+class DiceMovesCalculator:
+    """Calcula movimientos disponibles basados en los dados.
+      Rol: 
+      - Componente de cálculo puro que transforma tiradas de dados en movimientos.
+    
+    Principios SOLID:
+        - SRP: Cada método tiene una única responsabilidad de cálculo específica.
+        - OCP: Puede extenderse con nuevas reglas de dados sin modificar las existentes.
+        - ISP: Interfaz mínima con dos métodos públicos específicos."""
+
+    @staticmethod
+    def calculate_available_moves(dice_roll1: int, dice_roll2: int) -> List[int]:
+        """
+        Calcula los movimientos disponibles.
+        SRP: Su única responsabilidad es calcular los movimientos.
+        OCP: La lógica puede extenderse sin modificar el método.
+        """
+        if dice_roll1 == dice_roll2:
+            return [dice_roll1] * 4
+        return [dice_roll1, dice_roll2]
+
+    @staticmethod
+    def is_doubles_roll(dice_roll1: int, dice_roll2: int) -> bool:
+        """
+        Determina si la tirada es dobles.
+        SRP: Su única responsabilidad es verificar si la tirada es doble.
+        ISP: Método mínimo y específico.
+        """
+        return dice_roll1 == dice_roll2
+
+class GameStateManager:
+    """Gestiona los estados del juego.
+    Rol:
+        - Componente de control de flujo que valida transiciones de estado.
+    
+    Principios SOLID:
+        - SRP: Solo gestiona estados, no implementa lógica asociada a cada estado.
+        - OCP: Nuevos estados pueden agregarse sin modificar la lógica existente.
+        - DIP: Los clientes dependen de métodos públicos, no de implementación interna."""
+
+    def __init__(self):
+        """
+        Inicializa el gestor de estados del juego.
+        SRP: Inicializa el estado del juego.
+        OCP: Estados válidos pueden modificarse sin cambiar métodos.
+        """
+        self.current_state = 'START_ROLL'
+        self.valid_states = {'START_ROLL', 'AWAITING_ROLL', 'AWAITING_PIECE_SELECTION', 'AWAITING_SKIP_CONFIRMATION'}
+
+    def change_state(self, new_state: str) -> None:
+        """
+        Cambia el estado del juego con validación.
+        SRP: Cambia el estado del juego.
+        OCP: Se pueden añadir más estados sin modificar la lógica existente.
+        """
+        if new_state in self.valid_states:
+            self.current_state = new_state
+        else:
+            raise ValueError(f"Estado inválido: {new_state}")
+
+    def get_current_state(self) -> str:
+        """
+        Obtiene el estado actual.
+        SRP: Su única responsabilidad es devolver el estado actual.
+        ISP: Método mínimo de consulta.
+        """
+        return self.current_state
 
 
+class MessageManager:
+    """
+    Genera mensajes apropiados para el estado del juego.
+    
+    Rol:
+        - Componente de presentación que centraliza la generación de mensajes.
+    
+    Principios SOLID:
+        - SRP: Centraliza la creación de todos los mensajes de la UI.
+        - OCP: Nuevos mensajes pueden agregarse sin modificar existentes.
+        - ISP: Cada método genera un tipo específico de mensaje.
+    """
+
+    @staticmethod
+    def get_start_message() -> str:
+        """
+        Mensaje para el inicio del juego.
+        
+        Principios SOLID:
+            - SRP: Genera únicamente el mensaje de inicio.
+            - ISP: Método específico sin parámetros innecesarios.
+        """
+        return "Presiona 'R' para decidir quién empieza."
+
+    @staticmethod
+    def get_roll_winner_message(winner: str, winner_roll: int, loser_roll: int) -> str:
+        """
+        Mensaje cuando alguien gana la tirada inicial.
+        
+        Principios SOLID:
+            - SRP: Formatea mensaje de ganador de tirada inicial.
+            - ISP: Parámetros mínimos necesarios para el mensaje.
+        """
+        winner_display = winner.capitalize()
+        loser_display = "Blanco" if winner == "negro" else "Negro"
+        return (f"{winner_display} ({winner_roll}) gana a {loser_display} "
+                f"({loser_roll}). Presiona 'R' para tirar tus dados.")
+
+    @staticmethod
+    def get_awaiting_roll_message(current_player: str) -> str:
+        """
+        Mensaje cuando el jugador debe tirar dados.
+        
+        Principios SOLID:
+            - SRP: Genera mensaje específico para espera de tirada.
+            - ISP: Interfaz mínima con un solo parámetro.
+        """
+        return f"Turno de {current_player}. Presiona 'R' para tirar los dados."
+
+    @staticmethod
+    def get_doubles_roll_message(current_player: str, dice_value: int,
+                                available_moves: List[int]) -> str:
+        """
+        Mensaje cuando se sacan dobles.
+        
+        Principios SOLID:
+            - SRP: Formatea mensaje específico para tirada de dobles.
+            - ISP: Parámetros específicos del contexto de dobles.
+        """
+        moves_count = len(available_moves)
+        return f"{current_player.capitalize()} sacó dobles de {dice_value}! Tienes {moves_count} movimientos de {dice_value}. Elige ficha."
+
+    @staticmethod
+    def get_normal_roll_message(current_player: str, available_moves: List[int]) -> str:
+        """
+        Mensaje para tirada normal.
+        
+        Principios SOLID:
+            - SRP: Genera mensaje para tirada normal (no dobles).
+            - ISP: Interfaz específica para contexto normal.
+        """
+        dice_str = ', '.join(map(str, available_moves))
+        return f"Turno de {current_player}. Dados: [{dice_str}]. Elige una ficha para mover."
+
+    @staticmethod
+    def get_piece_selected_message(point: int, available_moves: List[int]) -> str:
+        """
+        Mensaje cuando se selecciona una ficha.
+        
+        Principios SOLID:
+            - SRP: Formatea mensaje de selección de pieza.
+            - ISP: Parámetros mínimos para el contexto.
+        """
+        dice_str = ', '.join(map(str, available_moves))
+        return f"Ficha en punto {point} seleccionada. Dados disponibles: [{dice_str}]. Elige destino."
+
+    @staticmethod
+    def get_move_completed_message(remaining_moves: int, available_moves: List[int]) -> str:
+        """
+        Mensaje cuando se completa un movimiento.
+        
+        Principios SOLID:
+            - SRP: Genera mensaje post-movimiento con estado actualizado.
+            - OCP: Maneja caso de turno completo sin modificar lógica base.
+        """
+        if remaining_moves == 0:
+            return "Turno completado."
+        dice_str = ', '.join(map(str, available_moves))
+        return f"Movimiento realizado. Te quedan {remaining_moves} dados: [{dice_str}]. Elige ficha."
+
+    @staticmethod
+    def get_invalid_piece_message(point: int) -> str:
+        """
+        Mensaje cuando se selecciona una ficha inválida.
+        
+        Principios SOLID:
+            - SRP: Formatea error específico de selección inválida.
+            - ISP: Parámetro mínimo necesario.
+        """
+        return f"No tienes fichas en el punto {point}. Elige una válida."
+
+    @staticmethod
+    def get_invalid_move_message() -> str:
+        """
+        Mensaje para movimiento inválido.
+        
+        Principios SOLID:
+            - SRP: Mensaje genérico de error de movimiento.
+            - ISP: Sin parámetros, mensaje fijo.
+        """
+        return "Movimiento inválido. Vuelve a elegir una ficha."
+
+    @staticmethod
+    def get_invalid_direction_message() -> str:
+        """
+        Mensaje para dirección incorrecta.
+        
+        Principios SOLID:
+            - SRP: Error específico de dirección.
+            - ISP: Mensaje fijo sin parámetros.
+        """
+        return "Movimiento inválido (dirección incorrecta)."
+
+    @staticmethod
+    def get_dice_not_available_message(dice_needed: int, available_moves: List[int]) -> str:
+        """
+        Mensaje cuando no se tiene el dado necesario.
+        
+        Principios SOLID:
+            - SRP: Formatea error de dado no disponible.
+            - ISP: Parámetros específicos para este error.
+        """
+        return f"No tienes el dado {dice_needed} disponible. Dados: {available_moves}."
+
+    @staticmethod
+    def get_blocked_move_message(origin: int, destination: int) -> str:
+        """
+        Mensaje para movimiento bloqueado.
+        
+        Principios SOLID:
+            - SRP: Error específico de bloqueo.
+            - ISP: Parámetros mínimos (origen y destino).
+        """
+        return f"Movimiento de {origin} a {destination} bloqueado o inválido."
+    
+    @staticmethod
+    def get_no_moves_available_message(player: str, reason: str) -> str:
+        """
+        Mensaje cuando no hay movimientos disponibles.
+        
+        Principios SOLID:
+            - SRP: Formatea mensaje de sin movimientos con razón.
+            - ISP: Parámetros específicos del contexto.
+        """
+        return f"¡{player.capitalize()} no puede mover! {reason} Presiona 'R' para continuar."
+    
+    @staticmethod
+    def get_bearing_off_available_message(player: str, home_count: int) -> str:
+        """
+        Mensaje cuando puede hacer bearing off.
+        
+        Principios SOLID:
+            - SRP: Mensaje específico de disponibilidad de bearing off.
+            - ISP: Parámetros necesarios para el contexto.
+        """
+        return f"{player.capitalize()}: Puedes sacar fichas ({home_count}/15). Click fuera del tablero."
+
+    @staticmethod
+    def get_cannot_bear_off_message() -> str:
+        """
+        Mensaje cuando intenta bearing off pero no puede.
+        
+        Principios SOLID:
+            - SRP: Error específico de bearing off no permitido.
+            - ISP: Mensaje fijo, sin parámetros.
+        """
+        return "No puedes sacar. Tienes fichas fuera del cuadrante casa."
+
+    @staticmethod
+    def get_bearing_off_success_message(player: str, home_count: int, remaining_moves: int) -> str:
+        """
+        Mensaje cuando saca una ficha exitosamente.
+        
+        Principios SOLID:
+            - SRP: Formatea éxito de bearing off con estado.
+            - OCP: Maneja caso de turno completo sin modificar base.
+        """
+        if remaining_moves > 0:
+            return f"¡Ficha sacada! ({home_count}/15) Te quedan {remaining_moves} dados."
+        return f"Ficha sacada ({home_count}/15). Turno completado."
+
+    @staticmethod
+    def get_victory_message(player: str) -> str:
+        """
+        Mensaje de victoria.
+        
+        Principios SOLID:
+            - SRP: Genera únicamente mensaje de victoria.
+            - ISP: Parámetro mínimo (jugador ganador).
+        """
+        return f"🎉 ¡{player.upper()} GANA EL JUEGO! 🎉"
+
+class MovementValidator:
+    """
+    Valida si un jugador tiene movimientos disponibles.
+    
+    Rol:
+        - Componente de validación que verifica disponibilidad de movimientos.
+    
+    Principios SOLID:
+        - SRP: Orquesta validaciones pero delega lógica específica.
+        - DIP: Recibe Board y BarManager por inyección, no crea instancias.
+        - ISP: Interfaz pública mínima con métodos específicos.
+    """
+
+    def __init__(self, board, bar_manager):
+        """
+        Inicializa el validador con sus dependencias.
+        
+        Principios SOLID:
+            - DIP: Recibe las dependencias (Board, BarManager) por inyección.
+            - SRP: Solo inicializa referencias, no implementa lógica.
+        """
+        self.board = board
+        self.bar_manager = bar_manager
+
+    def has_any_valid_move(self, player: str, available_moves: list) -> bool:
+        """
+        Verifica si el jugador tiene algún movimiento válido disponible.
+        
+        Principios SOLID:
+            - SRP: Su responsabilidad es orquestar las validaciones para un movimiento estándar.
+            - DIP: Depende de abstracciones de reglas (Board, BarManager), no de su implementación.
+            - ISP: Llama solo a métodos necesarios de cada dependencia.
+        """
+        # Primero verificar si debe mover desde la barra
+        if self.bar_manager.has_pieces_on_bar(player):
+            return self._can_enter_from_bar(player, available_moves)
+        
+        # Si no hay fichas en la barra, verificar movimientos desde el tablero
+        return self._can_move_from_board(player, available_moves)
+    
+
+    def _can_enter_from_bar(self, player: str, available_moves: list) -> bool:
+        """
+        Verifica si el jugador puede entrar desde la barra con alguno de los dados.
+        
+        Principios SOLID:
+            - SRP: Valida únicamente entrada desde barra.
+            - DIP: Usa Board para verificar estado sin conocer implementación.
+        """
+        for dice_value in set(available_moves):  # usar set para evitar repetidos
+            entry_point = self._get_entry_point(player, dice_value)
+            destination_state = self.board.obtener_estado_punto(entry_point)
+            
+            # Puede entrar si está vacío, tiene fichas propias, o tiene solo 1 ficha enemiga
+            if destination_state is None:
+                return True
+            
+            dest_color, dest_count = destination_state
+            if dest_color == player or dest_count == 1:
+                return True
+        
+        return False
+
+    def _can_move_from_board(self, player: str, available_moves: list) -> bool:
+        """
+        Verifica si el jugador puede mover alguna ficha del tablero.
+        
+        Principios SOLID:
+            - SRP: Valida únicamente movimientos desde tablero.
+            - DIP: Usa Board para obtener estado sin implementación interna.
+        """
+        for point_num in range(1, 25):
+            point_state = self.board.obtener_estado_punto(point_num)
+            
+            # Si el punto tiene fichas del jugador actual
+            if point_state and point_state[0] == player:
+                # Verificar si puede mover con alguno de los dados disponibles
+                for dice_value in set(available_moves):
+                    destination = self._calculate_destination(player, point_num, dice_value)
+                    
+                    # Verificar que el destino sea válido
+                    if 1 <= destination <= 24:
+                        if self._is_move_possible(destination, player):
+                            return True
+        
+        return False
+
+    def _is_move_possible(self, destination: int, player: str) -> bool:
+        """
+        Verifica si un destino específico es accesible para el jugador.
+        
+        Principios SOLID:
+            - SRP: Valida únicamente accesibilidad de destino.
+            - ISP: Método privado específico, no expuesto públicamente.
+        """
+        destination_state = self.board.obtener_estado_punto(destination)
+        
+        if destination_state is None:
+            return True
+        
+        dest_color, dest_count = destination_state
+        
+        # Accesible si: tiene fichas propias, o tiene solo 1 ficha enemiga (captura)
+        return dest_color == player or dest_count == 1
+
+    def _calculate_destination(self, player: str, origin: int, dice_value: int) -> int:
+        """
+        Calcula el punto de destino basado en el origen y el valor del dado.
+        
+        Principios SOLID:
+            - SRP: Cálculo puro de destino sin validación.
+            - ISP: Método privado específico.
+        """
+        if player == "negro":
+            return origin + dice_value
+        else:
+            return origin - dice_value
+
+    def _get_entry_point(self, player: str, dice_value: int) -> int:
+        """
+        Calcula el punto de entrada desde la barra.
+        
+        Principios SOLID:
+            - SRP: Cálculo específico de entrada desde barra.
+            - ISP: Método privado enfocado.
+        """
+        if player == "negro":
+            return dice_value
+        else:
+            return 25 - dice_value
+
+    def get_blocked_reason(self, player: str, available_moves: list) -> str:
+        """
+        Obtiene una descripción del por qué el jugador no puede mover.
+        
+        Principios SOLID:
+            - SRP: Genera descripción de bloqueo sin modificar estado.
+            - ISP: Método público específico para obtener razón.
+        """
+        if self.bar_manager.has_pieces_on_bar(player):
+            return ("No puedes entrar desde la barra. Todos los puntos de entrada "
+                   "están bloqueados por el oponente.")
+        else:
+            return ("No tienes movimientos válidos. Todas tus fichas están bloqueadas "
+                   "por el oponente.")
+
+
+class BarManager:
+    """
+    Gestiona la lógica de la barra central.
+    
+    Rol:
+        - Componente de estado que mantiene fichas capturadas.
+    
+    Principios SOLID:
+        - SRP: Solo gestiona estado de la barra, no reglas de movimiento.
+        - OCP: Operaciones nuevas pueden agregarse sin modificar existentes.
+        - Encapsulamiento: Protege estado interno mediante atributo privado.
+    """
+
+    def __init__(self):
+        """
+        Inicializa el gestor de barra.
+        
+        Principios SOLID:
+            - SRP: Solo inicializa el estado de la barra.
+            - Encapsulamiento: Usa atributo privado para proteger estado.
+        """
+        self.__bar_pieces__ = {"negro": 0, "blanco": 0}
+
+    def add_piece_to_bar(self, color: str) -> None:
+        """
+        Agrega una ficha a la barra.
+        
+        Principios SOLID:
+            - SRP: Única operación de agregar con validación.
+            - ISP: Método específico para agregar.
+        """
+        if color in self.__bar_pieces__:
+            self.__bar_pieces__[color] += 1
+        else:
+            raise ValueError(f"Color inválido: {color}")
+
+    def remove_piece_from_bar(self, color: str) -> bool:
+        """
+        Remueve una ficha de la barra.
+        
+        Principios SOLID:
+            - SRP: Única operación de remover con validación.
+            - ISP: Método específico para remover.
+        """
+        if color in self.__bar_pieces__ and self.__bar_pieces__[color] > 0:
+            self.__bar_pieces__[color] -= 1
+            return True
+        return False
+
+    def get_pieces_count(self, color: str) -> int:
+        """
+        Obtiene el número de fichas en la barra.
+        
+        Principios SOLID:
+            - SRP: Consulta pura sin modificar estado.
+            - ISP: Método mínimo de consulta.
+        """
+        return self.__bar_pieces__.get(color, 0)
+
+    def has_pieces_on_bar(self, color: str) -> bool:
+        """
+        Verifica si un jugador tiene fichas en la barra.
+        
+        Principios SOLID:
+            - SRP: Verificación específica de existencia.
+            - ISP: Método booleano específico.
+        """
+        return self.get_pieces_count(color) > 0
+
+    def get_bar_state(self) -> dict:
+        """
+        Obtiene el estado completo de la barra.
+        
+        Principios SOLID:
+            - SRP: Consulta de estado completo.
+            - Encapsulamiento: Retorna copia, no referencia interna.
+        """
+        return self.__bar_pieces__.copy()
+    
+    def load_status_dict(self, estado: dict) -> None:
+        """Carga el estado de la barra desde un diccionario."""
+        self.__bar_pieces__ = estado or {"negro": 0, "blanco": 0}
+
+class CaptureValidator:
+    """
+    Valida y determina capturas.
+    
+    Rol:
+        - Componente de validación de reglas de captura.
+    
+    Principios SOLID:
+        - SRP: Métodos estáticos que validan condiciones específicas.
+        - ISP: Interfaz mínima con dos métodos especializados.
+        - OCP: Nuevas reglas pueden agregarse sin modificar existentes.
+    """
+
+    @staticmethod
+    def can_capture_piece(destination_state: tuple, attacking_color: str) -> bool:
+        """
+        Determina si se puede capturar una ficha.
+        
+        Principios SOLID:
+            - SRP: Validación pura de condición de captura.
+            - ISP: Método específico sin efectos secundarios.
+        """
+        if destination_state is None:
+            return False
+        destination_color, destination_count = destination_state
+        return destination_color != attacking_color and destination_count == 1
+
+    @staticmethod
+    def is_move_blocked(destination_state: tuple, attacking_color: str) -> bool:
+        """
+        Determina si un movimiento está bloqueado.
+        
+        Principios SOLID:
+            - SRP: Validación específica de bloqueo.
+            - ISP: Método específico complementario a can_capture_piece.
+        """
+        if destination_state is None:
+            return False
+        destination_color, destination_count = destination_state
+        return destination_color != attacking_color and destination_count > 1
+
+
+class BarMovementRules:
+    """Define las reglas para movimientos desde la barra."""
+
+    @staticmethod
+    def get_entry_point(color: str, dice_value: int) -> int:
+        """Calcula el punto de entrada desde la barra."""
+        if color == "negro":
+            return dice_value
+        return 25 - dice_value
+
+    @staticmethod
+    def must_enter_from_bar_first(bar_manager: 'BarManager', color: str) -> bool:
+        """Determina si el jugador debe mover desde la barra."""
+        return bar_manager.has_pieces_on_bar(color)
+    
+class BearingOffValidator:
+    """
+    Valida y gestiona las reglas de bearing off (sacar fichas a casa).
+    
+    Rol:
+        - Componente especializado en validación de reglas de bearing off.
+    
+    Principios SOLID:
+        - SRP: Cada método valida un aspecto específico de bearing off.
+        - DIP: Depende de Board mediante inyección, no crea instancias.
+        - ISP: Métodos específicos para cada tipo de validación.
+    """
+
+    def __init__(self, board):
+        """
+        Inicializa el validador con su dependencia.
+        
+        Principios SOLID:
+            - DIP: Recibe Board por inyección.
+            - SRP: Solo inicializa referencia.
+        """
+        self.board = board
+
+    def can_bear_off(self, player: str) -> bool:
+        """
+        Verifica si un jugador puede empezar a sacar fichas.
+        Solo puede hacerlo si todas sus fichas están en su cuadrante casa.
+        
+        Principios SOLID:
+            - SRP: Valida únicamente condición de bearing off permitido.
+            - DIP: Usa Board sin conocer implementación interna.
+            - ISP: Método específico que retorna booleano.
+        """
+        if player == "negro":
+            home_quadrant = range(19, 25)  # 19-24 (último cuadrante)
+            other_points = range(1, 19)
+        else:  # blanco
+            home_quadrant = range(1, 7)  # 1-6 (último cuadrante)
+            other_points = range(7, 25)
+
+        for point in other_points:
+            state = self.board.obtener_estado_punto(point)
+            if state and state[0] == player:
+                return False
+        return True
+
+    def is_bearing_off_move(self, player: str, origin: int, destination: int) -> bool:
+        """
+        Determina si un movimiento es un intento de bearing off.
+        
+        Principios SOLID:
+            - SRP: Verifica únicamente si es intento de bearing off.
+            - ISP: Método específico sin efectos secundarios.
+        """
+        if player == "negro":
+            return destination > 24
+        else:  # blanco
+            return destination < 1
+
+    def validate_bearing_off_move(self, player: str, origin: int, 
+                                  dice_value: int) -> tuple[bool, str]:
+        """
+        Valida un movimiento de bearing off según las reglas.
+        
+        Reglas:
+        1. El jugador debe tener todas sus fichas en el cuadrante casa
+        2. El dado debe coincidir exactamente con la posición de la ficha
+        3. Si el dado es mayor y no hay fichas en posiciones superiores, es válido
+        
+        Principios SOLID:
+            - SRP: Valida reglas complejas de bearing off en un solo lugar.
+            - ISP: Retorna tupla específica (validez, mensaje).
+            - OCP: Reglas pueden extenderse sin modificar estructura.
+        """
+        # 1. Verificar que puede hacer bearing off
+        if not self.can_bear_off(player):
+            return False, "No puedes sacar fichas. Tienes fichas fuera del cuadrante casa."
+
+        # 2. Verificar que la ficha está en el cuadrante casa
+        if player == "negro":
+            home_quadrant = range(19, 25)
+            position = 25 - origin  # Distancia a la salida
+        else:
+            home_quadrant = range(1, 7)
+            position = origin  # Distancia a la salida
+
+        if origin not in home_quadrant:
+            return False, "La ficha no está en tu cuadrante casa."
+
+        # 3. Verificar reglas del dado
+        if dice_value == position:
+            # Dado exacto - siempre válido
+            return True, ""
+        elif dice_value > position:
+            # Dado mayor - solo válido si no hay fichas en posiciones superiores
+            if not self._has_pieces_in_higher_positions(player, origin):
+                return True, ""
+            else:
+                return False, f"Necesitas dado {position} o mover fichas superiores primero."
+        else:
+            # Dado menor - nunca válido para bearing off
+            return False, f"Necesitas al menos dado {position} para sacar esta ficha."
+
+    def _has_pieces_in_higher_positions(self, player: str, origin: int) -> bool:
+        """
+        Verifica si hay fichas en posiciones más altas que el origen.
+        
+        Principios SOLID:
+            - SRP: Verificación específica de posiciones superiores.
+            - ISP: Método privado enfocado.
+        """
+        if player == "negro":
+            # Negro (19-24): más alejado = menor número
+            higher_points = range(19, origin)
+        else:
+            # Blanco (1-6): más alejado = mayor número
+            higher_points = range(origin + 1, 7)
+
+        for point in higher_points:
+            state = self.board.obtener_estado_punto(point)
+            if state and state[0] == player:
+                return True
+
+        return False
+
+    def get_bearing_off_destination(self, player: str) -> int:
+        """
+        Obtiene el punto de destino ficticio para bearing off.
+        Usado para calcular movimientos fuera del tablero.
+        
+        Principios SOLID:
+            - SRP: Cálculo específico de destino ficticio.
+            - ISP: Método específico sin efectos secundarios.
+        """
+        return 25 if player == "negro" else 0
+
+class HomeManager:
+    """
+    Gestiona las fichas que han salido del tablero (en casa).
+    
+    Rol:
+        - Componente de estado que mantiene conteo de fichas en casa.
+    
+    Principios SOLID:
+        - SRP: Solo gestiona conteo de fichas en casa, no implementa bearing off.
+        - OCP: Operaciones nuevas pueden agregarse sin modificar existentes.
+        - Encapsulamiento: Protege estado interno mediante atributo privado.
+    """
+
+    def __init__(self):
+        """
+        Inicializa el gestor de casa.
+        
+        Principios SOLID:
+            - SRP: Solo inicializa el estado de casa.
+            - Encapsulamiento: Usa atributo privado.
+        """
+        self.__home_pieces__ = {"negro": 0, "blanco": 0}
+
+    def add_piece_to_home(self, color: str) -> None:
+        """
+        Agrega una ficha a casa.
+        
+        Principios SOLID:
+            - SRP: Única operación de agregar con validación.
+            - ISP: Método específico para agregar.
+        """
+        if color in self.__home_pieces__:
+            self.__home_pieces__[color] += 1
+        else:
+            raise ValueError(f"Color inválido: {color}")
+
+    def get_pieces_count(self, color: str) -> int:
+        """
+        Obtiene el número de fichas en casa.
+        
+        Principios SOLID:
+            - SRP: Consulta pura sin modificar estado.
+            - ISP: Método mínimo de consulta.
+        """
+        return self.__home_pieces__.get(color, 0)
+
+    def get_home_state(self) -> dict:
+        """
+        Obtiene el estado completo de casa.
+        
+        Principios SOLID:
+            - SRP: Consulta de estado completo.
+            - Encapsulamiento: Retorna copia, no referencia interna.
+        """
+        return self.__home_pieces__.copy()
+
+    def has_won(self, color: str) -> bool:
+        """
+        Verifica si un jugador ha ganado (15 fichas en casa).
+        
+        Principios SOLID:
+            - SRP: Verifica únicamente condición de victoria.
+            - ISP: Método booleano específico.
+        """
+        return self.__home_pieces__.get(color, 0) == 15
+    
+    def load_status_dict(self, estado: dict) -> None:
+        """Carga el estado de la casa desde un diccionario."""
+        self.__home_pieces__ = estado or {"negro": 0, "blanco": 0}
+    
 if __name__ == "__main__":
     game = PygameUI()
     game.run()

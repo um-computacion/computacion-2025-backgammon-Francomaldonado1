@@ -8,6 +8,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from Backgammon.Interfaces.PygameUI import *
 from Backgammon.Core.Board import Board
+from Backgammon.Persistence.RedisManager import RedisManager
 
 
 # --- CLASE BASE PARA TESTS DE LÓGICA Y DIBUJO ---
@@ -2831,6 +2832,7 @@ class TestPygameUICoverageExtension(unittest.TestCase):
 
         # Verificar que se llamó rect para los bordes highlight
         self.assertGreater(mock_rect.call_count, 2)
+
 
 if __name__ == "__main__":
     unittest.main()

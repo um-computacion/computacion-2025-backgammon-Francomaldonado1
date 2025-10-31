@@ -202,3 +202,30 @@ bien, me gusta, podrias enviarmelo como estaba en un archivo markdown utilizando
 BOT: (Me pasa el codigo actualizado)
 (Esta bien, hago commit)
 
+YO:
+
+Podrias ayudarme a hacer un archivo README.md con mi nombre: Franco Maldonado, y una explicación paso a paso de como debe ejecutarse el proyecto y sus tests si se quiere, osea seria algo como, 
+1: Crear un entorno virtual
+python3 -m venv venv
+Activar el entorno virtual
+source venv/bin/activate
+ #En Linux, en Windows ejecutar venv\Scripts\activate
+instalar dependencias dentro del entorno virtual
+pip install -r requirements.txt
+
+2: Ejecutar tests
+python3 -m unittest Backgammon/Tests/*.py
+o si queremos ejecutar los tests de un solo archivo
+python3 -m unittest Backgammon/Tests/Test_(archivo).py
+
+3: Ejecutar el juego en modo CLI (Terminal)
+python3 -m Backgammon.Interfaces.CLI
+
+ Ejecutar el juego en modo gráfico (Pygame)
+python3 -m Backgammon.Interfaces.PygameUI
+
+BOT: (Me pasa el codigo actualizado)
+
+YO: (Le agrego entradas del teclado utilizadas en PygameUI.py R, G y L para tirar dados, guardar y cargar partidas)
+(Hago commit)
+

@@ -443,6 +443,54 @@ class TestBoardFunctionality(unittest.TestCase):
         
         self.assertEqual(movimientos, [0])
 
+    # --- Tests de Serialización (Guardar/Cargar) ---
+    
+    def test_obtener_estado_dict(self):
+        """
+        Verifica que el estado del tablero se exporte a un diccionario correctamente.
+        SRP: Prueba la responsabilidad de exportar el estado interno.
+        """
+        # Configurar un estado conocido
+        self.tablero.colocar_ficha(1, "negro", 2)
+        self.tablero.enviar_a_barra("blanco")
+        self.tablero.sacar_ficha("negro")
+
+        # Llamar al método
+        estado = self.tablero.obtener_estado_dict()
+
+        # Verificar
+        self.assertIsInstance(estado, dict)
+        self.assertIn("puntos", estado)
+        self.assertIn("barra", estado)
+        self.assertIn("casa", estado)
+        
+        # Verificar contenido
+        self.assertEqual(estado["puntos"][0], ["negro", 2]) # Punto 1
+        self.assertEqual(estado["barra"], {"blanco": 1})
+        self.assertEqual(estado["casa"], {"negro": 1})
+
+    def test_cargar_estado_dict(self):
+        """
+        Verifica que el estado del tablero se cargue desde un diccionario.
+        SRP: Prueba la responsabilidad de importar y aplicar un estado.
+        """
+        # Estado de prueba
+        estado_falso = {
+            "puntos": [None] * 24,
+            "barra": {"blanco": 3},
+            "casa": {"negro": 5}
+        }
+        # Poner una ficha en el estado falso
+        estado_falso["puntos"][4] = ["negro", 4] # Punto 5
+
+        # Llamar al método
+        self.tablero.cargar_estado_dict(estado_falso)
+
+        # Verificar que el tablero se actualizó
+        self.assertEqual(self.tablero.get_barra(), {"blanco": 3})
+        self.assertEqual(self.tablero.get_casa(), {"negro": 5})
+        self.assertEqual(self.tablero.obtener_estado_punto(5), ["negro", 4])
+        self.assertIsNone(self.tablero.obtener_estado_punto(1)) # Verificar que otro punto está vacío
 
 class TestBoardCoverageCompletion(unittest.TestCase):
     """Tests adicionales para completar coverage de Board.py"""
