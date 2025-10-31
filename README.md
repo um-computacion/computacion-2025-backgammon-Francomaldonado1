@@ -109,7 +109,7 @@ source venv/bin/activate
 venv\Scripts\activate.bat
 ```
 
-#### Instalar las dependencias:
+### Instalar las dependencias:
 
 - Una vez activado el entorno, instala las librerías necesarias: 
 ```bash
@@ -127,7 +127,8 @@ pip install -r requirements.txt
 python3 -m Backgammon.Interfaces.CLI
 ```
 ## Botones para CLI:
-# R: Tirar dados
+
+### R: Tirar dados
 
 ### Ejecutar en modo GUI (Interfaz Gráfica)
 
@@ -136,13 +137,14 @@ python3 -m Backgammon.Interfaces.CLI
 python3 -m Backgammon.Interfaces.PygameUI
 ```
 ## Botones para PygameUI:
-# R: Tirar dados
-# G: Guardar partida
-# L: Cargar partida
+
+### R: Tirar dados
+### G: Guardar partida
+### L: Cargar partida
 
 ---
 
-## 🧪 Ejecutar Pruebas (Tests)
+## Ejecutar Pruebas (Tests)
 
 - Para verificar que todo funcione correctamente, puedes ejecutar las pruebas unitarias.
 
